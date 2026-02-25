@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fairway Duel v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1810;--bg2:#111f14;--bg3:#172b1a;
+  --bdr:rgba(255,255,255,0.07);--bdr2:rgba(201,168,76,0.25);
+  --gold:#c9a84c;--gold2:#e8c96e;--cream:#f0ebe0;
+  --gray:#7a8c7d;--gray2:#b0c0b3;
+  --blue:#3b82c4;--blue2:#7db8f0;--blueA:rgba(59,130,196,0.16);
+  --red:#b84040;--red2:#d96060;--redA:rgba(184,64,64,0.16);
+  --win:#27a34e;--win2:#4dd475;--warn:#e8a030;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--cream);font-family:'Instrument Sans',sans-serif;min-height:100vh;
+  background-image:radial-gradient(ellipse 130% 70% at 5% 0%,rgba(25,70,35,.28) 0%,transparent 55%),
+    radial-gradient(ellipse 80% 80% at 95% 100%,rgba(15,45,20,.3) 0%,transparent 55%)}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
+
+/* ── HEADER ── */
+header{background:linear-gradient(180deg,#091409,#0e1c11);border-bottom:1px solid var(--gold);position:sticky;top:0;z-index:300;box-shadow:0 2px 30px rgba(0,0,0,.8)}
+.hdr{max-width:1500px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:0 1.5rem;height:62px;flex-wrap:nowrap}
+.logo{font-family:'Abril Fatface',serif;font-size:1.45rem;color:var(--gold2);letter-spacing:1px;cursor:default;white-space:nowrap}
+.logo sub{color:var(--cream);font-style:normal;font-size:.8rem;opacity:.4;font-family:'Instrument Sans',sans-serif;vertical-align:middle;margin-left:4px}
+.tchip{background:rgba(201,168,76,.08);border:1px solid var(--bdr2);border-radius:4px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);line-height:1.8;min-width:0;overflow:hidden}
+.tchip strong{display:block;color:var(--gold2);font-size:.64rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tchip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+/* Deadline banner */
+.deadline-bar{background:rgba(232,160,48,.12);border:1px solid rgba(232,160,48,.35);border-radius:5px;
+  padding:5px 12px;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--warn);
+  display:flex;align-items:center;gap:6px;white-space:nowrap}
+.deadline-bar.locked{background:rgba(184,64,64,.12);border-color:rgba(184,64,64,.35);color:var(--red2)}
+.deadline-bar.plenty{background:rgba(39,163,78,.08);border-color:rgba(39,163,78,.25);color:var(--win2)}
+.deadline-bar .dl-icon{font-size:.9rem}
+.spacer{flex:1;min-width:8px}
+.wsel{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.3);border:1px solid var(--bdr);border-radius:6px;padding:3px 10px;flex-shrink:0}
+.wsel label{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px}
+.wsel select{background:transparent;border:none;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.66rem;outline:none;cursor:pointer;padding:2px;max-width:160px}
+.wsel select option{background:#111f14}
+.nav{display:flex;gap:2px;background:rgba(0,0,0,.4);padding:3px;border-radius:7px;flex-shrink:0}
+.nbtn{background:transparent;border:none;color:var(--gray);font-family:'JetBrains Mono',monospace;font-size:.64rem;text-transform:uppercase;letter-spacing:1px;padding:6px 13px;border-radius:5px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.nbtn.on{background:var(--gold);color:var(--bg);font-weight:600}
+.nbtn:hover:not(.on){color:var(--gold2);background:rgba(201,168,76,.1)}
+
+/* ── LAYOUT ── */
+.main{max-width:1500px;margin:0 auto;padding:1.5rem}
+.view{display:none}.view.on{display:block}
+.panel{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
+.ph{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--bdr);background:rgba(0,0,0,.18)}
+.ph-title{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--cream)}
+.ph-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.ph-sub{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.3px;padding:2px 7px;border-radius:3px}
+.chip-gold{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.chip-blue{background:var(--blueA);color:var(--blue2);border:1px solid rgba(59,130,196,.3)}
+.chip-red{background:var(--redA);color:var(--red2);border:1px solid rgba(184,64,64,.3)}
+.chip-green{background:rgba(39,163,78,.14);color:var(--win2);border:1px solid rgba(39,163,78,.3)}
+.chip-gray{background:rgba(120,140,120,.12);color:var(--gray2);border:1px solid rgba(120,140,120,.25)}
+.chip-warn{background:rgba(232,160,48,.1);color:var(--warn);border:1px solid rgba(232,160,48,.3)}
+
+/* ── DRAFT LAYOUT ── */
+.dlayout{display:grid;grid-template-columns:1fr 365px;gap:1.5rem;align-items:start}
+
+/* locked overlay */
+.locked-overlay{
+  position:relative;
+}
+.locked-overlay::after{
+  content:'🔒 DRAFT LOCKED — Tournament has started';
+  position:absolute;inset:0;
+  background:rgba(10,20,12,.88);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--red2);
+  letter-spacing:1px;text-transform:uppercase;
+  backdrop-filter:blur(2px);
+  z-index:10;border-radius:10px;
+  pointer-events:none;
+}
+.locked-overlay.active::after{display:flex;}
+
+/* Field table */
+.cbar{display:flex;gap:7px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bdr);background:rgba(0,0,0,.14);flex-wrap:wrap}
+.srch{flex:1;min-width:150px;background:rgba(0,0,0,.5);border:1px solid var(--bdr2);border-radius:5px;padding:7px 12px;color:var(--cream);font-family:'Instrument Sans',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s}
+.srch:focus{border-color:var(--gold)}.srch::placeholder{color:var(--gray)}
+.fbt{background:transparent;border:1px solid var(--bdr);color:var(--gray);font-family:'JetBrains Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;padding:5px 9px;border-radius:4px;cursor:pointer;transition:all .15s}
+.fbt:hover,.fbt.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08)}
+.fbt.fbt-d.on{border-color:#e07060;color:#e07060;background:rgba(192,57,43,.08)}
+.pt{width:100%;border-collapse:collapse;font-size:.81rem}
+.pt thead th{background:rgba(0,0,0,.28);font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px;padding:8px 12px;text-align:left;border-bottom:1px solid var(--bdr)}
+.pt thead th:first-child{text-align:center;width:36px}
+.pt thead th:last-child{text-align:right}
+.pt tbody tr{border-bottom:1px solid var(--bdr);transition:background .1s}
+.pt tbody tr:hover{background:rgba(201,168,76,.04)}
+.pt tbody tr.rA{background:var(--blueA)}.pt tbody tr.rA:hover{background:rgba(59,130,196,.22)}
+.pt tbody tr.rB{background:var(--redA)}.pt tbody tr.rB:hover{background:rgba(184,64,64,.22)}
+.pt tbody tr.rAB{background:linear-gradient(100deg,var(--blueA),var(--redA))}
+.pt td{padding:8px 12px;vertical-align:middle}
+.td-r{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gray);text-align:center}
+.td-n{font-weight:500}.td-n small{display:block;font-size:.6rem;color:var(--gray);margin-top:1px}
+.td-o{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--gold)}
+.tdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+.acts{display:flex;gap:4px;justify-content:flex-end}
+.ab{background:transparent;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:.57rem;text-transform:uppercase;padding:4px 9px;border-radius:3px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.ab-a{border-color:rgba(59,130,196,.5);color:var(--blue2)}.ab-a:not(:disabled):hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.ab-b{border-color:rgba(184,64,64,.5);color:var(--red2)}.ab-b:not(:disabled):hover{background:var(--red);color:#fff;border-color:var(--red)}
+.ab-r{border-color:rgba(255,255,255,.12);color:var(--gray)}.ab-r:hover{border-color:var(--red2);color:var(--red2)}
+.ab:disabled{opacity:.3;cursor:not-allowed}
+.pag{display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;border-top:1px solid var(--bdr)}
+.pbtn{background:transparent;border:1px solid var(--bdr);color:var(--gray);font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:4px 9px;border-radius:3px;cursor:pointer;transition:all .12s}
+.pbtn:hover,.pbtn.on{border-color:var(--gold);color:var(--gold)}
+.pi{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gray);padding:0 4px}
+
+/* Sidebar */
+.sidebar{position:sticky;top:78px;display:flex;flex-direction:column;gap:1rem}
+.db{border-radius:10px;border:1px solid;overflow:hidden}
+.db-a{border-color:rgba(59,130,196,.35)}.db-b{border-color:rgba(184,64,64,.35)}
+.dh{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid}
+.db-a .dh{background:linear-gradient(135deg,rgba(59,130,196,.18),rgba(59,130,196,.04));border-color:rgba(59,130,196,.18)}
+.db-b .dh{background:linear-gradient(135deg,rgba(184,64,64,.18),rgba(184,64,64,.04));border-color:rgba(184,64,64,.18)}
+.ddot{width:10px;height:10px;border-radius:50%;flex-shrink:0}.ddot-a{background:var(--blue)}.ddot-b{background:var(--red)}
+.dinp{flex:1;background:transparent;border:none;color:var(--cream);font-family:'DM Serif Display',serif;font-size:1rem;outline:none}
+.dinp::placeholder{color:var(--gray)}
+.dtly{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gray);margin-left:auto;white-space:nowrap}
+.dtly.warn{color:var(--warn)}.dtly.ok{color:var(--win2)}
+.plist{max-height:220px;overflow-y:auto;background:rgba(0,0,0,.12)}
+.prow{display:flex;align-items:center;gap:6px;padding:5px 14px;border-bottom:1px solid var(--bdr);font-size:.78rem;transition:background .1s}
+.prow:hover{background:rgba(255,255,255,.03)}
+.pr-n{flex:1;font-weight:500}.pr-o{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gold)}
+.pr-dt{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:#e07060;padding:1px 4px;border:1px solid rgba(192,57,43,.4);border-radius:2px;margin-left:2px}
+.pr-del{background:transparent;border:none;color:var(--gray);cursor:pointer;font-size:.82rem;padding:0 1px;line-height:1;transition:color .1s}
+.pr-del:hover{color:var(--red2)}
+.pempty{padding:14px;text-align:center;color:var(--gray);font-size:.78rem;font-style:italic}
+.dreqs{display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--bdr);background:rgba(0,0,0,.1);font-family:'JetBrains Mono',monospace;font-size:.58rem;flex-wrap:wrap}
+.dreq{display:flex;align-items:center;gap:4px;color:var(--gray)}
+.dreq.met{color:var(--win2)}.dreq.wrn{color:var(--warn)}
+
+/* Stableford ref */
+.sfref{background:rgba(0,0,0,.2);border:1px solid var(--bdr);border-radius:8px;padding:12px}
+.sft{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.sfg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.sfi{background:rgba(0,0,0,.25);border-radius:5px;padding:6px 4px;text-align:center}
+.sfp{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:600}
+.sfl{font-size:.6rem;color:var(--gray);margin-top:1px}
+.ctas{display:flex;gap:7px}
+.cta{flex:1;padding:10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all .2s;border:none;font-weight:600}
+.cta-g{background:var(--gold);color:var(--bg)}.cta-g:hover{background:var(--gold2)}.cta-g:disabled{opacity:.4;cursor:not-allowed}
+.cta-o{background:transparent;border:1px solid var(--bdr);color:var(--gray)}.cta-o:hover{border-color:var(--gold);color:var(--gold)}
+.cta-r{background:transparent;border:1px solid rgba(184,64,64,.3);color:var(--red2)}.cta-r:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ── LEADERBOARD ── */
+.lbhdr{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
+.lbttl{font-family:'Abril Fatface',serif;font-size:1.5rem;color:var(--gold2);letter-spacing:1px}
+.rbtn{background:transparent;border:1px solid var(--bdr2);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:.64rem;text-transform:uppercase;letter-spacing:1px;padding:7px 13px;border-radius:5px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.rbtn:hover{background:rgba(201,168,76,.1)}
+.rspin{display:inline-block}.spinning .rspin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.updlbl{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray)}
+.pre-note{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.22);border-radius:8px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--gold);display:flex;align-items:center;gap:8px;margin-bottom:1.5rem}
+.hero-row{display:grid;grid-template-columns:1fr 110px 1fr;gap:1rem;margin-bottom:1.5rem;align-items:center}
+.hcard{border-radius:12px;padding:1.4rem;border:1px solid;position:relative;overflow:hidden}
+.hcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.hc-a{background:linear-gradient(145deg,rgba(59,130,196,.16),rgba(10,20,14,.9));border-color:rgba(59,130,196,.32)}
+.hc-a::before{background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.hc-b{background:linear-gradient(145deg,rgba(184,64,64,.16),rgba(10,20,14,.9));border-color:rgba(184,64,64,.32)}
+.hc-b::before{background:linear-gradient(90deg,var(--red),var(--red2))}
+.hcard.winning{border-color:rgba(201,168,76,.6)!important;box-shadow:0 0 28px rgba(201,168,76,.14)}
+.hc-ldrtag{position:absolute;top:12px;right:12px;font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--gold);letter-spacing:1px;text-transform:uppercase;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);padding:2px 8px;border-radius:3px}
+.hc-name{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--cream);margin-bottom:4px}
+.hc-pts{font-family:'Abril Fatface',serif;font-size:2.8rem;line-height:1;margin:.3rem 0}
+.hc-pts-a{color:var(--blue2)}.hc-pts-b{color:var(--red2)}
+.hc-sub{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray);text-transform:uppercase;letter-spacing:2px}
+.hc-stats{display:flex;gap:1rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--bdr);flex-wrap:wrap}
+.hcs{text-align:center;flex:1}.hcs-v{font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:600;color:var(--gold)}
+.hcs-l{font-size:.56rem;color:var(--gray);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.vs-box{text-align:center}.vs-txt{font-family:'Abril Fatface',serif;font-size:1.55rem;color:var(--gold);opacity:.45}
+.vs-rec{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--gray2);margin-top:4px}
+
+/* Matchup rows */
+.mu-sh{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+.mu-stitle{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--cream)}
+.mu-sh-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lock-btn{background:var(--gold);color:var(--bg);border:none;font-family:'JetBrains Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:1px;padding:7px 16px;border-radius:5px;cursor:pointer;font-weight:600;transition:all .2s}
+.lock-btn:hover{background:var(--gold2)}.lock-btn:disabled{opacity:.4;cursor:not-allowed}
+.reshuffle-btn{background:transparent;border:1px solid var(--bdr);color:var(--gray);font-family:'JetBrains Mono',monospace;font-size:.58rem;text-transform:uppercase;padding:7px 11px;border-radius:5px;cursor:pointer;transition:all .15s}
+.reshuffle-btn:hover{border-color:var(--gold);color:var(--gold)}
+.locked-note{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--win2);background:rgba(39,163,78,.1);border:1px solid rgba(39,163,78,.28);padding:4px 12px;border-radius:4px}
+.mu-list{display:flex;flex-direction:column;gap:8px}
+.mu-row{display:grid;grid-template-columns:1fr 70px 1fr;gap:8px;align-items:stretch}
+.mc{border-radius:8px;border:1px solid var(--bdr);padding:10px 14px;display:flex;flex-direction:column;gap:3px;background:var(--bg2);transition:border-color .2s;position:relative;overflow:hidden}
+.mc::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;opacity:0;transition:opacity .2s}
+.mc-a::after{background:linear-gradient(180deg,var(--blue),var(--blue2))}.mc-b::after{background:linear-gradient(180deg,var(--red),var(--red2))}
+.mc.winner{border-color:rgba(39,163,78,.5)!important}.mc.winner::after{opacity:1;background:linear-gradient(180deg,var(--win),var(--win2))!important}
+.mc.loser{border-color:rgba(100,120,100,.18)!important;opacity:.72}
+.mc.tied{border-color:rgba(201,168,76,.32)!important}.mc.tied::after{opacity:1;background:linear-gradient(180deg,var(--gold),var(--gold2))!important}
+.mc.mccut{opacity:.7}
+.mc-pname{font-weight:600;font-size:.84rem}.mc-odds{font-family:'JetBrains Mono',monospace;font-size:.57rem;color:var(--gray)}
+.mc-score-row{display:flex;align-items:baseline;gap:6px;margin-top:3px}
+.mc-pts{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;color:var(--gold)}
+.mc-sub{font-family:'JetBrains Mono',monospace;font-size:.57rem;color:var(--gray)}
+.mc-tpar{font-family:'JetBrains Mono',monospace;font-size:.7rem}.mc-tpar.under{color:var(--red2)}.mc-tpar.over{color:var(--gray2)}.mc-tpar.even{color:var(--cream)}
+.mc-rounds{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.mc-rc{background:rgba(0,0,0,.28);border:1px solid var(--bdr);border-radius:3px;padding:2px 6px;font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--gray)}
+.mc-rc.has{color:var(--cream);border-color:rgba(255,255,255,.12)}
+.mc-holes{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.mh{font-family:'JetBrains Mono',monospace;font-size:.58rem;padding:2px 5px;border-radius:3px;border:1px solid}
+.mh-eagle{color:#e8c96e;border-color:rgba(232,201,110,.3);background:rgba(232,201,110,.08)}
+.mh-birdie{color:var(--win2);border-color:rgba(77,212,117,.3);background:rgba(77,212,117,.07)}
+.mh-par{color:var(--gray2);border-color:rgba(176,192,179,.2);background:rgba(176,192,179,.05)}
+.mh-bogey{color:var(--gray);border-color:rgba(122,140,125,.2);background:transparent}
+.mh-dbl{color:var(--red2);border-color:rgba(184,64,64,.3);background:rgba(184,64,64,.07)}
+.mh-worse{color:#c03040;border-color:rgba(192,48,64,.3);background:rgba(192,48,64,.08)}
+.mc-st{font-family:'JetBrains Mono',monospace;font-size:.57rem;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.st-pre{color:var(--gray)}.st-act{color:var(--win2)}.st-cut{color:var(--red2)}.st-done{color:var(--gold)}.st-wd{color:var(--gray)}
+.mu-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:.6rem}
+.mnum{color:var(--gray);font-size:.56rem}.vs-lbl{font-size:1.1rem;color:var(--gray);opacity:.5}
+.mres{font-weight:600;font-size:.68rem;text-align:center;padding:3px 6px;border-radius:3px;line-height:1.3}
+.mres-a{color:var(--blue2);background:rgba(59,130,196,.12);border:1px solid rgba(59,130,196,.25)}
+.mres-b{color:var(--red2);background:rgba(184,64,64,.12);border:1px solid rgba(184,64,64,.25)}
+.mres-t{color:var(--gold);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25)}
+.same-tag{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:3px;padding:3px 5px;font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--gold);text-align:center;line-height:1.4}
+.no-picks{text-align:center;padding:3rem;color:var(--gray)}.no-picks .icon{font-size:2.5rem;display:block;margin-bottom:.8rem}
+
+/* ── TOURNAMENT MANAGER VIEW ── */
+.tm-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.tm-form-section{display:flex;flex-direction:column;gap:1rem}
+.fm-group{display:flex;flex-direction:column;gap:5px}
+.fm-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px}
+.fm-inp{background:rgba(0,0,0,.5);border:1px solid var(--bdr2);border-radius:5px;padding:8px 12px;color:var(--cream);font-family:'Instrument Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;width:100%}
+.fm-inp:focus{border-color:var(--gold)}.fm-inp::placeholder{color:var(--gray)}
+.fm-inp-sm{padding:7px 10px;font-size:.82rem}
+.fm-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fm-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fm-ta{background:rgba(0,0,0,.5);border:1px solid var(--bdr2);border-radius:5px;padding:8px 12px;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.72rem;outline:none;width:100%;resize:vertical;min-height:160px;line-height:1.6;transition:border-color .2s}
+.fm-ta:focus{border-color:var(--gold)}
+.fm-hint{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--gray);line-height:1.6}
+.fm-hint strong{color:var(--gray2)}
+.add-tourn-btn{background:var(--gold);color:var(--bg);border:none;font-family:'JetBrains Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;padding:11px;border-radius:6px;cursor:pointer;font-weight:600;transition:all .2s;width:100%}
+.add-tourn-btn:hover{background:var(--gold2)}
+
+/* Tournament list */
+.tlist{display:flex;flex-direction:column;gap:8px}
+.tcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;transition:border-color .2s}
+.tcard:hover{border-color:var(--bdr2)}
+.tcard.active-tourn{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.04)}
+.tcard-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bdr)}
+.tcard-name{font-weight:600;font-size:.88rem;flex:1}
+.tcard-actions{display:flex;gap:5px}
+.tcard-body{padding:8px 14px;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--gray);line-height:2;display:grid;grid-template-columns:1fr 1fr;gap:0 1rem}
+.tcard-body span{color:var(--cream)}
+.tcard-del{background:transparent;border:1px solid rgba(184,64,64,.3);color:var(--red2);font-family:'JetBrains Mono',monospace;font-size:.56rem;text-transform:uppercase;padding:3px 9px;border-radius:3px;cursor:pointer;transition:all .12s}
+.tcard-del:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.tcard-sel{background:transparent;border:1px solid rgba(201,168,76,.3);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:.56rem;text-transform:uppercase;padding:3px 9px;border-radius:3px;cursor:pointer;transition:all .12s}
+.tcard-sel:hover{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.purse-note{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--gold);line-height:1.8}
+.purse-note strong{color:var(--gold2);display:block;margin-bottom:4px}
+
+/* Modal */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bdr2);border-radius:12px;padding:2rem;max-width:420px;width:90%;text-align:center}
+.modal h2{font-family:'DM Serif Display',serif;color:var(--gold2);font-size:1.3rem;margin-bottom:.8rem}
+.modal p{color:var(--cream);font-size:.85rem;line-height:1.6;margin-bottom:1.5rem}
+.macts{display:flex;gap:8px}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;z-index:500;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:11px 18px;font-size:.8rem;color:var(--cream);box-shadow:0 8px 30px rgba(0,0,0,.6);transform:translateY(70px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── SYNC BADGE (v4) ── */
+.sync-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:.58rem;cursor:pointer;transition:all .15s;border:1px solid;white-space:nowrap;flex-shrink:0}
+.sync-badge.linked{background:rgba(39,163,78,.12);border-color:rgba(39,163,78,.35);color:var(--win2)}
+.sync-badge.unlinked{background:rgba(59,130,196,.1);border-color:rgba(59,130,196,.3);color:var(--blue2)}
+.sync-badge:hover{opacity:.8}
+.sync-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.sync-badge.linked .sync-dot{background:var(--win2);box-shadow:0 0 5px var(--win2)}
+.sync-badge.unlinked .sync-dot{background:var(--blue2)}
+
+/* ── SHARE MODAL (v4) ── */
+.share-modal-body{text-align:left;display:flex;flex-direction:column;gap:1rem}
+.share-path{background:rgba(0,0,0,.25);border:1px solid var(--bdr);border-radius:7px;padding:1rem}
+.share-path h3{font-family:'DM Serif Display',serif;font-size:.95rem;color:var(--cream);margin-bottom:.4rem}
+.share-path p{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gray);line-height:1.7;margin-bottom:.6rem}
+.share-inp{background:rgba(0,0,0,.5);border:1px solid var(--bdr2);border-radius:5px;padding:7px 11px;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.78rem;outline:none;width:100%;transition:border-color .2s}
+.share-inp:focus{border-color:var(--gold)}.share-inp::placeholder{color:var(--gray)}
+.share-divider{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gray);position:relative}
+.share-divider::before,.share-divider::after{content:'absolute;top:50%;width:40%;height:1px;background:var(--bdr)'}
+.share-divider::before{left:0}.share-divider::after{right:0}
+.linked-info{background:rgba(39,163,78,.08);border:1px solid rgba(39,163,78,.25);border-radius:7px;padding:.9rem}
+.linked-info .bin-id{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--win2);word-break:break-all}
+.linked-info .bin-sub{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gray);margin-top:4px;line-height:1.6}
+.share-status{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--gold);min-height:1.2em;text-align:center}
+
+/* ── FETCH FIELD BUTTON (v4) ── */
+.fetch-field-btn{background:transparent;border:1px solid rgba(59,130,196,.4);color:var(--blue2);font-family:'JetBrains Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:3px;cursor:pointer;transition:all .12s}
+.fetch-field-btn:hover{background:rgba(59,130,196,.15);border-color:var(--blue2)}
+.fetch-field-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── SCHEDULE SYNC SECTION (v4) ── */
+.sync-schedule-bar{display:flex;align-items:center;gap:10px;background:rgba(59,130,196,.07);border:1px solid rgba(59,130,196,.25);border-radius:7px;padding:.8rem 1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.sync-schedule-bar p{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--gray2);flex:1;line-height:1.6}
+.sync-schedule-btn{background:var(--blue);color:#fff;border:none;font-family:'JetBrains Mono',monospace;font-size:.64rem;text-transform:uppercase;letter-spacing:.8px;padding:8px 16px;border-radius:5px;cursor:pointer;font-weight:600;transition:all .2s;white-space:nowrap}
+.sync-schedule-btn:hover{background:var(--blue2);color:var(--bg)}
+.sync-schedule-status{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--win2);width:100%}
+
+/* ── SHARED STATE BANNER (v4) ── */
+.shared-state-note{background:rgba(39,163,78,.07);border:1px solid rgba(39,163,78,.2);border-radius:6px;padding:.5rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--win2);display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+
+/* ── INSTRUCTIONS MODAL (v4) ── */
+.instr-modal{background:var(--bg2);border:1px solid var(--bdr2);border-radius:14px;width:90%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.8)}
+.instr-header{display:flex;align-items:flex-start;justify-content:space-between;padding:1.4rem 1.6rem 1.1rem;border-bottom:1px solid var(--bdr);background:linear-gradient(180deg,rgba(201,168,76,.06),transparent);flex-shrink:0}
+.instr-close{background:rgba(255,255,255,.06);border:1px solid var(--bdr);color:var(--gray);font-size:.9rem;width:28px;height:28px;border-radius:50%;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.instr-close:hover{background:rgba(184,64,64,.2);border-color:var(--red2);color:var(--red2)}
+.instr-body{overflow-y:auto;padding:1.4rem 1.6rem;display:flex;flex-direction:column;gap:1.2rem}
+.instr-body::-webkit-scrollbar{width:4px}.instr-body::-webkit-scrollbar-track{background:var(--bg)}.instr-body::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+.instr-section{border:1px solid var(--bdr);border-radius:9px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.7rem}
+.instr-section-once{border-color:rgba(59,130,196,.25);background:rgba(59,130,196,.03)}
+.instr-section-weekly{border-color:rgba(201,168,76,.2);background:rgba(201,168,76,.02)}
+.instr-section-draft{border-color:rgba(184,64,64,.2);background:rgba(184,64,64,.02)}
+.instr-section-live{border-color:rgba(39,163,78,.2);background:rgba(39,163,78,.02)}
+.instr-section-scoring{border-color:rgba(201,168,76,.2);background:rgba(201,168,76,.03)}
+.instr-section-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:1.8px;color:var(--gold);padding-bottom:.4rem;border-bottom:1px solid var(--bdr)}
+
+.instr-step{display:flex;gap:.9rem;align-items:flex-start}
+.instr-num{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:600;color:var(--gold);margin-top:1px}
+.instr-content{flex:1}
+.instr-title{font-weight:600;font-size:.88rem;color:var(--cream);margin-bottom:3px}
+.instr-desc{font-size:.8rem;color:var(--gray2);line-height:1.65}
+.instr-desc strong{color:var(--cream)}
+.instr-desc code{font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,.35);border:1px solid var(--bdr);border-radius:3px;padding:1px 5px;color:var(--gold)}
+
+.instr-scoring-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+@media(max-width:500px){.instr-scoring-grid{grid-template-columns:repeat(2,1fr)}}
+.instr-score-item{background:rgba(0,0,0,.25);border:1px solid var(--bdr);border-radius:6px;padding:7px 8px;display:flex;flex-direction:column;gap:2px}
+.instr-pts{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:600}
+.instr-hole{font-size:.62rem;color:var(--gray2)}
+
+.instr-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:.3rem}
+.instr-table th{font-family:'JetBrains Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:1px;color:var(--gray);padding:6px 10px;text-align:left;border-bottom:1px solid var(--bdr);background:rgba(0,0,0,.15)}
+.instr-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--gray2);line-height:1.5;vertical-align:top}
+.instr-table td:first-child{color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:.65rem;white-space:nowrap}
+.instr-table td:nth-child(2){color:var(--cream);font-weight:500;white-space:nowrap}
+.instr-table tr:last-child td{border-bottom:none}
+
+
+@media(max-width:1050px){.dlayout{grid-template-columns:1fr}.sidebar{position:static}.tm-layout{grid-template-columns:1fr}}
+@media(max-width:720px){.hero-row{grid-template-columns:1fr 1fr}.vs-box{display:none}.mu-row{grid-template-columns:1fr 52px 1fr}}
+@media(max-width:500px){.hero-row{grid-template-columns:1fr}.mu-row{grid-template-columns:1fr 42px 1fr}.hdr{height:auto;padding:.6rem 1rem;flex-wrap:wrap;gap:6px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="logo">Fairway Duel <sub>⛳</sub></div>
+    <div class="tchip">
+      <strong id="t-name">No tournament selected</strong>
+      <span id="t-dates">Go to Manage to add a tournament</span>
+    </div>
+    <div class="deadline-bar plenty" id="deadline-bar" style="display:none">
+      <span class="dl-icon">⏱</span>
+      <span id="deadline-txt">—</span>
+    </div>
+    <button class="sync-badge unlinked" id="sync-badge" onclick="openShareModal()" title="Share picks & scores with your opponent">
+      <span class="sync-dot"></span>
+      <span id="sync-badge-txt">Scores: Local</span>
+    </button>
+    <div class="spacer"></div>
+    <div class="wsel">
+      <label>Week</label>
+      <select id="wsel" onchange="switchWeek()">
+        <option value="">— select —</option>
+      </select>
+    </div>
+    <nav class="nav">
+      <button class="nbtn on" onclick="showTab('draft')">Draft</button>
+      <button class="nbtn" onclick="showTab('lb')">Leaderboard</button>
+      <button class="nbtn" onclick="showTab('manage')">⚙ Manage</button>
+      <button class="nbtn" onclick="openInstructions()" style="color:var(--gold);opacity:.8">? How to Play</button>
+    </nav>
+  </div>
+</header>
+
+<div class="main">
+
+<div id="view-draft" class="view on">
+  <div id="draft-locked-msg" style="display:none;margin-bottom:1rem">
+    <div style="background:rgba(184,64,64,.12);border:1px solid rgba(184,64,64,.35);border-radius:8px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--red2);display:flex;align-items:center;gap:8px">
+      🔒 &nbsp;<strong>DRAFT LOCKED</strong> — Tournament has started. Picks are frozen.
+    </div>
+  </div>
+  <div class="dlayout" id="draft-content">
+    <div class="panel" id="field-panel">
+      <div class="ph">
+        <span class="ph-title" id="fp-title">Field</span>
+        <div class="ph-right"><span class="ph-sub" id="fp-sub"></span></div>
+      </div>
+      <div class="cbar">
+        <input class="srch" type="text" id="srch" placeholder="Search player…" oninput="filterPlayers()">
+        <button class="fbt on" data-tier="all" onclick="setTier(this,'all')">All</button>
+        <button class="fbt" data-tier="fav" onclick="setTier(this,'fav')">Favorites</button>
+        <button class="fbt" data-tier="cont" onclick="setTier(this,'cont')">Contenders</button>
+        <button class="fbt" data-tier="long" onclick="setTier(this,'long')">Longshots</button>
+        <button class="fbt fbt-d" data-tier="deep" onclick="setTier(this,'deep')">★ Deep (req.)</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="pt"><thead><tr>
+          <th>#</th><th>Player</th><th>Odds</th><th>Tier</th><th style="text-align:right">Add to Lineup</th>
+        </tr></thead><tbody id="ptbody"></tbody></table>
+      </div>
+      <div class="pag" id="pag"></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="db db-a">
+        <div class="dh"><div class="ddot ddot-a"></div>
+          <input class="dinp" id="name-a" value="Player A" placeholder="Name…" oninput="save()">
+          <span class="dtly" id="tly-a">0/20</span>
+        </div>
+        <div class="plist" id="pl-a"><div class="pempty">No picks yet</div></div>
+        <div class="dreqs" id="req-a"></div>
+      </div>
+      <div class="db db-b">
+        <div class="dh"><div class="ddot ddot-b"></div>
+          <input class="dinp" id="name-b" value="Player B" placeholder="Name…" oninput="save()">
+          <span class="dtly" id="tly-b">0/20</span>
+        </div>
+        <div class="plist" id="pl-b"><div class="pempty">No picks yet</div></div>
+        <div class="dreqs" id="req-b"></div>
+      </div>
+      <div class="sfref">
+        <div class="sft">Modified Stableford Scoring</div>
+        <div class="sfg">
+          <div class="sfi"><div class="sfp" style="color:var(--gold2)">+5</div><div class="sfl">🦅 Eagle</div></div>
+          <div class="sfi"><div class="sfp" style="color:var(--gold)">+3</div><div class="sfl">🐦 Birdie</div></div>
+          <div class="sfi"><div class="sfp" style="color:var(--gray2)">+1</div><div class="sfl">— Par</div></div>
+          <div class="sfi"><div class="sfp" style="color:var(--gray)">0</div><div class="sfl">☁ Bogey</div></div>
+          <div class="sfi"><div class="sfp" style="color:var(--red2)">−2</div><div class="sfl">⛈ Dbl+</div></div>
+          <div class="sfi"><div class="sfp" style="color:var(--gray);font-size:.65rem">R1+R2</div><div class="sfl">✂ MC only</div></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--gray);margin-top:8px;line-height:1.6">
+          MC players earn points only from R1–R2. A missed-cut 64-67 can still beat a made-cut collapse.
+        </div>
+      </div>
+      <div class="ctas">
+        <button class="cta cta-g" onclick="goLb()">View Leaderboard →</button>
+        <button class="cta cta-o" onclick="openResetModal()">Reset Week</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="view-lb" class="view">
+  <div class="lbhdr">
+    <div class="lbttl">Leaderboard</div>
+    <button class="rbtn" id="rbtn" onclick="fetchScores()"><span class="rspin">↻</span> Refresh ESPN Scores</button>
+    <button class="rbtn" id="pull-btn" onclick="pullFromBin()" style="border-color:rgba(39,163,78,.35);color:var(--win2)" title="Pull latest picks, matchups & scores from shared bin">⬇ Pull from Bin</button>
+    <span class="updlbl" id="upd"></span>
+  </div>
+  <div id="prenote" class="pre-note" style="display:none">⏱ &nbsp;Tournament hasn't started yet. Matchup pairings shown below — scores will populate once play begins.</div>
+  <div class="hero-row">
+    <div class="hcard hc-a" id="hc-a">
+      <div class="hc-name" id="hcn-a">Player A</div>
+      <div class="hc-pts hc-pts-a" id="hcw-a">—</div>
+      <div class="hc-sub">Matchup Wins</div>
+      <div class="hc-stats" id="hcs-a"></div>
+    </div>
+    <div class="vs-box"><div class="vs-txt">VS</div><div class="vs-rec" id="vs-rec"></div></div>
+    <div class="hcard hc-b" id="hc-b">
+      <div class="hc-name" id="hcn-b">Player B</div>
+      <div class="hc-pts hc-pts-b" id="hcw-b">—</div>
+      <div class="hc-sub">Matchup Wins</div>
+      <div class="hc-stats" id="hcs-b"></div>
+    </div>
+  </div>
+  <div class="mu-sh">
+    <div class="mu-stitle">Head-to-Head Matchups</div>
+    <div class="mu-sh-right" id="mu-actions"></div>
+  </div>
+  <div id="mu-list" class="mu-list"></div>
+</div>
+
+<div id="view-manage" class="view">
+  <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:10px">
+    <div style="font-family:'Abril Fatface',serif;font-size:1.5rem;color:var(--gold2);letter-spacing:1px">Tournament Manager</div>
+  </div>
+
+  <div class="sync-schedule-bar">
+    <p>⛳ &nbsp;Pre-loaded with verified 2026 PGA Tour schedule. Click to merge any missing tournaments into your list (won't overwrite existing).</p>
+    <button class="sync-schedule-btn" onclick="syncSchedule()">↻ Sync 2026 Schedule</button>
+    <div class="sync-schedule-status" id="sync-schedule-status"></div>
+  </div>
+
+  <div class="purse-note" style="margin-bottom:1.5rem">
+    <strong>⛳ Highest-Purse Rule</strong>
+    When two PGA Tour events run concurrently (e.g. Arnold Palmer Inv. + Puerto Rico Open), the app will automatically highlight the higher-purse event. Simply enter both and mark the one you want to play — or use the "Higher Purse" indicator as your guide. The 2026 schedule is pre-loaded; add future tournaments as they're announced.
+  </div>
+
+  <div class="tm-layout">
+    <div>
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Add Tournament</span></div>
+        <div style="padding:1.2rem;display:flex;flex-direction:column;gap:1rem">
+          <div class="fm-group">
+            <div class="fm-label">Tournament Name</div>
+            <input class="fm-inp" id="fm-name" placeholder="e.g. Arnold Palmer Invitational pres. by Mastercard">
+          </div>
+          <div class="fm-row">
+            <div class="fm-group">
+              <div class="fm-label">Venue / Course</div>
+              <input class="fm-inp fm-inp-sm" id="fm-venue" placeholder="e.g. Bay Hill Club · Orlando, FL">
+            </div>
+            <div class="fm-group">
+              <div class="fm-label">Par</div>
+              <input class="fm-inp fm-inp-sm" id="fm-par" type="number" min="68" max="74" value="72">
+            </div>
+          </div>
+          <div class="fm-row">
+            <div class="fm-group">
+              <div class="fm-label">Purse (Total, $M)</div>
+              <input class="fm-inp fm-inp-sm" id="fm-purse" type="number" step="0.1" min="1" placeholder="e.g. 20">
+            </div>
+            <div class="fm-group">
+              <div class="fm-label">Timezone</div>
+              <select class="fm-inp fm-inp-sm" id="fm-tz">
+                <option value="America/New_York">Eastern (ET)</option>
+                <option value="America/Chicago">Central (CT)</option>
+                <option value="America/Denver">Mountain (MT)</option>
+                <option value="America/Los_Angeles">Pacific (PT)</option>
+                <option value="America/Honolulu">Hawaii (HT)</option>
+                <option value="Europe/London">UK (GMT/BST)</option>
+                <option value="Europe/Paris">Central Europe (CET)</option>
+              </select>
+            </div>
+          </div>
+          <div class="fm-row">
+            <div class="fm-group">
+              <div class="fm-label">First Tee Time (Round 1)</div>
+              <input class="fm-inp fm-inp-sm" id="fm-tee" type="datetime-local" title="Local time at the course — deadline auto-sets to 1 hour before this">
+              <div class="fm-hint" style="margin-top:4px">Deadline = 1 hour before this. Use <strong>local course time</strong>.</div>
+            </div>
+            <div class="fm-group">
+              <div class="fm-label">Tournament End Date</div>
+              <input class="fm-inp fm-inp-sm" id="fm-end" type="date">
+            </div>
+          </div>
+          <div class="fm-group">
+            <div class="fm-label">ESPN Tournament ID</div>
+            <input class="fm-inp fm-inp-sm" id="fm-espnid" placeholder="e.g. 401811934 (from espn.com/golf/leaderboard?tournamentId=…)">
+            <div class="fm-hint" style="margin-top:4px">Find it in the ESPN leaderboard URL. Used for live score fetching. Leave blank to set later.</div>
+          </div>
+          <div class="fm-group">
+            <div class="fm-label">Player Field (one per line: <strong>Name, Odds</strong>)</div>
+            <textarea class="fm-ta" id="fm-field" placeholder="Shane Lowry, +1900
+Rasmus Hojgaard, +2200
+Ryan Gerard, +2400
+Brooks Koepka, +2800
+...
+Justin Hicks, +350000"></textarea>
+            <div class="fm-hint" style="margin-top:5px">
+              Format: <strong>Player Name, +Odds</strong> (one per line). Odds like +1900, +35000, N/A, or WD. Players are auto-sorted by odds. Bottom 1/3 (≥3 required per team) is computed automatically.
+            </div>
+          </div>
+          <button class="add-tourn-btn" onclick="addTournament()">+ Add Tournament</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="ph">
+          <span class="ph-title">Saved Tournaments</span>
+          <div class="ph-right"><span class="ph-sub" id="tourn-count-sub"></span></div>
+        </div>
+        <div style="padding:1rem;display:flex;flex-direction:column;gap:8px" id="tlist"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><div class="modal-ov" id="rst-modal">
+  <div class="modal">
+    <h2>Reset This Week?</h2>
+    <p>All picks and matchups for this tournament will be cleared. Player names are kept.</p>
+    <div class="macts">
+      <button class="cta cta-g" onclick="confirmReset()">Yes, reset</button>
+      <button class="cta cta-o" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="del-modal">
+  <div class="modal">
+    <h2>Delete Tournament?</h2>
+    <p id="del-modal-p">This will remove the tournament and all associated picks/matchups permanently.</p>
+    <div class="macts">
+      <button class="cta cta-r" onclick="confirmDelTournament()">Delete</button>
+      <button class="cta cta-o" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="share-modal">
+  <div class="modal" style="max-width:520px;text-align:left">
+    <h2 style="margin-bottom:.3rem">⛓ Share This Duel</h2>
+    <p style="font-size:.75rem;color:var(--gray);margin-bottom:1.2rem;line-height:1.6">Link a JSONBin to share picks, matchups, and live scores across devices. Both players see the same data.</p>
+    <div class="share-modal-body" id="share-modal-body">
+      </div>
+    <div class="share-status" id="share-status"></div>
+    <div class="macts" style="margin-top:1.2rem">
+      <button class="cta cta-o" onclick="closeModal()">Close</button>
+      <button class="cta cta-r" id="unlink-btn" onclick="unlinkBin()" style="display:none">Unlink Bin</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="instructions-modal" onclick="closeInstructionsOnBg(event)">
+  <div class="instr-modal">
+    <div class="instr-header">
+      <div>
+        <div style="font-family:'Abril Fatface',serif;font-size:1.4rem;color:var(--gold2);letter-spacing:1px">How to Play Fairway Duel</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gray);margin-top:3px;text-transform:uppercase;letter-spacing:1.5px">Complete setup & weekly guide</div>
+      </div>
+      <button class="instr-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="instr-body">
+
+      <div class="instr-section instr-section-once">
+        <div class="instr-section-label">One-Time Setup</div>
+
+        <div class="instr-step">
+          <div class="instr-num">1</div>
+          <div class="instr-content">
+            <div class="instr-title">Create a free JSONBin account</div>
+            <div class="instr-desc">Go to <strong>jsonbin.io</strong> and create a free account. Once logged in, click <strong>+ Create Bin</strong>. You don't need to put anything in it; just save it to generate a new Bin ID.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">2</div>
+          <div class="instr-content">
+            <div class="instr-title">Get your API Key and link the bin</div>
+            <div class="instr-desc">On jsonbin.io, click your <strong>profile icon → API Keys</strong> and copy your <strong>Secret Key</strong> (starts with <code>$2b$</code>). Also copy the <strong>Bin ID</strong> from the bin you just created. Click the <strong>⛓ Scores: Local</strong> badge in the app header, paste both into the boxes, and click <strong>Connect & Sync</strong>. The badge turns green.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">3</div>
+          <div class="instr-content">
+            <div class="instr-title">Send your friend the link, Bin ID, and API Key</div>
+            <div class="instr-desc">Text or email him three things: the link to this website, your Bin ID, and your JSONBin Secret Key. He opens the website, clicks the same badge, pastes the Secret Key and Bin ID, and clicks <strong>Connect & Sync</strong>. You're connected — you only do this once.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instr-section instr-section-weekly">
+        <div class="instr-section-label">Each Tournament — A Few Days Before</div>
+
+        <div class="instr-step">
+          <div class="instr-num">4</div>
+          <div class="instr-content">
+            <div class="instr-title">Select the tournament</div>
+            <div class="instr-desc">Go to <strong>⚙ Manage</strong>. If the upcoming event isn't listed yet, click <strong>↻ Sync 2026 Schedule</strong> to pull it in. Then click <strong>Select</strong> on the tournament you're playing that week.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">5</div>
+          <div class="instr-content">
+            <div class="instr-title">Fetch the field from ESPN</div>
+            <div class="instr-desc">On the tournament card, click <strong>⬇ Fetch Field</strong>. This pulls the real player list and odds directly from ESPN. If it says "field not available yet," check back the day before — ESPN usually publishes it 2–3 days out.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">6</div>
+          <div class="instr-content">
+            <div class="instr-title">Your friend syncs automatically</div>
+            <div class="instr-desc">Once the field is loaded and the tournament is selected, that state pushes to the bin. Your friend clicks <strong>⬇ Pull from Bin</strong> on the Leaderboard tab to see the same tournament and field.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instr-section instr-section-draft">
+        <div class="instr-section-label">Draft Day — Day Before or Morning of Round 1</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--warn);margin-bottom:12px;">⚠ The draft locks automatically 1 hour before the first tee time. Finish before then.</div>
+
+        <div class="instr-step">
+          <div class="instr-num">7</div>
+          <div class="instr-content">
+            <div class="instr-title">Player A drafts 20 picks</div>
+            <div class="instr-desc">Go to the <strong>Draft</strong> tab. Click <strong>+ [your name]</strong> next to each player. You need exactly <strong>20 picks</strong>, including at least <strong>3 ★ Deep picks</strong> (bottom third of the field by odds — marked with a star). Your picks push to the bin automatically as you go.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">8</div>
+          <div class="instr-content">
+            <div class="instr-title">Player B drafts 20 picks</div>
+            <div class="instr-desc">Your friend does the same on his end — 20 players, at least 3 deep ★. His picks push to the bin in real time. You can click <strong>⬇ Pull from Bin</strong> to watch his team take shape.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">9</div>
+          <div class="instr-content">
+            <div class="instr-title">Generate and lock matchups</div>
+            <div class="instr-desc">Once both rosters are complete (20/20), go to <strong>Leaderboard</strong> and click <strong>🎲 Randomize & Lock Matchups</strong>. The app randomly pairs each of your 20 players against one of his. Click <strong>🔒 Lock Matchups</strong> to freeze the pairings — this pushes to the bin so you both see the same 20 head-to-heads.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instr-section instr-section-live">
+        <div class="instr-section-label">During the Tournament — Thursday through Sunday</div>
+
+        <div class="instr-step">
+          <div class="instr-num">10</div>
+          <div class="instr-content">
+            <div class="instr-title">Refresh scores (either player)</div>
+            <div class="instr-desc">Either of you can click <strong>↻ Refresh ESPN Scores</strong> at any point. This fetches live hole-by-hole data from ESPN, calculates Stableford points for all 40 picked players, and writes everything to the bin. The other player clicks <strong>⬇ Pull from Bin</strong> to instantly see the updated leaderboard.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">11</div>
+          <div class="instr-content">
+            <div class="instr-title">Check standings anytime</div>
+            <div class="instr-desc">The Leaderboard tab shows the hero scoreboard (wins / ties / losses) plus all 20 individual matchups with each player's Stableford points, round scores, and status. Winners glow green, losers fade, ties go gold.</div>
+          </div>
+        </div>
+
+        <div class="instr-step">
+          <div class="instr-num">12</div>
+          <div class="instr-content">
+            <div class="instr-title">Sunday finish</div>
+            <div class="instr-desc">After the final round, do one last <strong>↻ Refresh ESPN Scores</strong> to lock in the final Stableford points. The player with more matchup wins is the champion for the week.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instr-section instr-section-scoring">
+        <div class="instr-section-label">Scoring Reference — Modified Stableford</div>
+        <div class="instr-scoring-grid">
+          <div class="instr-score-item" style="color:var(--gold2)"><span class="instr-pts">+8</span><span class="instr-hole">🦅 Albatross</span></div>
+          <div class="instr-score-item" style="color:var(--gold2)"><span class="instr-pts">+5</span><span class="instr-hole">🦅 Eagle</span></div>
+          <div class="instr-score-item" style="color:var(--win2)"><span class="instr-pts">+3</span><span class="instr-hole">🐦 Birdie</span></div>
+          <div class="instr-score-item" style="color:var(--gray2)"><span class="instr-pts">+1</span><span class="instr-hole">— Par</span></div>
+          <div class="instr-score-item" style="color:var(--gray)"><span class="instr-pts">0</span><span class="instr-hole">☁ Bogey</span></div>
+          <div class="instr-score-item" style="color:var(--red2)"><span class="instr-pts">−2</span><span class="instr-hole">⛈ Double+</span></div>
+          <div class="instr-score-item" style="color:#c03040"><span class="instr-pts">−3</span><span class="instr-hole">💀 Triple+</span></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gray);line-height:1.8;margin-top:10px;">
+          <div>✂ <strong style="color:var(--gray2)">Missed cut players</strong> only earn points from R1 + R2 holes. R3/R4 count as zero.</div>
+          <div>🔒 <strong style="color:var(--gray2)">Minimum total</strong> is 0 pts — a player can't go negative overall.</div>
+          <div>⭐ <strong style="color:var(--gray2)">Deep picks (★)</strong> are players in the bottom ⅓ of the field by pre-tournament odds. At least 3 required per team.</div>
+        </div>
+      </div>
+
+      <div class="instr-section" style="border-color:rgba(39,163,78,.2);background:rgba(39,163,78,.04)">
+        <div class="instr-section-label" style="color:var(--win2)">Quick Reference</div>
+        <table class="instr-table">
+          <tr><th>When</th><th>Who</th><th>Action</th></tr>
+          <tr><td>Once ever</td><td>You</td><td>Create JSONBin → link in app → send file + ID to friend</td></tr>
+          <tr><td>Week of tournament</td><td>You</td><td>Sync Schedule → Select tournament → Fetch Field</td></tr>
+          <tr><td>Day before R1</td><td>Both</td><td>Draft 20 picks (≥3 deep ★ each)</td></tr>
+          <tr><td>After both draft</td><td>You</td><td>Randomize & Lock Matchups</td></tr>
+          <tr><td>Thu–Sun</td><td>Either</td><td>Refresh ESPN Scores → other player pulls from bin</td></tr>
+          <tr><td>Sunday night</td><td>Either</td><td>Final refresh → declare champion</td></tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+const PICKS_MAX = 20, DEEP_MIN = 3;
+const STORE_KEY = 'fd3-tournaments';
+const NAMES_KEY = 'fd3-names';
+const ACTIVE_KEY = 'fd3-active';
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function oNum(o){if(!o||o==='WD'||o==='N/A') return 9999999; return parseInt(String(o).replace(/[^0-9]/g,''))||9999999;}
+function deepThresh(field){
+  const elig=field.filter(p=>p.o!=='WD'&&p.o!=='N/A').sort((a,b)=>oNum(a.o)-oNum(b.o));
+  const idx=Math.ceil(elig.length*2/3);
+  return elig[idx]?oNum(elig[idx].o):17000;
+}
+function isDeep(o,thresh){return oNum(o)>=thresh;}
+function tier(o){const n=oNum(o);if(n<=2500)return'fav';if(n<=5999)return'cont';if(n<=11999)return'long';return'deep';}
+const TC={fav:'#e74c3c',cont:'#f39c12',long:'#27ae60',deep:'#7a8c7d'};
+const TL={fav:'Favorite',cont:'Contender',long:'Longshot',deep:'Deep'};
+
+function ftp(v){if(v===null||v===undefined)return'—';if(v===0)return'E';return v>0?`+${v}`:`${v}`;}
+function esc(s){return String(s).replace(/'/g,"\\'");}
+function fmt$(n){return n>=1?`$${n}M`:`$${(n*1000).toFixed(0)}K`;}
+
+// Seeded RNG
+function mkRNG(seed){let s=seed%2147483647;if(s<=0)s+=2147483646;return()=>{s=s*16807%2147483647;return(s-1)/2147483646;};}
+
+// ═══════════════════════════════════════════════════════
+// STORAGE  (tournament list + per-tournament state)
+// ═══════════════════════════════════════════════════════
+function loadTournaments(){
+  try{return JSON.parse(localStorage.getItem(STORE_KEY)||'null')||getDefaultTournaments();}
+  catch(e){return getDefaultTournaments();}
+}
+function saveTournaments(list){localStorage.setItem(STORE_KEY,JSON.stringify(list));}
+function loadNames(){
+  try{return JSON.parse(localStorage.getItem(NAMES_KEY)||'null')||{nameA:'Player A',nameB:'Player B'};}
+  catch(e){return{nameA:'Player A',nameB:'Player B'};}
+}
+function saveNames(){localStorage.setItem(NAMES_KEY,JSON.stringify({nameA:document.getElementById('name-a').value||'Player A',nameB:document.getElementById('name-b').value||'Player B'}));}
+function getActiveId(){return localStorage.getItem(ACTIVE_KEY)||'';}
+function setActiveId(id){localStorage.setItem(ACTIVE_KEY,id);}
+function wKey(id){return`fd3-wk-${id}`;}
+function loadWS(id){try{return JSON.parse(localStorage.getItem(wKey(id))||'null')||mkEmpty();}catch(e){return mkEmpty();}}
+function saveWS(){if(activeTId) localStorage.setItem(wKey(activeTId),JSON.stringify(WS));}
+function mkEmpty(){return{picksA:[],picksB:[],matchups:null,locked:false};}
+function deleteWS(id){localStorage.removeItem(wKey(id));}
+
+// ═══════════════════════════════════════════════════════
+// PRE-LOADED 2026 SCHEDULE
+// Purses sourced from published PGA Tour data (BetMGM/SI/GolfNewsNet, Feb 2026)
+// Concurrent weeks: Arnold Palmer vs Puerto Rico ($20M vs ~$4M), 
+//   Genesis Scottish Open vs ISCO (~$9M vs ~$4M), Jul 9-12
+// ═══════════════════════════════════════════════════════
+function getDefaultTournaments(){
+  return [
+    {
+      id:'cog2026',
+      name:'Cognizant Classic in The Palm Beaches',
+      venue:'PGA National · Palm Beach Gardens, FL',
+      par:71, purse:9.6,
+      espnId:'401811934',
+      tz:'America/New_York',
+      // First tee time Thu Feb 26 2026 ~7:05 AM ET (typical PGA National R1 first group)
+      // Deadline = 1hr before = 6:05 AM ET
+      teeTimeISO:'2026-02-26T07:05:00',
+      endDate:'2026-03-01',
+      field:[
+        {n:"Shane Lowry",o:"+1900"},{n:"Rasmus Hojgaard",o:"+2200"},
+        {n:"Ryan Gerard",o:"+2400"},{n:"Nicolai Hojgaard",o:"+2400"},
+        {n:"Michael Thorbjornsen",o:"+2600"},{n:"Keith Mitchell",o:"+2600"},
+        {n:"Brooks Koepka",o:"+2800"},{n:"Daniel Berger",o:"+3300"},
+        {n:"Rasmus Neergaard-Petersen",o:"+3400"},{n:"Davis Thompson",o:"+3400"},
+        {n:"Thorbjorn Olesen",o:"+3600"},{n:"Aaron Rai",o:"+3700"},
+        {n:"Will Zalatoris",o:"+3800"},{n:"Christiaan Bezuidenhout",o:"+4000"},
+        {n:"Alex Smalley",o:"+4000"},{n:"Max Homa",o:"+4100"},
+        {n:"Kristoffer Reitan",o:"+4100"},{n:"Haotong Li",o:"+4200"},
+        {n:"Mac Meissner",o:"+4600"},{n:"Stephan Jaeger",o:"+4700"},
+        {n:"Chris Kirk",o:"+4700"},{n:"Rico Hoey",o:"+4700"},
+        {n:"Max McGreevy",o:"+4900"},{n:"Jordan Smith",o:"+5200"},
+        {n:"John Keefer",o:"+5300"},{n:"Mackenzie Hughes",o:"+5600"},
+        {n:"Ricky Castillo",o:"+5700"},{n:"John Parry",o:"+5700"},
+        {n:"Sami Valimaki",o:"+5900"},{n:"Matt Wallace",o:"+6000"},
+        {n:"Seamus Power",o:"+6100"},{n:"Kevin Yu",o:"+6100"},
+        {n:"Garrick Higgo",o:"+6300"},{n:"Nicolas Echavarria",o:"+6400"},
+        {n:"Michael Brennan",o:"+6500"},{n:"Doug Ghim",o:"+6800"},
+        {n:"Vince Whaley",o:"+6800"},{n:"Tom Kim",o:"+6900"},
+        {n:"Jesper Svensson",o:"+7000"},{n:"Eric Cole",o:"+7000"},
+        {n:"Daniel Brown",o:"+7200"},{n:"Kris Ventura",o:"+7200"},
+        {n:"Austin Eckroat",o:"+7400"},{n:"Emiliano Grillo",o:"+7800"},
+        {n:"Kevin Roy",o:"+8000"},{n:"Gary Woodland",o:"+8000"},
+        {n:"Lee Hodges",o:"+8200"},{n:"S.H. Kim",o:"+8600"},
+        {n:"Billy Horschel",o:"+8800"},{n:"Zecheng Dou",o:"+8800"},
+        {n:"Taylor Moore",o:"+9000"},{n:"Chad Ramey",o:"+9200"},
+        {n:"Matt Kuchar",o:"+9200"},{n:"Steven Fisk",o:"+9400"},
+        {n:"Beau Hossler",o:"+9400"},{n:"Sam Ryder",o:"+9600"},
+        {n:"Adrien Dumont De Chassart",o:"+9800"},{n:"Blades Brown",o:"+10000"},
+        {n:"Matthias Schmid",o:"+10000"},{n:"Joel Dahmen",o:"+10000"},
+        {n:"Dylan Wu",o:"+10500"},{n:"Jackson Suber",o:"+11000"},
+        {n:"Karl Vilips",o:"+11500"},{n:"Webb Simpson",o:"+11500"},
+        {n:"Adrien Saddier",o:"+12000"},{n:"Luke Clanton",o:"+12000"},
+        {n:"Austin Smotherman",o:"+12500"},{n:"Isaiah Salinda",o:"+12500"},
+        {n:"Takumi Kanaya",o:"+13000"},{n:"Mark Hubbard",o:"+13000"},
+        {n:"David Ford",o:"+13000"},{n:"William Mouw",o:"+13500"},
+        {n:"Patrick Fishburn",o:"+14000"},{n:"Chandler Phillips",o:"+14500"},
+        {n:"Neal Shipley",o:"+14500"},{n:"Davis Riley",o:"+14500"},
+        {n:"Erik Van Rooyen",o:"+15000"},{n:"David Lipsky",o:"+15000"},
+        {n:"Keita Nakajima",o:"+15500"},{n:"Andrew Putnam",o:"+16500"},
+        {n:"Chandler Blanchet",o:"+17000"},{n:"Adam Hadwin",o:"+17500"},
+        {n:"Sudarshan Yellamaraju",o:"+18500"},{n:"Matthieu Pavon",o:"+19500"},
+        {n:"Nick Dunlap",o:"+20000"},{n:"Adam Svensson",o:"+20000"},
+        {n:"Justin Lower",o:"+20000"},{n:"Zach Bauchou",o:"+20000"},
+        {n:"John Vanderlaan",o:"+21000"},{n:"Christo Lamprecht",o:"+22500"},
+        {n:"Hank Lebioda",o:"+26000"},{n:"Joe Highsmith",o:"+27500"},
+        {n:"Brice Garnett",o:"+28000"},{n:"A.J. Ewart",o:"+29000"},
+        {n:"Harry Higgs",o:"+29000"},{n:"Patton Kizzire",o:"+30000"},
+        {n:"Adam Schenk",o:"+30000"},{n:"K.H. Lee",o:"+35000"},
+        {n:"Cameron Davis",o:"+36000"},{n:"Kensei Hirata",o:"+36000"},
+        {n:"Lanto Griffin",o:"+36000"},{n:"Davis Chatfield",o:"+39000"},
+        {n:"Alejandro Tosti",o:"+41000"},{n:"Danny Walker",o:"+44000"},
+        {n:"Jimmy Stanger",o:"+44000"},{n:"Jeffrey Kang",o:"+46000"},
+        {n:"Charley Hoffman",o:"+50000"},{n:"Pontus Nyholm",o:"+52500"},
+        {n:"Camilo Villegas",o:"+55000"},{n:"Paul Waring",o:"+55000"},
+        {n:"Peter Malnati",o:"+57500"},{n:"Aaron Wise",o:"+57500"},
+        {n:"Kevin Streelman",o:"+62500"},{n:"Gordon Sargent",o:"+67500"},
+        {n:"Rafael Campos",o:"+82500"},{n:"Marcelo Rozo",o:"+105000"},
+        {n:"Danny Willett",o:"+130000"},{n:"Brendon Todd",o:"+135000"},
+        {n:"Justin Hicks",o:"+350000"},
+        {n:"Carson Young",o:"N/A"},{n:"Frankie Capan III",o:"N/A"},
+        {n:"Jacob Bridgeman",o:"WD"},{n:"Ben Griffin",o:"WD"},{n:"Adam Scott",o:"WD"},
+      ]
+    },
+    {
+      id:'api2026',
+      name:'Arnold Palmer Invitational pres. by Mastercard',
+      venue:'Bay Hill Club & Lodge · Orlando, FL',
+      par:70, purse:20,
+      espnId:'401811935',
+      tz:'America/New_York',
+      // Typical Bay Hill first tee ~7:10 AM ET Thu Mar 5
+      teeTimeISO:'2026-03-05T07:10:00',
+      endDate:'2026-03-08',
+      note:'⛳ Higher purse ($20M Signature) vs concurrent Puerto Rico Open (~$4M)',
+      field:[] // Field TBD — populate when announced
+    },
+    {
+      id:'players2026',
+      name:'THE PLAYERS Championship',
+      venue:'TPC Sawgrass · Ponte Vedra Beach, FL',
+      par:72, purse:25,
+      espnId:'401811937',
+      tz:'America/New_York',
+      teeTimeISO:'2026-03-12T07:00:00',
+      endDate:'2026-03-15',
+      field:[]
+    },
+    {
+      id:'valspar2026',
+      name:'Valspar Championship',
+      venue:'Innisbrook Resort (Copperhead) · Palm Harbor, FL',
+      par:71, purse:8.7,
+      espnId:'401811938',
+      tz:'America/New_York',
+      teeTimeISO:'2026-03-19T07:00:00',
+      endDate:'2026-03-22',
+      field:[]
+    },
+    {
+      id:'masters2026',
+      name:'Masters Tournament',
+      venue:'Augusta National Golf Club · Augusta, GA',
+      par:72, purse:21,
+      espnId:'401811941',
+      tz:'America/New_York',
+      teeTimeISO:'2026-04-09T08:00:00',
+      endDate:'2026-04-12',
+      field:[]
+    },
+    {
+      id:'players2026-note',
+      // placeholder to demonstrate concurrent week awareness
+      name:'Puerto Rico Open',
+      venue:'Grand Reserve CC · Rio Grande, PR',
+      par:72, purse:4,
+      espnId:'401811936',
+      tz:'America/Puerto_Rico',
+      teeTimeISO:'2026-03-05T07:00:00',
+      endDate:'2026-03-08',
+      note:'Lower purse ($4M) vs concurrent Arnold Palmer Inv. ($20M) — typically not used',
+      field:[]
+    }
+  ];
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let tournaments = loadTournaments();
+let activeTId = getActiveId();
+let WS = activeTId ? loadWS(activeTId) : mkEmpty();
+let liveData = null;
+let deadlineTimer = null;
+
+function getActiveTournament(){return tournaments.find(t=>t.id===activeTId)||null;}
+
+// ═══════════════════════════════════════════════════════
+// DEADLINE LOGIC
+// deadline = teeTimeISO parsed in course timezone, minus 1 hour
+// We store teeTimeISO as a local wall-clock time string (no Z suffix)
+// and tz as an IANA timezone. To get the UTC deadline:
+//   1. Interpret teeTimeISO as local time in t.tz
+//   2. Subtract 1 hour
+// Since JS doesn't natively convert local tz → UTC without Intl tricks,
+// we use Intl.DateTimeFormat to find the UTC offset at that moment.
+// ═══════════════════════════════════════════════════════
+function getDeadlineUTC(t){
+  if(!t||t.teeTimeISO) return null;
+  try{
+    // Parse the wall-clock time (treat as local to the tournament tz)
+    // Approach: create a Date as if UTC, find offset, adjust
+    const [datePart, timePart] = t.teeTimeISO.split('T');
+    const [yr,mo,dy] = datePart.split('-').map(Number);
+    const [hr,mn] = (timePart||'00:00').split(':').map(Number);
+    // Build a "fake UTC" date to probe the offset
+    const probe = new Date(Date.UTC(yr,mo-1,dy,hr,mn||0,0));
+    // Get offset in minutes for that tz at that time
+    const offsetMin = getTZOffset(probe, t.tz);
+    // True UTC = probe - offsetMin (because local = UTC + offset)
+    const teeUTC = new Date(probe.getTime() - offsetMin*60000);
+    // Deadline = tee time - 1 hour
+    return new Date(teeUTC.getTime() - 60*60*1000);
+  }catch(e){ return null; }
+}
+
+function getTZOffset(date, tz){
+  // Returns UTC offset in minutes for the given timezone at the given moment
+  try{
+    const fmt = new Intl.DateTimeFormat('en-US',{
+      timeZone:tz,
+      year:'numeric',month:'2-digit',day:'2-digit',
+      hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+    });
+    const parts = Object.fromEntries(fmt.formatToParts(date).map(p=>[p.type,p.value]));
+    const local = new Date(`${parts.year}-${parts.month}-${parts.day}T${parts.hour==='24'?'00':parts.hour}:${parts.minute}:${parts.second}Z`);
+    return (local.getTime() - date.getTime()) / 60000;
+  }catch(e){ return 0; }
+}
+
+function isDraftLocked(){
+  const t=getActiveTournament();
+  if(!t) return false;
+  const dl=getDeadlineUTC(t);
+  if(!dl) return false;
+  return Date.now() >= dl.getTime();
+}
+
+function updateDeadlineBar(){
+  const t=getActiveTournament();
+  const bar=document.getElementById('deadline-bar');
+  const txt=document.getElementById('deadline-txt');
+  if(!t||!t.teeTimeISO){bar.style.display='none';return;}
+  const dl=getDeadlineUTC(t);
+  if(!dl){bar.style.display='none';return;}
+  bar.style.display='flex';
+  const now=Date.now();
+  const diff=dl.getTime()-now;
+  if(diff<=0){
+    bar.className='deadline-bar locked';
+    txt.textContent='DRAFT LOCKED · Tournament underway';
+    document.getElementById('draft-locked-msg').style.display='block';
+    // Disable all pick buttons
+    document.querySelectorAll('.ab-a,.ab-b,.pr-del').forEach(b=>{b.disabled=true;b.style.opacity='.3';b.style.cursor='not-allowed';});
+    return;
+  }
+  document.getElementById('draft-locked-msg').style.display='none';
+  const hrs=Math.floor(diff/3600000);
+  const mins=Math.floor((diff%3600000)/60000);
+  const secs=Math.floor((diff%60000)/1000);
+  const timeStr=hrs>0?`${hrs}h ${mins}m`:`${mins}m ${secs}s`;
+  if(diff<3600000){ // < 1 hour: warn
+    bar.className='deadline-bar';
+    txt.textContent=`Draft closes in ${timeStr}`;
+  } else if(diff<86400000){ // < 24 hours: caution
+    bar.className='deadline-bar';
+    txt.textContent=`Draft closes in ${timeStr}`;
+  } else {
+    bar.className='deadline-bar plenty';
+    const dlET=dl.toLocaleString('en-US',{timeZone:'America/New_York',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+    txt.textContent=`Draft open · Closes ${dlET}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TOURNAMENT MANAGER
+// ═══════════════════════════════════════════════════════
+function parseField(raw){
+  return raw.split('\n').map(line=>{
+    const trimmed=line.trim();
+    if(!trimmed) return null;
+    const lastComma=trimmed.lastIndexOf(',');
+    if(lastComma<0) return {n:trimmed,o:'N/A'};
+    const name=trimmed.slice(0,lastComma).trim();
+    const odds=trimmed.slice(lastComma+1).trim();
+    return name?{n:name,o:odds||'N/A'}:null;
+  }).filter(Boolean);
+}
+
+function addTournament(){
+  const name=document.getElementById('fm-name').value.trim();
+  if(!name){toast('Tournament name required');return;}
+  const venue=document.getElementById('fm-venue').value.trim();
+  const par=parseInt(document.getElementById('fm-par').value)||72;
+  const purse=parseFloat(document.getElementById('fm-purse').value)||0;
+  const tz=document.getElementById('fm-tz').value;
+  const teeTimeISO=document.getElementById('fm-tee').value; // datetime-local gives "YYYY-MM-DDTHH:MM"
+  const endDate=document.getElementById('fm-end').value;
+  const espnId=document.getElementById('fm-espnid').value.trim();
+  const fieldRaw=document.getElementById('fm-field').value;
+  const field=parseField(fieldRaw);
+
+  const id='t-'+Date.now();
+  const t={id,name,venue,par,purse,tz,teeTimeISO,endDate,espnId,field};
+  tournaments.push(t);
+  saveTournaments(tournaments);
+  renderTournamentList();
+  // Clear form
+  ['fm-name','fm-venue','fm-field','fm-end','fm-espnid'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fm-tee').value='';
+  document.getElementById('fm-par').value='72';
+  document.getElementById('fm-purse').value='';
+  toast(`"${name}" added!`);
+}
+
+let pendingDelId=null;
+function confirmDelTournament(){
+  if(!pendingDelId) return;
+  tournaments=tournaments.filter(t=>t.id!==pendingDelId);
+  deleteWS(pendingDelId);
+  if(activeTId===pendingDelId){activeTId='';setActiveId('');WS=mkEmpty();}
+  saveTournaments(tournaments);
+  renderTournamentList();
+  updateWeekSelector();
+  updateHeader();
+  closeModal();
+  pendingDelId=null;
+  toast('Tournament deleted');
+}
+function openDelModal(id){
+  const t=tournaments.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('del-modal-p').textContent=`Delete "${t.name}"? All associated picks and matchups will be permanently removed.`;
+  pendingDelId=id;
+  document.getElementById('del-modal').classList.add('open');
+}
+
+function selectTournament(id){
+  activeTId=id;
+  setActiveId(id);
+  WS=loadWS(id);
+  liveData=null;
+  updateWeekSelector();
+  updateHeader();
+  updateDeadlineBar();
+  resetFilters();
+  renderTable();
+  renderPicks('a');
+  renderPicks('b');
+  toast('Tournament loaded');
+}
+
+function renderTournamentList(){
+  const el=document.getElementById('tlist');
+  document.getElementById('tourn-count-sub').textContent=`${tournaments.length} tournament${tournaments.length!==1?'s':''}`;
+  if(!tournaments.length){
+    el.innerHTML='<div style="padding:1rem;text-align:center;color:var(--gray);font-size:.82rem;font-style:italic">No tournaments added yet</div>';
+    return;
+  }
+  // Sort by tee time
+  const sorted=[...tournaments].sort((a,b)=>(a.teeTimeISO||'').localeCompare(b.teeTimeISO||''));
+  // Find concurrent weeks (same start date, mark lower purse)
+  const byDate={};
+  sorted.forEach(t=>{
+    const d=(t.teeTimeISO||'').slice(0,10);
+    if(!byDate[d]) byDate[d]=[];
+    byDate[d].push(t);
+  });
+  el.innerHTML=sorted.map(t=>{
+    const d=(t.teeTimeISO||'').slice(0,10);
+    const concurrent=byDate[d];
+    const isActive=t.id===activeTId;
+    const maxPurse=Math.max(...concurrent.map(x=>x.purse||0));
+    const isHigherPurse=(t.purse||0)===maxPurse;
+    const hasConcurrent=concurrent.length>1;
+    const dl=getDeadlineUTC(t);
+    const dlStr=dl?dl.toLocaleString('en-US',{timeZone:'America/New_York',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'Not set';
+    const locked=dl&&Date.now()>=dl.getTime();
+    return`<div class="tcard${isActive?' active-tourn':''}">
+      <div class="tcard-head">
+        <div>
+          <div class="tcard-name">${t.name}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gray);margin-top:2px">${t.venue||''}${t.par?' · Par '+t.par:''}</div>
+        </div>
+        <div class="tcard-actions">
+          ${isActive?'<span class="chip chip-green">Active</span>':''}
+          ${hasConcurrent&&isHigherPurse?'<span class="chip chip-gold">Higher Purse</span>':''}
+          ${hasConcurrent&&!isHigherPurse?'<span class="chip chip-warn">Lower Purse</span>':''}
+          ${locked?'<span class="chip chip-red">Locked</span>':''}
+          ${t.espnId?`<button class="fetch-field-btn" id="ffb-${t.id}" onclick="fetchField('${t.id}')">⬇ Fetch Field</button>`:''}
+          ${!isActive?`<button class="tcard-sel" onclick="selectTournament('${t.id}')">Select</button>`:''}
+          <button class="tcard-del" onclick="openDelModal('${t.id}')">✕</button>
+        </div>
+      </div>
+      <div class="tcard-body">
+        <div>Purse: <span>${t.purse?fmt$(t.purse):'—'}</span></div>
+        <div>Field: <span>${t.field?t.field.filter(p=>p.o!=='WD').length+' players':'—'}</span></div>
+        <div>Tee time: <span>${(t.teeTimeISO||'').replace('T',' ').slice(0,16)||'—'} (${t.tz?.split('/').pop().replace('_',' ')||''})</span></div>
+        <div>Draft deadline: <span style="color:${locked?'var(--red2)':'var(--gold)'}">${dlStr}</span></div>
+        <div>ESPN ID: <span style="font-family:'JetBrains Mono',monospace">${t.espnId||'<em style="color:var(--gray)">not set</em>'}</span></div>
+        ${t.note?`<div style="grid-column:1/-1;color:var(--warn)">${t.note}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// WEEK SELECTOR & HEADER
+// ═══════════════════════════════════════════════════════
+function updateWeekSelector(){
+  const sel=document.getElementById('wsel');
+  const sorted=[...tournaments].sort((a,b)=>(a.teeTimeISO||'').localeCompare(b.teeTimeISO||''));
+  sel.innerHTML='<option value="">— select week —</option>'+
+    sorted.map(t=>`<option value="${t.id}"${t.id===activeTId?' selected':''}>${t.name}${t.purse?' ($'+t.purse+'M)':''}</option>`).join('');
+}
+function switchWeek(){
+  const id=document.getElementById('wsel').value;
+  if(!id) return;
+  selectTournament(id);
+}
+function updateHeader(){
+  const t=getActiveTournament();
+  document.getElementById('t-name').textContent=t?t.name:'No tournament selected';
+  document.getElementById('t-dates').textContent=t?(t.teeTimeISO||'').slice(0,10)+(t.endDate?' – '+t.endDate:'')+' · '+(t.venue||''):'Go to ⚙ Manage to add a tournament';
+}
+
+// ═══════════════════════════════════════════════════════
+// DRAFT TABLE
+// ═══════════════════════════════════════════════════════
+let tf='all',sq='',pg=1;const PS=20;
+function filterPlayers(){sq=document.getElementById('srch').value.toLowerCase();pg=1;renderTable();}
+function setTier(btn,t){document.querySelectorAll('.fbt').forEach(b=>b.classList.remove('on'));btn.classList.add('on');tf=t;pg=1;renderTable();}
+function resetFilters(){pg=1;sq='';const s=document.getElementById('srch');if(s)s.value='';
+  document.querySelectorAll('.fbt').forEach(b=>b.classList.remove('on'));
+  const a=document.querySelector('.fbt[data-tier="all"]');if(a)a.classList.add('on');tf='all';}
+function nA(){return document.getElementById('name-a').value||'A';}
+function nB(){return document.getElementById('name-b').value||'B';}
+
+function renderTable(){
+  const t=getActiveTournament();
+  if(!t){
+    document.getElementById('ptbody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray);font-style:italic">Select a tournament to see the field.</td></tr>';
+    document.getElementById('pag').innerHTML='';
+    document.getElementById('fp-title').textContent='Field';
+    document.getElementById('fp-sub').textContent='';
+    return;
+  }
+  const thresh=deepThresh(t.field);
+  document.getElementById('fp-title').textContent=`Field · ${t.name}`;
+  document.getElementById('fp-sub').textContent=`Deep req. ≥+${thresh.toLocaleString()} · Par ${t.par}`;
+  const elig=(t.field||[]).filter(p=>p.o!=='WD');
+  if(!elig.length){
+    document.getElementById('ptbody').innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray);font-style:italic">Field not yet set for this tournament. Edit via ⚙ Manage.</td></tr>';
+    document.getElementById('pag').innerHTML='';return;
+  }
+  const filt=elig.filter(p=>p.n.toLowerCase().includes(sq)&&(tf==='all'||tier(p.o)===tf));
+  const tot=filt.length,pages=Math.max(1,Math.ceil(tot/PS));
+  pg=Math.min(pg,pages);
+  const sl=filt.slice((pg-1)*PS,pg*PS);
+  const locked=isDraftLocked();
+
+  document.getElementById('ptbody').innerHTML=sl.map(p=>{
+    const rank=elig.findIndex(x=>x.n===p.n)+1;
+    const ti=tier(p.o),deep=isDeep(p.o,thresh);
+    const inA=WS.picksA.some(x=>x.n===p.n),inB=WS.picksB.some(x=>x.n===p.n);
+    const rc=inA&&inB?'rAB':inA?'rA':inB?'rB':'';
+    const fullA=WS.picksA.length>=PICKS_MAX,fullB=WS.picksB.length>=PICKS_MAX;
+    let acts='';
+    if(locked){acts=inA&&inB?'<span class="chip chip-blue">A</span> <span class="chip chip-red">B</span>':inA?'<span class="chip chip-blue">A</span>':inB?'<span class="chip chip-red">B</span>':'';}
+    else if(inA&&inB){acts=`<span class="chip chip-blue">A</span> <span class="chip chip-red">B</span>`;}
+    else if(inA){acts=`<span class="chip chip-blue">✓ A</span> <button class="ab ab-b"${fullB?' disabled':''} onclick="pick('b','${esc(p.n)}','${p.o}')">+ ${nB()}</button>`;}
+    else if(inB){acts=`<button class="ab ab-a"${fullA?' disabled':''} onclick="pick('a','${esc(p.n)}','${p.o}')">+ ${nA()}</button> <span class="chip chip-red">✓ B</span>`;}
+    else{acts=`<button class="ab ab-a"${(fullA||locked)?' disabled':''} onclick="pick('a','${esc(p.n)}','${p.o}')">+ ${nA()}</button>
+               <button class="ab ab-b"${(fullB||locked)?' disabled':''} onclick="pick('b','${esc(p.n)}','${p.o}')">+ ${nB()}</button>`;}
+    return`<tr class="${rc}"><td class="td-r">${rank}</td>
+      <td class="td-n">${p.n}${deep?` <span class="pr-dt">★</span>`:''}${p.o==='N/A'?` <span style="font-size:.57rem;color:var(--gray)">(no odds)</span>`:''}</td>
+      <td class="td-o"><span class="tdot" style="background:${TC[ti]}"></span>${p.o}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:${TC[ti]};text-transform:uppercase">${TL[ti]}</span></td>
+      <td><div class="acts">${acts}</div></td></tr>`;
+  }).join('');
+
+  const pag=document.getElementById('pag');
+  if(pages<=1){pag.innerHTML='';return;}
+  let h=`<span class="pi">${tot} players</span>`;
+  if(pg>1)h+=`<button class="pbtn" onclick="goP(${pg-1})">‹</button>`;
+  for(let p2=Math.max(1,pg-2);p2<=Math.min(pages,pg+2);p2++)
+    h+=`<button class="pbtn${p2===pg?' on':''}" onclick="goP(${p2})">${p2}</button>`;
+  if(pg<pages)h+=`<button class="pbtn" onclick="goP(${pg+1})">›</button>`;
+  pag.innerHTML=h;
+}
+function goP(p2){pg=p2;renderTable();}
+
+// ═══════════════════════════════════════════════════════
+// PICKS
+// ═══════════════════════════════════════════════════════
+function pick(who,name,odds){
+  if(isDraftLocked()){toast('Draft is locked — tournament has started');return;}
+  const arr=who==='a'?WS.picksA:WS.picksB;
+  if(arr.length>=PICKS_MAX){toast(`${who==='a'?nA():nB()} already has 20 picks`);return;}
+  if(arr.some(x=>x.n===name)) return;
+  arr.push({n:name,o:odds});
+  WS.matchups=null;WS.locked=false;
+  save();renderPicks(who);renderTable();
+}
+function removePick(who,name){
+  if(isDraftLocked()){toast('Draft is locked — picks are frozen');return;}
+  if(who==='a')WS.picksA=WS.picksA.filter(x=>x.n!==name);
+  else WS.picksB=WS.picksB.filter(x=>x.n!==name);
+  WS.matchups=null;WS.locked=false;
+  save();renderPicks(who);renderTable();
+}
+function deepCnt(arr){const t=getActiveTournament();if(!t)return 0;const th=deepThresh(t.field);return arr.filter(p=>isDeep(p.o,th)).length;}
+
+function renderPicks(who){
+  const arr=who==='a'?WS.picksA:WS.picksB;
+  const el=document.getElementById(`pl-${who}`);
+  const tl=document.getElementById(`tly-${who}`);
+  const rq=document.getElementById(`req-${who}`);
+  const t=getActiveTournament();
+  const th=t?deepThresh(t.field):17000;
+  const deep=deepCnt(arr);
+  const locked=isDraftLocked();
+  if(!arr.length){el.innerHTML='<div class="pempty">No picks yet</div>';}
+  else{el.innerHTML=arr.map(p=>`
+    <div class="prow">
+      <span class="pr-n">${p.n}${isDeep(p.o,th)?'<span class="pr-dt">★</span>':''}</span>
+      <span class="pr-o">${p.o}</span>
+      ${locked?'':'<button class="pr-del" onclick="removePick(\''+who+'\',\''+esc(p.n)+'\')">✕</button>'}
+    </div>`).join('');}
+  tl.textContent=`${arr.length}/${PICKS_MAX}`;
+  tl.className=`dtly ${arr.length===PICKS_MAX?'ok':arr.length>0?'warn':''}`;
+  const dOk=deep>=DEEP_MIN;
+  rq.innerHTML=`
+    <span class="dreq ${arr.length>=PICKS_MAX?'met':''}">
+      ${arr.length>=PICKS_MAX?'✓':'○'} ${arr.length}/${PICKS_MAX} picks
+    </span>
+    <span class="dreq ${dOk?'met':deep>0?'wrn':''}">
+      ${dOk?'✓':deep>0?`${deep}/`:'○ '}${dOk?`${deep}/${DEEP_MIN} deep ★ ✓`:`${DEEP_MIN} deep ★ req.`}
+    </span>`;
+}
+
+function save(){
+  saveNames();saveWS();syncNames();
+  // v4: push updated game state to bin (fire-and-forget)
+  pushGameStateToBin();
+}
+function syncNames(){
+  document.getElementById('hcn-a').textContent=document.getElementById('name-a').value||'Player A';
+  document.getElementById('hcn-b').textContent=document.getElementById('name-b').value||'Player B';
+}
+
+// ═══════════════════════════════════════════════════════
+// MATCHUP ENGINE
+// ═══════════════════════════════════════════════════════
+function genMatchups(pA,pB){
+  const seed=Date.now();
+  const rng=mkRNG(seed);
+  const bi=[...Array(pB.length).keys()];
+  for(let i=bi.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[bi[i],bi[j]]=[bi[j],bi[i]];}
+  for(let i=0;i<pA.length;i++){
+    if(pB[bi[i]].n===pA[i].n){
+      let fixed=false;
+      for(let j=i+1;j<pB.length;j++){
+        if(pB[bi[j]].n!==pA[i].n&&pB[bi[i]].n!==pA[j].n){[bi[i],bi[j]]=[bi[j],bi[i]];fixed=true;break;}
+      }
+      if(!fixed){for(let j=0;j<pB.length;j++){if(j!==i&&pB[bi[j]].n!==pA[i].n){[bi[i],bi[j]]=[bi[j],bi[i]];break;}}}
+    }
+  }
+  return{pairs:pA.map((pa,i)=>({a:pa.n,b:pB[bi[i]].n})),seed};
+}
+
+// ═══════════════════════════════════════════════════════
+// STABLEFORD
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// STABLEFORD — TRUE HOLE-BY-HOLE SCORING
+// Points per hole based on score vs par:
+//   Albatross/better (-3+): +8   Eagle (-2): +5
+//   Birdie (-1): +3             Par (0): +1
+//   Bogey (+1): 0               Double (+2): -2
+//   Triple+ (≥+3): -3
+// MC players: only R1+R2 holes count; R3/R4 are excluded entirely.
+// ═══════════════════════════════════════════════════════
+const SF_PTS={'-3':8,'-2':5,'-1':3,'0':1,'1':0,'2':-2};
+function holePoints(strokes, par){
+  if(strokes===null||strokes===undefined||par===null) return null;
+  const diff=strokes-par;
+  if(diff<=-3) return 8;
+  if(diff===-2) return 5;
+  if(diff===-1) return 3;
+  if(diff===0)  return 1;
+  if(diff===1)  return 0;
+  if(diff===2)  return -2;
+  return -3; // triple bogey or worse
+}
+
+function calcSF(pd, isMC){
+  // pd must have .scorecardRounds: [ [{strokes, par}, ...18 holes], ... ] — one array per round
+  if(!pd||pd.status==='pre_tournament'||pd.status==='wd') return null;
+  const rounds = pd.scorecardRounds || [];
+  if(!rounds.length) return null;
+
+  // MC players only score R1 + R2
+  const scoringRounds = isMC ? rounds.slice(0,2) : rounds;
+  if(!scoringRounds.length) return null;
+
+  let total = 0;
+  let anyHole = false;
+  for(const rnd of scoringRounds){
+    if(!rnd||!rnd.length) continue;
+    for(const hole of rnd){
+      const pts = holePoints(hole.strokes, hole.par);
+      if(pts !== null){ total += pts; anyHole = true; }
+    }
+  }
+  return anyHole ? Math.max(0, total) : null;
+}
+
+// ═══════════════════════════════════════════════════════
+// ESPN API — REAL SCORE FETCHING
+// Strategy:
+//  1. GET leaderboard → finds all competitors, their IDs, round totals, status
+//  2. For each unique picked player found, GET their scorecard (hole-by-hole)
+//  3. Normalise into our liveData shape
+//
+// CORS: ESPN's API doesn't send CORS headers, so we route through
+// corsproxy.io — a free open CORS proxy. No API key required.
+// URL pattern: https://corsproxy.io/?url=<encoded_target>
+// ═══════════════════════════════════════════════════════
+const CORS = 'https://corsproxy.io/?url=';
+const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga';
+
+function espnUrl(path){ return CORS + encodeURIComponent(ESPN_BASE + path); }
+
+// Normalise ESPN status strings → our internal status
+function normStatus(espnStatus, madeCut, withdrawn){
+  if(withdrawn) return 'wd';
+  // ESPN status types: "active", "cut", "complete", "withdrawn"
+  const s=(espnStatus||'').toLowerCase();
+  if(s==='active'||s==='in progress') return 'active';
+  if(s==='cut'||(!madeCut&&madeCut!==undefined)) return 'cut';
+  if(s==='complete'||s==='finished') return 'finished';
+  return 'pre_tournament';
+}
+
+// Parse ESPN scorecard response for one player
+// ESPN scorecard structure:
+//   response.rounds[].scorecards[].holes[].{number, par, score (strokes)}
+// or in some versions:
+//   response.scores[].linescores[].{value (strokes), par}
+function parseScorecard(data){
+  const rounds=[];
+  // ESPN leaderboard scorecard format
+  const sc = data?.scorecards || data?.rounds || [];
+  for(const round of sc){
+    const holes=[];
+    // Try .holes first (scorecard endpoint)
+    const holeArr = round.holes || round.linescores || [];
+    for(const h of holeArr){
+      const strokes = h.score ?? h.value ?? null;
+      const par = h.par ?? null;
+      if(strokes!==null && par!==null){
+        holes.push({strokes:Number(strokes), par:Number(par)});
+      }
+    }
+    if(holes.length) rounds.push(holes);
+  }
+  return rounds;
+}
+
+async function fetchESPN(path){
+  const res = await fetch(espnUrl(path), {headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error(`ESPN ${path} → HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchScores(){
+  const t = getActiveTournament();
+  if(!t){ toast('Select a tournament first'); return; }
+  if(!t.espnId){ toast('No ESPN Tournament ID set — add it in ⚙ Manage'); return; }
+
+  const pickedNames = [...new Set([...WS.picksA,...WS.picksB].map(p=>p.n))];
+  if(!pickedNames.length){ toast('No picks to fetch'); return; }
+
+  const rbtn=document.getElementById('rbtn');
+  rbtn.parentElement.classList.add('spinning'); rbtn.disabled=true;
+  document.getElementById('upd').textContent='Fetching scores…';
+
+  // ── v4: First try reading from shared database ────────
+  if(isLinked()){
+    try{
+      document.getElementById('upd').textContent='Reading shared scores…';
+      const binData = await readBin();
+      if(binData && binData.scores && binData.tournamentId === activeTId){
+        liveData = binData.scores;
+        if(binData.gameState) applySharedGameState(binData.gameState);
+        renderLb();
+        document.getElementById('upd').textContent=
+          `Shared · ${new Date(binData.updatedAt||Date.now()).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}`;
+        toast('Loaded shared scores ✓');
+      }
+    }catch(e){ /* db read failed, continue to ESPN */ }
+  }
+
+  try{
+    // ── Step 1: Leaderboard ─────────────────────────────
+    document.getElementById('upd').textContent='Fetching from ESPN…';
+    const lb = await fetchESPN(`/leaderboard?tournamentId=${t.espnId}`);
+    const evts = lb?.events?.[0] || lb?.event || lb;
+
+    // Tournament status
+    const tStatus = (evts?.status?.type?.name||evts?.competitions?.[0]?.status?.type?.name||'').toLowerCase();
+    let tournStatus = 'pre_tournament';
+    if(tStatus.includes('in') || tStatus.includes('active') || tStatus.includes('progress')) tournStatus='in_progress';
+    else if(tStatus.includes('post')||tStatus.includes('final')||tStatus.includes('complete')) tournStatus='complete';
+
+    // Build competitor map
+    const competitors = evts?.competitions?.[0]?.competitors
+      || evts?.leaderboard
+      || evts?.competitors
+      || [];
+
+    const compMap = {};
+    const nameMap = {};
+
+    for(const comp of competitors){
+      const ath = comp.athlete || comp;
+      const fullName = ath.displayName || ath.fullName || ath.name || '';
+      if(!fullName) continue;
+
+      const lsRounds = comp.linescores || comp.rounds || [];
+      const roundScores = lsRounds.map(r=>{
+        const v = r.value??r.score??r.displayValue??null;
+        return v!==null&&v!==''&&v!=='--'?Number(v):null;
+      });
+
+      const toPar = comp.totalToPar ?? comp.score ?? null;
+      const pos = comp.status?.position?.displayText || comp.displayPosition || comp.position?.displayText || '—';
+      const statType = comp.status?.type?.name || comp.status || '';
+      const mc = comp.madeCut ?? (statType.toLowerCase()==='cut'?false:undefined);
+      const wd = comp.withdrawn ?? statType.toLowerCase().includes('withdraw');
+
+      const normName = fullName.trim();
+      const entry = {
+        id: ath.id || '',
+        espnName: normName,
+        position: pos,
+        totalScoreToPar: toPar!==null ? Number(toPar) : null,
+        roundScores,
+        scorecardRounds: [],
+        status: normStatus(statType, mc, wd),
+        madeCut: mc,
+      };
+      compMap[ath.id||normName] = entry;
+      nameMap[normName.toLowerCase()] = entry;
+    }
+
+    function findComp(name){
+      const key = name.trim().toLowerCase();
+      if(nameMap[key]) return nameMap[key];
+      const parts = key.split(' ');
+      const last = parts[parts.length-1];
+      for(const [k,v] of Object.entries(nameMap)){
+        if(k.endsWith(last) && k[0]===key[0]) return v;
+      }
+      for(const [k,v] of Object.entries(nameMap)){
+        if(k.endsWith(last)) return v;
+      }
+      return null;
+    }
+
+    const toFetch = [];
+    for(const name of pickedNames){
+      const comp = findComp(name);
+      if(comp && comp.id && comp.status!=='pre_tournament'){
+        toFetch.push({name, comp});
+      }
+    }
+
+    const scFetches = {};
+    for(const {comp} of toFetch){
+      if(!scFetches[comp.id]){
+        scFetches[comp.id] = fetchESPN(`/leaderboard/scorecards?competitorId=${comp.id}&eventId=${t.espnId}`)
+          .catch(()=>null);
+      }
+    }
+    const scResults = {};
+    await Promise.all(Object.entries(scFetches).map(async([id,p])=>{
+      scResults[id] = await p;
+    }));
+
+    for(const {comp} of toFetch){
+      const scData = scResults[comp.id];
+      if(scData){
+        comp.scorecardRounds = parseScorecard(scData);
+      }
+    }
+
+    liveData = {
+      tournamentStatus: tournStatus,
+      players: {}
+    };
+    for(const name of pickedNames){
+      const comp = findComp(name);
+      if(comp){
+        liveData.players[name] = comp;
+      }
+    }
+
+    const updStr = `ESPN · ${new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',timeZoneName:'short'})}`;
+    document.getElementById('upd').textContent=updStr;
+    renderLb();
+    toast(`Scores loaded from ESPN ✓ (${toFetch.length} scorecards)`);
+
+    // ── v4: Write full state to shared database ──────────
+    if(isLinked()){
+      try{
+        await writeBin({
+          scores: liveData,
+          gameState: buildSharedGameState(),
+          tournamentId: activeTId,
+          updatedAt: new Date().toISOString()
+        });
+        toast('✓ Shared scores updated for your co-player');
+      }catch(e){ /* silent fail — scores remain local */ }
+    }
+
+  }catch(e){
+    console.error('ESPN fetch error:', e);
+    document.getElementById('upd').textContent=`ESPN error · ${new Date().toLocaleTimeString()}`;
+    toast(`Score fetch failed: ${e.message}`);
+  }
+  rbtn.parentElement.classList.remove('spinning'); rbtn.disabled=false;
+}
+
+function getPD(name){ if(!liveData||!liveData.players) return null; return liveData.players[name]||null; }
+
+// ═══════════════════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════════════════
+function renderLb(){
+  const t=getActiveTournament();
+  const par=t?t.par:72;
+  syncNames();
+  const hasAll=WS.picksA.length===PICKS_MAX&&WS.picksB.length===PICKS_MAX;
+  const started=liveData&&liveData.tournamentStatus!=='pre_tournament';
+  document.getElementById('prenote').style.display=(!started&&WS.matchups)?'flex':'none';
+  const muAct=document.getElementById('mu-actions');
+
+  if(!activeTId){
+    document.getElementById('mu-list').innerHTML=`<div class="no-picks"><span class="icon">⚙</span>Select a tournament first via the ⚙ Manage tab.</div>`;
+    muAct.innerHTML='';return;
+  }
+  if(!hasAll){
+    document.getElementById('mu-list').innerHTML=`<div class="no-picks"><span class="icon">⛳</span>Both players need ${PICKS_MAX} picks. Go to Draft tab to complete lineups.</div>`;
+    muAct.innerHTML='';
+    ['a','b'].forEach(x=>{document.getElementById(`hcw-${x}`).textContent='—';document.getElementById(`hcs-${x}`).innerHTML='';});
+    document.getElementById('vs-rec').textContent='';return;
+  }
+  if(!WS.matchups){
+    muAct.innerHTML=`<button class="lock-btn" onclick="doMatchups()">🎲 Randomize & Lock Matchups</button>`;
+    document.getElementById('mu-list').innerHTML=`<div class="no-picks"><span class="icon">🎲</span>Lineups complete! Click "Randomize & Lock Matchups" to generate pairings.<br><br><span style="font-size:.75rem;color:var(--gray)">Same-player overlaps will never face themselves.</span></div>`;
+    ['a','b'].forEach(x=>{document.getElementById(`hcw-${x}`).textContent='—';document.getElementById(`hcs-${x}`).innerHTML='';});
+    return;
+  }
+  if(WS.locked){muAct.innerHTML=`<span class="locked-note">✓ Locked · Seed #${WS.matchups.seed}</span>`;}
+  else{muAct.innerHTML=`<button class="lock-btn" onclick="lockMu()">🔒 Lock Matchups</button>
+    <button class="reshuffle-btn" onclick="reshuffleMu()">↻ Re-shuffle</button>`;}
+
+  const pairs=WS.matchups.pairs;
+  let wA=0,wB=0,ties=0,ptA=0,ptB=0,played=0;
+  const nameA=document.getElementById('name-a').value||'Player A';
+  const nameB=document.getElementById('name-b').value||'Player B';
+
+  const scored=pairs.map((pair,i)=>{
+    const pdA=getPD(pair.a),pdB=getPD(pair.b);
+    const mcA=pdA&&pdA.status==='cut',mcB=pdB&&pdB.status==='cut';
+    const ptsA=calcSF(pdA,mcA),ptsB=calcSF(pdB,mcB);
+    const same=pair.a===pair.b;
+    let res='pending';
+    if(ptsA!==null&&ptsB!==null){
+      played++;
+      if(ptsA>ptsB){wA++;res='a';}else if(ptsB>ptsA){wB++;res='b';}else{ties++;res='tie';}
+    }
+    if(ptsA!==null)ptA+=ptsA;if(ptsB!==null)ptB+=ptsB;
+    return{pair,i,pdA,pdB,mcA,mcB,ptsA,ptsB,res,same};
+  });
+
+  // Hero
+  const hcA=document.getElementById('hc-a'),hcB=document.getElementById('hc-b');
+  hcA.classList.remove('winning');hcB.classList.remove('winning');
+  hcA.querySelectorAll('.hc-ldrtag').forEach(e=>e.remove());
+  hcB.querySelectorAll('.hc-ldrtag').forEach(e=>e.remove());
+  if(played>0){
+    document.getElementById('hcw-a').textContent=wA;
+    document.getElementById('hcw-b').textContent=wB;
+    document.getElementById('vs-rec').textContent=`${wA}W–${ties}T–${wB}W`;
+    if(wA>wB){hcA.classList.add('winning');hcA.insertAdjacentHTML('beforeend','<div class="hc-ldrtag">🏆 Leading</div>');}
+    else if(wB>wA){hcB.classList.add('winning');hcB.insertAdjacentHTML('beforeend','<div class="hc-ldrtag">🏆 Leading</div>');}
+  }else{
+    document.getElementById('hcw-a').textContent=started?'0':'—';
+    document.getElementById('hcw-b').textContent=started?'0':'—';
+    document.getElementById('vs-rec').textContent='';
+  }
+  const lA=scored.filter(s=>s.res==='b').length,lB=scored.filter(s=>s.res==='a').length;
+  document.getElementById('hcs-a').innerHTML=`<div class="hcs"><div class="hcs-v">${wA}</div><div class="hcs-l">Wins</div></div><div class="hcs"><div class="hcs-v">${ties}</div><div class="hcs-l">Ties</div></div><div class="hcs"><div class="hcs-v">${lA}</div><div class="hcs-l">Losses</div></div><div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
+  document.getElementById('hcs-b').innerHTML=`<div class="hcs"><div class="hcs-v">${wB}</div><div class="hcs-l">Wins</div></div><div class="hcs"><div class="hcs-v">${ties}</div><div class="hcs-l">Losses</div></div><div class="hcs"><div class="hcs-v">${lB}</div><div class="hcs-l">Losses</div></div><div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
+
+  const sort=[...scored].sort((a,b)=>{const r=x=>x==='pending'?2:x==='tie'?1:0;return r(a.res)-r(b.res);});
+  document.getElementById('mu-list').innerHTML=sort.map(s=>{
+    const{pair,i,pdA,pdB,mcA,mcB,ptsA,ptsB,res,same}=s;
+    const wina=res==='a',winb=res==='b',tied=res==='tie',pend=res==='pending';
+    function cell(name,oddsStr,pd,isMC){
+      // Round scores (totals) come from pd.roundScores for display
+      const rds=(pd?.roundScores)||[null,null,null,null];
+      const status=pd?.status||'pre_tournament';
+      const tp=pd?.totalScoreToPar;
+      const tpCls=tp<0?'under':tp>0?'over':'even';
+      const pts=calcSF(pd,isMC);
+
+      // Hole-by-hole summary: count hole types from scorecardRounds
+      const scRounds = pd?.scorecardRounds||[];
+      const scoringRounds = isMC ? scRounds.slice(0,2) : scRounds;
+      let eagles=0,birdies=0,pars=0,bogeys=0,doubles=0,worse=0;
+      for(const rnd of scoringRounds){
+        for(const h of (rnd||[])){
+          const d=(h.strokes||0)-(h.par||0);
+          if(d<=-2) eagles++;
+          else if(d===-1) birdies++;
+          else if(d===0) pars++;
+          else if(d===1) bogeys++;
+          else if(d===2) doubles++;
+          else worse++;
+        }
+      }
+      const holesPlayed = scoringRounds.reduce((s,r)=>s+(r||[]).filter(h=>h.strokes!==null).length, 0);
+      const hasHoles = holesPlayed > 0;
+
+      const stCls=status==='pre_tournament'?'st-pre':status==='active'?'st-act':status==='cut'?'st-cut':status==='finished'?'st-done':'st-wd';
+      const activeRound = rds.filter(r=>r!==null).length;
+      const stTxt=status==='pre_tournament'?'Pre-Tournament':status==='active'?`R${activeRound} Active (Hole ${holesPlayed%18||18})`:status==='cut'?'Missed Cut':status==='finished'?'Finished':'Withdrew';
+      return`<div class="mc-pname">${name}</div>
+        <div class="mc-odds">${oddsStr} pre-tournament${isMC?' &nbsp;<span class="chip chip-gray" style="font-size:.5rem">MC</span>':''}</div>
+        <div class="mc-score-row">
+          <span class="mc-pts">${pts!==null?pts:'—'}</span>
+          <span class="mc-sub">pts${isMC?' (R1–R2)':''}</span>
+          ${tp!==null&&tp!==undefined&&status!=='pre_tournament'?`<span class="mc-tpar ${tpCls}" style="margin-left:8px">${ftp(tp)}</span>`:''}
+          ${status==='active'?`<span class="mc-sub" style="margin-left:6px">(thru ${holesPlayed%18||18})</span>`:''}
+        </div>
+        <div class="mc-rounds">${['R1','R2','R3','R4'].map((r,ri)=>`<span class="mc-rc${rds[ri]!==null?' has':''}">${r}:${rds[ri]!==null?rds[ri]:'—'}</span>`).join('')}</div>
+        ${hasHoles?`<div class="mc-holes">
+          ${eagles?`<span class="mh mh-eagle">🦅${eagles}</span>`:''}
+          ${birdies?`<span class="mh mh-birdie">🐦${birdies}</span>`:''}
+          ${pars?`<span class="mh mh-par">—${pars}</span>`:''}
+          ${bogeys?`<span class="mh mh-bogey">☁${bogeys}</span>`:''}
+          ${doubles?`<span class="mh mh-dbl">⛈${doubles}</span>`:''}
+          ${worse?`<span class="mh mh-worse">💀${worse}</span>`:''}
+        </div>`:''}
+        <div class="mc-st ${stCls}">${stTxt}${isMC?' · R3/R4 = 0 pts':''}</div>`;
+    }
+    const oA=WS.picksA.find(p=>p.n===pair.a)?.o||'',oB=WS.picksB.find(p=>p.n===pair.b)?.o||'';
+    const ccA=`mc mc-a${wina?' winner':tied?' tied':!pend&&!wina?' loser':''}${mcA?' mccut':''}`;
+    const ccB=`mc mc-b${winb?' winner':tied?' tied':!pend&&!winb?' loser':''}${mcB?' mccut':''}`;
+    const mid=same?`<div class="same-tag">Both<br>teams</div>`:pend?`<div class="mnum">#${i+1}</div><div class="vs-lbl">vs</div>`:
+      `<div class="mnum">#${i+1}</div><div class="mres ${wina?'mres-a':winb?'mres-b':'mres-t'}">${wina?nameA:winb?nameB:'TIE'}</div>`;
+    return`<div class="mu-row"><div class="${ccA}">${cell(pair.a,oA,pdA,mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(pair.b,oB,pdB,mcB)}</div></div>`;
+  }).join('');
+}
+
+function doMatchups(){
+  if(WS.picksA.length!==PICKS_MAX||WS.picksB.length!==PICKS_MAX){toast(`Both players need ${PICKS_MAX} picks`);return;}
+  WS.matchups=genMatchups(WS.picksA,WS.picksB);WS.locked=false;saveWS();renderLb();pushGameStateToBin();
+}
+function reshuffleMu(){if(WS.locked){toast('Matchups locked — cannot re-shuffle');return;}WS.matchups=genMatchups(WS.picksA,WS.picksB);saveWS();renderLb();toast('New pairings generated!');pushGameStateToBin();}
+function lockMu(){if(!WS.matchups)doMatchups();WS.locked=true;saveWS();renderLb();toast('Matchups locked! 🔒');pushGameStateToBin();}
+
+// ═══════════════════════════════════════════════════════
+// v4: JSONBIN + CORSPROXY — SHARED STATE
+// ═══════════════════════════════════════════════════════
+const JB_BIN_KEY = 'fd4-jb-bin';
+const JB_API_KEY = 'fd4-jb-api';
+
+function getJbBin()   { return localStorage.getItem(JB_BIN_KEY)||''; }
+function getJbKey()   { return localStorage.getItem(JB_API_KEY)||''; }
+function setJbBin(b)  { localStorage.setItem(JB_BIN_KEY, b.trim()); }
+function setJbKey(k)  { localStorage.setItem(JB_API_KEY, k.trim()); }
+function clearJb()    { localStorage.removeItem(JB_BIN_KEY); localStorage.removeItem(JB_API_KEY); }
+function isLinked()   { return !!(getJbBin() && getJbKey()); }
+
+// Wrap the JSONBin API call in the CORS proxy
+function jbEndpoint() { 
+  return `https://corsproxy.io/?url=${encodeURIComponent(`https://api.jsonbin.io/v3/b/${getJbBin()}`)}`; 
+}
+
+async function readBin(){
+  const res = await fetch(jbEndpoint(), {
+    headers: {
+      'X-Master-Key': getJbKey(),
+      'X-Bin-Meta': 'false' // Returns just the data, strips metadata
+    }
+  });
+  if(res.status===401||res.status===403) throw new Error('AUTH');
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function writeBin(payload){
+  const res = await fetch(jbEndpoint(), {
+    method:'PUT',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Master-Key': getJbKey()
+    },
+    body: JSON.stringify(payload)
+  });
+  if(res.status===401||res.status===403) throw new Error('AUTH');
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function buildSharedGameState(){
+  return {
+    picksA: WS.picksA,
+    picksB: WS.picksB,
+    matchups: WS.matchups,
+    locked: WS.locked,
+    nameA: document.getElementById('name-a').value||'Player A',
+    nameB: document.getElementById('name-b').value||'Player B'
+  };
+}
+
+function applySharedGameState(gs){
+  if(!gs) return;
+  WS.picksA = gs.picksA || WS.picksA;
+  WS.picksB = gs.picksB || WS.picksB;
+  WS.matchups = gs.matchups || WS.matchups;
+  WS.locked = gs.locked ?? WS.locked;
+  if(gs.nameA){ document.getElementById('name-a').value = gs.nameA; }
+  if(gs.nameB){ document.getElementById('name-b').value = gs.nameB; }
+  saveWS(); saveNames();
+  renderTable(); renderPicks('a'); renderPicks('b'); syncNames();
+}
+
+async function pushGameStateToBin(){
+  if(!isLinked() || !activeTId) return;
+  try{
+    await writeBin({
+      gameState: buildSharedGameState(),
+      scores: liveData||null,
+      tournamentId: activeTId,
+      updatedAt: new Date().toISOString()
+    });
+  }catch(e){ /* silent fail */ }
+}
+
+async function pullFromBin(){
+  if(!isLinked()){ toast('No database linked. Click the ⛓ badge to set one up.'); return; }
+  const pbtn=document.getElementById('pull-btn');
+  if(pbtn){ pbtn.classList.add('spinning'); pbtn.disabled=true; }
+  document.getElementById('upd').textContent='Reading shared state…';
+  try{
+    const data = await readBin();
+    if(!data){ toast('Shared database is empty — have the other player push first'); }
+    else {
+      if(data.tournamentId && data.tournamentId!==activeTId && tournaments.find(t=>t.id===data.tournamentId))
+        selectTournament(data.tournamentId);
+      if(data.gameState) applySharedGameState(data.gameState);
+      if(data.scores){ liveData=data.scores; renderLb(); }
+      const updAt = data.updatedAt
+        ? new Date(data.updatedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})
+        : '—';
+      document.getElementById('upd').textContent=`Shared · ${updAt}`;
+      toast('✓ Synced from shared database');
+    }
+  }catch(e){
+    if(e.message==='AUTH'){ toast('Auth failed — re-enter credentials in ⛓ settings'); openShareModal(); }
+    else { toast(`Sync error: ${e.message}`); document.getElementById('upd').textContent=`Sync error: ${e.message}`; }
+  }
+  if(pbtn){ pbtn.classList.remove('spinning'); pbtn.disabled=false; }
+}
+
+// ─── Share / JSONBin Modal ───────────────────────────────
+function updateSyncBadge(){
+  const badge = document.getElementById('sync-badge');
+  const txt   = document.getElementById('sync-badge-txt');
+  if(isLinked()){
+    badge.className='sync-badge linked';
+    const short = getJbBin();
+    txt.textContent=`⛓ ${short.length>10?short.slice(0,10)+'…':short}`;
+    badge.title='Sharing active — click to manage';
+  } else {
+    badge.className='sync-badge unlinked';
+    txt.textContent='Scores: Local';
+    badge.title='Share picks & scores with your opponent';
+  }
+}
+
+function openShareModal(){ renderShareModalBody(); document.getElementById('share-modal').classList.add('open'); }
+
+function renderShareModalBody(){
+  const body      = document.getElementById('share-modal-body');
+  const unlinkBtn = document.getElementById('unlink-btn');
+  document.getElementById('share-status').textContent='';
+  if(isLinked()){
+    unlinkBtn.style.display='';
+    body.innerHTML=`
+      <div class="linked-info">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Connected JSONBin</div>
+        <div class="bin-id" style="font-size:.68rem;word-break:break-all">${getJbBin()}</div>
+        <div class="bin-sub">✓ Picks, matchups, and scores sync automatically.<br>Send your friend the HTML file + Bin ID + Secret Key.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="cta cta-g" style="flex:1" onclick="copyJbBin()">Copy Bin ID</button>
+        <button class="cta cta-o" style="flex:1" onclick="pullFromBin();closeModal()">⬇ Pull Latest</button>
+      </div>`;
+  } else {
+    unlinkBtn.style.display='none';
+    body.innerHTML=`
+      <div class="share-path">
+        <h3>Connect JSONBin</h3>
+        <p>Your picks and live scores will sync to this bin. Make sure to use your <strong>Secret Key</strong> (starts with <code>$2b$</code>), not your Public Key.</p>
+        <input class="share-inp" id="jb-key-inp" type="password" placeholder="JSONBin Secret Key" autocomplete="off" style="margin-bottom:8px">
+        <input class="share-inp" id="jb-bin-inp" placeholder="JSONBin ID (e.g. 65c...)" autocomplete="off">
+        <button class="cta cta-g" style="margin-top:.8rem;width:100%;padding:10px" onclick="connectJSONBin()">Connect & Sync</button>
+      </div>
+      <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:6px;padding:.7rem .9rem;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);line-height:1.8">
+        <strong style="color:var(--gold2)">🤝 Share with your friend:</strong><br>
+        Send them the HTML file + your <strong>Bin ID</strong> + your <strong>Secret Key</strong>.<br>
+        They paste both into this same modal.
+      </div>`;
+  }
+}
+
+async function connectJSONBin(){
+  const key = (document.getElementById('jb-key-inp')?.value||'').trim();
+  const bin = (document.getElementById('jb-bin-inp')?.value||'').trim();
+  const status = document.getElementById('share-status');
+  if(!key){ status.textContent='❌ Paste your Secret Key first'; return; }
+  if(!bin){ status.textContent='❌ Paste your Bin ID first'; return; }
+  
+  status.textContent='Testing connection…';
+  setJbKey(key); setJbBin(bin);
+  try{
+    await readBin();
+    updateSyncBadge(); renderShareModalBody();
+    status.textContent='✓ Connected! Pushing current state to database…';
+    await pushGameStateToBin();
+    toast('JSONBin connected — sharing active!');
+  }catch(e){
+    clearJb(); updateSyncBadge();
+    if(e.message==='AUTH')
+      status.textContent='❌ Auth failed — check your Secret Key';
+    else
+      status.textContent=`❌ ${e.message} — check your Bin ID`;
+  }
+}
+
+function copyJbBin(){
+  navigator.clipboard.writeText(getJbBin())
+    .then(()=>toast('Bin ID copied!'))
+    .catch(()=>{ document.getElementById('share-status').textContent=getJbBin(); });
+}
+
+function unlinkBin(){
+  clearJb(); updateSyncBadge(); renderShareModalBody();
+  document.getElementById('unlink-btn').style.display='none';
+  toast('JSONBin unlinked — scores are now local only');
+}
+
+// ─── v4: ESPN Schedule Sync ───────────────────────────────
+// Full 2026 verified schedule. ESPN IDs confirmed as of 2026-02-25.
+// NOTE: IDs marked "~" are inferred sequential; verify at espn.com if building after Mar 2026.
+const SCHEDULE_2026 = [
+  {id:'espn-401811934',name:'Cognizant Classic in The Palm Beaches',venue:'PGA National · Palm Beach Gardens, FL',par:71,purse:9.6,espnId:'401811934',tz:'America/New_York',teeTimeISO:'2026-02-26T07:05:00',endDate:'2026-03-01'},
+  {id:'espn-401811935',name:'Arnold Palmer Invitational pres. by Mastercard',venue:'Bay Hill Club & Lodge · Orlando, FL',par:70,purse:20,espnId:'401811935',tz:'America/New_York',teeTimeISO:'2026-03-05T07:10:00',endDate:'2026-03-08'},
+  {id:'espn-401811936',name:'Puerto Rico Open',venue:'Grand Reserve CC · Rio Grande, PR',par:72,purse:4,espnId:'401811936',tz:'America/Puerto_Rico',teeTimeISO:'2026-03-05T07:00:00',endDate:'2026-03-08'},
+  {id:'espn-401811937',name:'THE PLAYERS Championship',venue:'TPC Sawgrass · Ponte Vedra Beach, FL',par:72,purse:25,espnId:'401811937',tz:'America/New_York',teeTimeISO:'2026-03-12T07:00:00',endDate:'2026-03-15'},
+  {id:'espn-401811938',name:'Valspar Championship',venue:'Innisbrook Resort (Copperhead) · Palm Harbor, FL',par:71,purse:9,espnId:'401811938',tz:'America/New_York',teeTimeISO:'2026-03-19T07:00:00',endDate:'2026-03-22'},
+  {id:'espn-401811939',name:'Texas Children\'s Houston Open',venue:'Memorial Park Golf Course · Houston, TX',par:72,purse:9.2,espnId:'401811939',tz:'America/Chicago',teeTimeISO:'2026-03-26T07:00:00',endDate:'2026-03-29'},
+  {id:'espn-401811940',name:'Valero Texas Open',venue:'TPC San Antonio (Oaks) · San Antonio, TX',par:72,purse:9.4,espnId:'401811940',tz:'America/Chicago',teeTimeISO:'2026-04-02T07:00:00',endDate:'2026-04-05'},
+  {id:'espn-401811941',name:'Masters Tournament',venue:'Augusta National Golf Club · Augusta, GA',par:72,purse:21,espnId:'401811941',tz:'America/New_York',teeTimeISO:'2026-04-09T08:00:00',endDate:'2026-04-13'},
+  {id:'espn-401811942',name:'RBC Heritage',venue:'Harbour Town Golf Links · Hilton Head, SC',par:71,purse:20,espnId:'401811942',tz:'America/New_York',teeTimeISO:'2026-04-16T07:00:00',endDate:'2026-04-19'},
+  {id:'espn-401811943',name:'Zurich Classic of New Orleans',venue:'TPC Louisiana · Avondale, LA',par:72,purse:9.9,espnId:'401811943',tz:'America/Chicago',teeTimeISO:'2026-04-23T07:00:00',endDate:'2026-04-26'},
+];
+
+function syncSchedule(){
+  let added = 0;
+  const existingEspnIds = new Set(tournaments.map(t=>t.espnId).filter(Boolean));
+  const existingIds = new Set(tournaments.map(t=>t.id));
+  for(const t of SCHEDULE_2026){
+    if(!existingEspnIds.has(t.espnId) && !existingIds.has(t.id)){
+      tournaments.push({...t, field:[]});
+      added++;
+    }
+  }
+  if(added>0){
+    saveTournaments(tournaments);
+    renderTournamentList();
+    updateWeekSelector();
+  }
+  const el = document.getElementById('sync-schedule-status');
+  el.textContent = added>0
+    ? `✓ Added ${added} tournament${added!==1?'s':''} to your list`
+    : '✓ All 2026 events already in your list';
+  setTimeout(()=>{el.textContent='';},4000);
+}
+
+// ─── v4: Fetch Field from ESPN ────────────────────────────
+async function fetchField(tournId){
+  const t = tournaments.find(x=>x.id===tournId);
+  if(!t||!t.espnId){ toast('No ESPN ID for this tournament'); return; }
+  const btn = document.getElementById(`ffb-${tournId}`);
+  if(btn){ btn.disabled=true; btn.textContent='⬇ Fetching…'; }
+  try{
+    const lb = await fetchESPN(`/leaderboard?tournamentId=${t.espnId}`);
+    const evts = lb?.events?.[0] || lb?.event || lb;
+    const competitors = evts?.competitions?.[0]?.competitors
+      || evts?.leaderboard
+      || evts?.competitors
+      || [];
+
+    if(!competitors.length){
+      toast('Field not available yet — check back closer to tee time');
+      if(btn){ btn.disabled=false; btn.textContent='⬇ Fetch Field'; }
+      return;
+    }
+
+    const field = [];
+    let withOdds = 0;
+    for(const comp of competitors){
+      const ath = comp.athlete || comp;
+      const name = ath.displayName || ath.fullName || ath.name || '';
+      if(!name) continue;
+
+      const statType = (comp.status?.type?.name||'').toLowerCase();
+      const isWD = comp.withdrawn || statType.includes('withdraw');
+      if(isWD){ field.push({n:name, o:'WD'}); continue; }
+
+      // Try to extract odds from various ESPN fields
+      let oddsRaw = comp.odds || comp.oddsInfo || comp.moneyLine || comp.openingLine
+        || comp.statistics?.find?.(s=>s.name==='moneyline')?.value || null;
+      let oddsStr = 'N/A';
+      if(oddsRaw !== null && oddsRaw !== undefined){
+        const num = parseInt(String(oddsRaw).replace(/[^0-9\-]/g,''));
+        if(!isNaN(num)){ oddsStr = num>0?`+${num}`:`${num}`; withOdds++; }
+      }
+      field.push({n:name, o:oddsStr});
+    }
+
+    // Sort: odds favorites first, WD at end, N/A before WD
+    field.sort((a,b)=>{
+      if(a.o==='WD'&&b.o!=='WD') return 1;
+      if(b.o==='WD'&&a.o!=='WD') return -1;
+      if(a.o==='N/A'&&b.o!=='N/A') return 1;
+      if(b.o==='N/A'&&a.o!=='N/A') return -1;
+      return oNum(a.o)-oNum(b.o);
+    });
+
+    t.field = field;
+    saveTournaments(tournaments);
+    if(activeTId === tournId){ renderTable(); }
+    renderTournamentList();
+    toast(`Field loaded: ${field.length} players, ${withOdds} with odds`);
+  }catch(e){
+    console.error('fetchField error:', e);
+    toast(`Field fetch failed: ${e.message}`);
+  }
+  if(btn){ btn.disabled=false; btn.textContent='⬇ Fetch Field'; }
+}
+
+// ═══════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════
+function showTab(t){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById(`view-${t}`).classList.add('on');
+  const idx={draft:0,lb:1,manage:2}[t]||0;
+  document.querySelectorAll('.nbtn')[idx].classList.add('on');
+  if(t==='lb') renderLb();
+  if(t==='manage') renderTournamentList();
+}
+function goLb(){
+  if(!activeTId){toast('Select a tournament first');return;}
+  const dA=deepCnt(WS.picksA),dB=deepCnt(WS.picksB);
+  if(WS.picksA.length<PICKS_MAX||WS.picksB.length<PICKS_MAX){toast(`Need ${PICKS_MAX} picks each. A:${WS.picksA.length}, B:${WS.picksB.length}`);return;}
+  if(dA<DEEP_MIN||dB<DEEP_MIN){toast(`Need ≥${DEEP_MIN} deep picks (★) each. A:${dA}, B:${dB}`);return;}
+  showTab('lb');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL / TOAST / RESET
+// ═══════════════════════════════════════════════════════
+function openResetModal(){if(!activeTId){toast('No tournament selected');return;}document.getElementById('rst-modal').classList.add('open');}
+function closeModal(){document.querySelectorAll('.modal-ov').forEach(m=>m.classList.remove('open'));pendingDelId=null;}
+function confirmReset(){const ns=mkEmpty();WS=ns;saveWS();closeModal();resetFilters();renderTable();renderPicks('a');renderPicks('b');toast('Week reset!');}
+function openInstructions(){document.getElementById('instructions-modal').classList.add('open');}
+function closeInstructionsOnBg(e){if(e.target===document.getElementById('instructions-modal'))closeModal();}
+let tt;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),3200);}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+function init(){
+  const names=loadNames();
+  document.getElementById('name-a').value=names.nameA;
+  document.getElementById('name-b').value=names.nameB;
+  updateWeekSelector();
+  updateHeader();
+  if(activeTId){
+    WS=loadWS(activeTId);
+    renderTable();
+    renderPicks('a');
+    renderPicks('b');
+  }
+  updateDeadlineBar();
+  updateSyncBadge();
+  // Update deadline bar every second
+  deadlineTimer=setInterval(()=>{updateDeadlineBar();},1000);
+}
+
+init();
+</script>
+</body>
+</html>
