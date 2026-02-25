@@ -4645,7 +4645,7 @@ Justin Hicks, +350000"
         <div class="bin-sub">✓ Picks, matchups, and scores sync automatically.<br>Send your friend the HTML file + Bin ID + Secret Key.</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="cta cta-g" style="flex:1" onclick="copyJbBin()">Copy Bin ID</button>
+        <button class="cta cta-g" style="flex:1" onclick="copyInviteLink()">📋 Copy Invite Link</button>
         <button class="cta cta-o" style="flex:1" onclick="pullFromBin();closeModal()">⬇ Pull Latest</button>
       </div>`;
         } else {
@@ -4699,13 +4699,17 @@ Justin Hicks, +350000"
         }
       }
 
-      function copyJbBin() {
+      function copyInviteLink() {
+        // Get the base URL of your GitHub Pages site
+        const url = new URL(window.location.href.split("?")[0]);
+        // Silently attach the credentials
+        url.searchParams.set("bin", getJbBin());
+        url.searchParams.set("key", getJbKey());
+
         navigator.clipboard
-          .writeText(getJbBin())
-          .then(() => toast("Bin ID copied!"))
-          .catch(() => {
-            document.getElementById("share-status").textContent = getJbBin();
-          });
+          .writeText(url.toString())
+          .then(() => toast("Magic link copied! Send this to your opponent."))
+          .catch(() => toast("Failed to copy link."));
       }
 
       function unlinkBin() {
@@ -5031,6 +5035,25 @@ Justin Hicks, +350000"
       // INIT
       // ═══════════════════════════════════════════════════════
       function init() {
+        // --- NEW: Check for Magic Link ---
+        const params = new URLSearchParams(window.location.search);
+        const urlBin = params.get("bin");
+        const urlKey = params.get("key");
+        if (urlBin && urlKey) {
+          setJbBin(urlBin);
+          setJbKey(urlKey);
+          // Hide the credentials from the address bar instantly
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname,
+          );
+          toast("Linked via invite URL!");
+          // Automatically pull the latest data
+          setTimeout(pullFromBin, 800);
+        }
+        // ---------------------------------
+
         const names = loadNames();
         document.getElementById("name-a").value = names.nameA;
         document.getElementById("name-b").value = names.nameB;
