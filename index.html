@@ -2050,6 +2050,26 @@
           <span class="sync-dot"></span>
           <span id="sync-badge-txt">Scores: Local</span>
         </button>
+        <button
+          id="hdr-refresh-btn"
+          onclick="pullFromBin()"
+          title="Pull latest data from JSONBin"
+          style="
+            display: none;
+            background: rgba(39, 163, 78, 0.1);
+            border: 1px solid rgba(39, 163, 78, 0.35);
+            color: var(--win2);
+            border-radius: 5px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: opacity 0.2s;
+          "
+          onmouseover="this.style.opacity = 0.7"
+          onmouseout="this.style.opacity = 1"
+        >
+          ⬇ Pull
+        </button>
         <div class="spacer"></div>
         <div class="wsel">
           <label>Week</label>
@@ -2268,7 +2288,7 @@
             style="border-color: rgba(39, 163, 78, 0.35); color: var(--win2)"
             title="Pull latest picks, matchups & scores from shared bin"
           >
-            ⬇ Pull from Bin
+            ⬇ Refresh Rosters and Matchups
           </button>
           <span class="updlbl" id="upd"></span>
         </div>
@@ -4592,15 +4612,18 @@ Justin Hicks, +350000"
       function updateSyncBadge() {
         const badge = document.getElementById("sync-badge");
         const txt = document.getElementById("sync-badge-txt");
+        const hdrRefBtn = document.getElementById("hdr-refresh-btn");
         if (isLinked()) {
           badge.className = "sync-badge linked";
           const short = getJbBin();
           txt.textContent = `⛓ ${short.length > 10 ? short.slice(0, 10) + "…" : short}`;
           badge.title = "Sharing active — click to manage";
+          if (hdrRefBtn) hdrRefBtn.style.display = "inline-flex";
         } else {
           badge.className = "sync-badge unlinked";
           txt.textContent = "Scores: Local";
           badge.title = "Share picks & scores with your opponent";
+          if (hdrRefBtn) hdrRefBtn.style.display = "none";
         }
       }
 
