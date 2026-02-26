@@ -1939,12 +1939,16 @@
                   <strong>↻ Refresh ESPN Scores</strong> on the Leaderboard. The
                   app pulls hole-by-hole data to calculate Modified Stableford
                   points. Points are awarded as follows: <br /><br />
-                  <span style="color: var(--gold2)">Eagle/Better: +5</span> |
-                  <span style="color: var(--win2)">Birdie: +3</span> |
-                  <span style="color: var(--gray2)">Par: +1</span> |
-                  <span style="color: var(--gray)">Bogey: 0</span> |
-                  <span style="color: var(--red2)">Double+: -2</span
-                  ><br /><br />
+                  <div style="line-height: 1.8">
+                    <span style="color: var(--gold2)">Albatross: +8</span> |
+                    <span style="color: var(--gold2)">Eagle: +5</span> |
+                    <span style="color: var(--win2)">Birdie: +3</span> |
+                    <span style="color: var(--gray2)">Par: +1</span> |
+                    <span style="color: var(--gray)">Bogey: 0</span> |
+                    <span style="color: var(--red2)">Double: -2</span> |
+                    <span style="color: #c03040">Triple+: -3</span>
+                  </div>
+                  <br />
                   <em
                     >Note: Missed-cut players only score points for Rounds 1 &
                     2.</em
@@ -1959,1053 +1963,1116 @@
     <div class="toast" id="toast"></div>
 
     <script>
-      // ═══════════════════════════════════════════════════════
-      // SUPABASE CONFIGURATION
-      // ═══════════════════════════════════════════════════════
-      const SUPABASE_URL = "https://xflaabqfjrocnaklaaph.supabase.co";
-      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmbGFhYnFmanJvY25ha2xhYXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzQwMTMsImV4cCI6MjA4NzcxMDAxM30.nU_ADUEfyl_u_5AeXP0F1gakbSNaOYjAQr47SiXWZaw";
+            // ═══════════════════════════════════════════════════════
+            // SUPABASE CONFIGURATION
+            // ═══════════════════════════════════════════════════════
+            const SUPABASE_URL = "https://xflaabqfjrocnaklaaph.supabase.co";
+            const SUPABASE_KEY =
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmbGFhYnFmanJvY25ha2xhYXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzQwMTMsImV4cCI6MjA4NzcxMDAxM30.nU_ADUEfyl_u_5AeXP0F1gakbSNaOYjAQr47SiXWZaw";
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            // ═══════════════════════════════════════════════════════
+            // GLOBALS & STATE
+            // ═══════════════════════════════════════════════════════
+            const PICKS_MAX = 20,
+              DEEP_MIN = 3;
+            let tournaments = [];
+            let activeTId = localStorage.getItem("fd-cloud-active") || "";
+            let WS = {
+              picksA: [],
+              picksB: [],
+              matchups: null,
+              locked: false,
+              nameA: "Matt",
+              nameB: "Chad",
+            };
+            let liveData = null;
+            let deadlineTimer = null;
 
-      // ═══════════════════════════════════════════════════════
-      // GLOBALS & STATE
-      // ═══════════════════════════════════════════════════════
-      const PICKS_MAX = 20,
-        DEEP_MIN = 3;
-      let tournaments = [];
-      let activeTId = localStorage.getItem("fd-cloud-active") || "";
-      let WS = {
-        picksA: [],
-        picksB: [],
-        matchups: null,
-        locked: false,
-        nameA: "Matt",
-        nameB: "Chad",
-      };
-      let liveData = null;
-      let deadlineTimer = null;
+            function getActiveTournament() {
+              return tournaments.find((t) => t.id === activeTId) || null;
+            }
 
-      function getActiveTournament() {
-        return tournaments.find((t) => t.id === activeTId) || null;
-      }
-
-      // ═══════════════════════════════════════════════════════
-      // DATABASE LOGIC
-      // ═══════════════════════════════════════════════════════
-      async function loadFromCloud() {
-        const { data, error } = await db.from("tournaments").select("*");
-        if (error) {
-          toast("Error loading from cloud");
-          return;
-        }
-
-        tournaments = data.map((row) => ({
-          id: row.id,
-          ...row.tournament_data,
-          _gameState: row.game_state,
-          _scores: row.scores,
-        }));
-
-        updateWeekSelector();
-        renderTournamentList();
-
-        if (activeTId && !tournaments.find((t) => t.id === activeTId)) {
-          activeTId = "";
-          localStorage.removeItem("fd-cloud-active");
-        }
-
-        if (activeTId) {
-          applyCloudStateForActive(true);
-        } else if (tournaments.length > 0) {
-          selectTournament(tournaments[0].id);
-        } else {
-          updateHeader();
-        }
-
-        // Set up Realtime Subscription
-        db.channel("public:tournaments")
-          .on(
-            "postgres_changes",
-            { event: "UPDATE", schema: "public", table: "tournaments" },
-            (payload) => {
-              const row = payload.new;
-              // Update local array silently
-              const idx = tournaments.findIndex((t) => t.id === row.id);
-              if (idx > -1) {
-                tournaments[idx] = {
-                  id: row.id,
-                  ...row.tournament_data,
-                  _gameState: row.game_state,
-                  _scores: row.scores,
-                };
+            // ═══════════════════════════════════════════════════════
+            // DATABASE LOGIC
+            // ═══════════════════════════════════════════════════════
+            async function loadFromCloud() {
+              const { data, error } = await db.from("tournaments").select("*");
+              if (error) {
+                toast("Error loading from cloud");
+                return;
               }
-              // If the update is for the tournament we are currently looking at, refresh the UI
-              if (row.id === activeTId) {
-                WS = row.game_state || {
-                  picksA: [],
-                  picksB: [],
-                  matchups: null,
-                  locked: false,
-                  nameA: "Matt",
-                  nameB: "Chad",
-                };
-                liveData = row.scores || null;
-                syncNames();
+
+              tournaments = data.map((row) => ({
+                id: row.id,
+                ...row.tournament_data,
+                _gameState: row.game_state,
+                _scores: row.scores,
+              }));
+
+              updateWeekSelector();
+              renderTournamentList();
+
+              if (activeTId && !tournaments.find((t) => t.id === activeTId)) {
+                activeTId = "";
+                localStorage.removeItem("fd-cloud-active");
+              }
+
+              if (activeTId) {
+                applyCloudStateForActive(true);
+              } else if (tournaments.length > 0) {
+                selectTournament(tournaments[0].id);
+              } else {
+                updateHeader();
+              }
+
+              // Set up Realtime Subscription
+              db.channel("public:tournaments")
+                .on(
+                  "postgres_changes",
+                  { event: "UPDATE", schema: "public", table: "tournaments" },
+                  (payload) => {
+                    const row = payload.new;
+                    // Update local array silently
+                    const idx = tournaments.findIndex((t) => t.id === row.id);
+                    if (idx > -1) {
+                      tournaments[idx] = {
+                        id: row.id,
+                        ...row.tournament_data,
+                        _gameState: row.game_state,
+                        _scores: row.scores,
+                      };
+                    }
+                    // If the update is for the tournament we are currently looking at, refresh the UI
+                    if (row.id === activeTId) {
+                      WS = row.game_state || {
+                        picksA: [],
+                        picksB: [],
+                        matchups: null,
+                        locked: false,
+                        nameA: "Matt",
+                        nameB: "Chad",
+                      };
+                      liveData = row.scores || null;
+                      syncNames();
+                      renderTable();
+                      renderPicks("a");
+                      renderPicks("b");
+                      renderLb();
+                      toast("🔄 Cloud sync updated");
+                    }
+                  },
+                )
+                .subscribe();
+            }
+
+            function applyCloudStateForActive(skipRender = false) {
+              const t = getActiveTournament();
+              if (!t) return;
+              WS = t._gameState || {
+                picksA: [],
+                picksB: [],
+                matchups: null,
+                locked: false,
+                nameA: "Matt",
+                nameB: "Chad",
+              };
+              liveData = t._scores || null;
+              document.getElementById("name-a").value = WS.nameA || "Matt";
+              document.getElementById("name-b").value = WS.nameB || "Chad";
+              updateHeader();
+              updateDeadlineBar();
+              syncNames();
+              if (!skipRender) {
+                resetFilters();
                 renderTable();
                 renderPicks("a");
                 renderPicks("b");
                 renderLb();
-                toast("🔄 Cloud sync updated");
               }
-            },
-          )
-          .subscribe();
-      }
+            }
 
-      function applyCloudStateForActive(skipRender = false) {
-        const t = getActiveTournament();
-        if (!t) return;
-        WS = t._gameState || {
-          picksA: [],
-          picksB: [],
-          matchups: null,
-          locked: false,
-          nameA: "Matt",
-          nameB: "Chad",
-        };
-        liveData = t._scores || null;
-        document.getElementById("name-a").value = WS.nameA || "Matt";
-        document.getElementById("name-b").value = WS.nameB || "Chad";
-        updateHeader();
-        updateDeadlineBar();
-        syncNames();
-        if (!skipRender) {
-          resetFilters();
-          renderTable();
-          renderPicks("a");
-          renderPicks("b");
-          renderLb();
-        }
-      }
+            async function saveGameStateToDB() {
+              if (!activeTId) return;
+              WS.nameA = document.getElementById("name-a").value || "Matt";
+              WS.nameB = document.getElementById("name-b").value || "Chad";
+              syncNames();
+              // Update local array for fast UI
+              const t = getActiveTournament();
+              if (t) t._gameState = WS;
+              // Push to cloud
+              await db
+                .from("tournaments")
+                .update({ game_state: WS })
+                .eq("id", activeTId);
 
-      async function saveGameStateToDB() {
-        if (!activeTId) return;
-        WS.nameA = document.getElementById("name-a").value || "Matt";
-        WS.nameB = document.getElementById("name-b").value || "Chad";
-        syncNames();
-        // Update local array for fast UI
-        const t = getActiveTournament();
-        if (t) t._gameState = WS;
-        // Push to cloud
-        await db
-          .from("tournaments")
-          .update({ game_state: WS })
-          .eq("id", activeTId);
+              toast("💾 Roster changes saved to cloud");
+            }
 
-        toast("💾 Roster changes saved to cloud");
-      }
+            async function saveTournamentDataToDB(id, tData) {
+              // Upsert tournament row
+              const { error } = await db.from("tournaments").upsert({
+                id: id,
+                tournament_data: tData,
+              });
+              if (error) toast("Failed to save tournament");
+              else loadFromCloud();
+            }
 
-      async function saveTournamentDataToDB(id, tData) {
-        // Upsert tournament row
-        const { error } = await db.from("tournaments").upsert({
-          id: id,
-          tournament_data: tData,
-        });
-        if (error) toast("Failed to save tournament");
-        else loadFromCloud();
-      }
+            function selectTournament(id) {
+              activeTId = id;
+              localStorage.setItem("fd-cloud-active", id);
+              applyCloudStateForActive();
+              updateWeekSelector();
+              toast("Tournament loaded");
+            }
 
-      function selectTournament(id) {
-        activeTId = id;
-        localStorage.setItem("fd-cloud-active", id);
-        applyCloudStateForActive();
-        updateWeekSelector();
-        toast("Tournament loaded");
-      }
+            // ═══════════════════════════════════════════════════════
+            // TOURNAMENT MANAGER & ESPN LOGIC
+            // ═══════════════════════════════════════════════════════
+            const CORS = "https://corsproxy.io/?url=";
+            const ESPN_BASE =
+              "https://site.api.espn.com/apis/site/v2/sports/golf/pga";
 
-      // ═══════════════════════════════════════════════════════
-      // TOURNAMENT MANAGER & ESPN LOGIC
-      // ═══════════════════════════════════════════════════════
-      const CORS = "https://corsproxy.io/?url=";
-      const ESPN_BASE =
-        "https://site.api.espn.com/apis/site/v2/sports/golf/pga";
+            function espnUrl(path) {
+              return CORS + encodeURIComponent(ESPN_BASE + path);
+            }
 
-      function espnUrl(path) {
-        return CORS + encodeURIComponent(ESPN_BASE + path);
-      }
-
-      // Auto-fill feature for Tournaments
+            // Auto-fill feature for Tournaments
       async function autoFillESPN() {
-        const espnId = document.getElementById("fm-espnid").value.trim();
-        if (!espnId) return toast("Please enter an ESPN ID first");
+              const espnId = document.getElementById("fm-espnid").value.trim();
+              if (!espnId) return toast("Please enter an ESPN ID first");
 
-        toast("Fetching tournament details...");
+              toast("Fetching tournament details...");
 
-        try {
-          const res = await fetch(
-            espnUrl(`/leaderboard?tournamentId=${espnId}`),
-            { headers: { Accept: "application/json" } },
-          );
-          const data = await res.json();
-          const ev = data?.events?.[0];
-          if (!ev) return toast("Tournament not found");
+              try {
+                const res = await fetch(espnUrl(`/leaderboard?tournamentId=${espnId}`), { headers: { Accept: "application/json" } });
+                const data = await res.json();
+                const ev = data?.events?.[0];
+                if (!ev) return toast("Tournament not found");
 
-          document.getElementById("fm-name").value = ev.name || "";
+                document.getElementById("fm-name").value = ev.name || "";
 
-          const comp = ev.competitions?.[0];
-          if (comp) {
-            const course = comp.courses?.[0];
-            let venueStr = comp.venue?.fullName || "";
-            if (comp.venue?.address?.city)
-              venueStr += ` · ${comp.venue.address.city}`;
-            if (comp.venue?.address?.state)
-              venueStr += `, ${comp.venue.address.state}`;
-            document.getElementById("fm-venue").value = venueStr;
+                const comp = ev.competitions?.[0];
+                if (comp) {
+                  const course = comp.courses?.[0];
+                  let venueStr = comp.venue?.fullName || "";
+                  if (comp.venue?.address?.city) venueStr += ` · ${comp.venue.address.city}`;
+                  if (comp.venue?.address?.state) venueStr += `, ${comp.venue.address.state}`;
+                  document.getElementById("fm-venue").value = venueStr;
 
-            document.getElementById("fm-par").value = course?.par || 72;
-            document.getElementById("fm-purse").value = comp.purse?.value
-              ? (comp.purse.value / 1000000).toFixed(1)
-              : 0;
-          }
-
-          if (ev.date) {
-            const d = new Date(ev.date);
-            const pad = (n) => n.toString().padStart(2, "0");
-            document.getElementById("fm-tee").value =
-              `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-          }
-          toast("Details auto-filled!");
-        } catch (e) {
-          toast(`Error fetching info`);
-        }
-      }
-
-      async function addTournament() {
-        const name = document.getElementById("fm-name").value.trim();
-        if (!name) {
-          toast("Tournament name required");
-          return;
-        }
-        const id = "t-" + Date.now();
-        const tData = {
-          name: name,
-          venue: document.getElementById("fm-venue").value.trim(),
-          par: parseInt(document.getElementById("fm-par").value) || 72,
-          purse: parseFloat(document.getElementById("fm-purse").value) || 0,
-          tz: document.getElementById("fm-tz").value,
-          teeTimeISO: document.getElementById("fm-tee").value,
-          espnId: document.getElementById("fm-espnid").value.trim(),
-          field: [],
-        };
-        await saveTournamentDataToDB(id, tData);
-        toast(`"${name}" added to cloud!`);
-      }
-
-      let pendingDelId = null;
-      function openDelModal(id) {
-        pendingDelId = id;
-        document.getElementById("del-modal").classList.add("open");
-      }
-      async function confirmDelTournament() {
-        if (!pendingDelId) return;
-        await db.from("tournaments").delete().eq("id", pendingDelId);
-        toast("Tournament deleted from cloud");
-        closeModal();
-        loadFromCloud();
-      }
-
-      function renderTournamentList() {
-        const el = document.getElementById("tlist");
-        if (!tournaments.length) {
-          el.innerHTML =
-            '<div style="color:var(--gray);font-style:italic">No tournaments yet</div>';
-          return;
-        }
-        const sorted = [...tournaments].sort((a, b) =>
-          (a.teeTimeISO || "").localeCompare(b.teeTimeISO || ""),
-        );
-        el.innerHTML = sorted
-          .map((t) => {
-            const isActive = t.id === activeTId;
-            return `<div class="tcard${isActive ? " active-tourn" : ""}">
-            <div class="tcard-head">
-              <div class="tcard-name">${t.name}</div>
-              <div class="tcard-actions">
-                ${t.espnId ? `<button class="fetch-field-btn" id="ffb-${t.id}" onclick="fetchField('${t.id}')">⬇ Fetch Field</button>` : ""}
-                ${!isActive ? `<button class="tcard-sel" onclick="selectTournament('${t.id}')">Select</button>` : ""}
-                <button class="tcard-del" onclick="openDelModal('${t.id}')">✕</button>
-              </div>
-            </div>
-            <div class="tcard-body">
-              <div>ESPN ID: <span>${t.espnId || "not set"}</span></div>
-              <div>Field: <span>${t.field ? t.field.length + " players" : "0"}</span></div>
-            </div>
-          </div>`;
-          })
-          .join("");
-      }
-
-      function oNum(o) {
-        if (!o || o === "WD" || o === "N/A") return 9999999;
-        return parseInt(String(o).replace(/[^0-9]/g, "")) || 9999999;
-      }
-      function deepThresh(field) {
-        const elig = field
-          .filter((p) => p.o !== "WD" && p.o !== "N/A")
-          .sort((a, b) => oNum(a.o) - oNum(b.o));
-        return elig[Math.ceil((elig.length * 2) / 3)]
-          ? oNum(elig[Math.ceil((elig.length * 2) / 3)].o)
-          : 17000;
-      }
-      function isDeep(o, thresh) {
-        return oNum(o) >= thresh;
-      }
-      function tier(o) {
-        const n = oNum(o);
-        if (n <= 2500) return "fav";
-        if (n <= 5999) return "cont";
-        if (n <= 11999) return "long";
-        return "deep";
-      }
-      const TC = {
-        fav: "#e74c3c",
-        cont: "#f39c12",
-        long: "#27ae60",
-        deep: "#7a8c7d",
-      };
-      const TL = {
-        fav: "Favorite",
-        cont: "Contender",
-        long: "Longshot",
-        deep: "Deep",
-      };
-
-      async function fetchField(tournId) {
-        const t = tournaments.find((x) => x.id === tournId);
-        if (!t || !t.espnId) {
-          toast("No ESPN ID");
-          return;
-        }
-        document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
-        try {
-          const res = await fetch(
-            espnUrl(`/leaderboard?tournamentId=${t.espnId}`),
-            { headers: { Accept: "application/json" } },
-          );
-          const lb = await res.json();
-          const evts = lb?.events?.[0] || lb?.event || lb;
-          const competitors =
-            evts?.competitions?.[0]?.competitors ||
-            evts?.leaderboard ||
-            evts?.competitors ||
-            [];
-          const field = [];
-          for (const comp of competitors) {
-            const name =
-              comp.athlete?.displayName ||
-              comp.athlete?.fullName ||
-              comp.athlete?.name ||
-              "";
-            if (!name) continue;
-            const isWD =
-              comp.withdrawn ||
-              (comp.status?.type?.name || "")
-                .toLowerCase()
-                .includes("withdraw");
-            if (isWD) {
-              field.push({ n: name, o: "WD" });
-              continue;
-            }
-            let oddsRaw =
-              comp.odds ||
-              comp.oddsInfo ||
-              comp.moneyLine ||
-              comp.statistics?.find?.((s) => s.name === "moneyline")?.value ||
-              null;
-            let oddsStr = "N/A";
-            if (oddsRaw !== null) {
-              const num = parseInt(String(oddsRaw).replace(/[^0-9\-]/g, ""));
-              if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
-            }
-            field.push({ n: name, o: oddsStr });
-          }
-          field.sort((a, b) => {
-            if (a.o === "WD" && b.o !== "WD") return 1;
-            if (b.o === "WD" && a.o !== "WD") return -1;
-            if (a.o === "N/A" && b.o !== "N/A") return 1;
-            if (b.o === "N/A" && a.o !== "N/A") return -1;
-            return oNum(a.o) - oNum(b.o);
-          });
-          // Update DB
-          const tData = {
-            name: t.name,
-            venue: t.venue,
-            par: t.par,
-            purse: t.purse,
-            tz: t.tz,
-            teeTimeISO: t.teeTimeISO,
-            espnId: t.espnId,
-            field: field,
-          };
-          await saveTournamentDataToDB(tournId, tData);
-          toast(`Field loaded: ${field.length} players`);
-        } catch (e) {
-          toast(`Error: ${e.message}`);
-        }
-        document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetch Field";
-      }
-
-      // ═══════════════════════════════════════════════════════
-      // DRAFT LOGIC
-      // ═══════════════════════════════════════════════════════
-      let tf = "all",
-        sq = "",
-        pg = 1;
-      const PS = 20;
-      function filterPlayers() {
-        sq = document.getElementById("srch").value.toLowerCase();
-        pg = 1;
-        renderTable();
-      }
-      function setTier(btn, t) {
-        document
-          .querySelectorAll(".fbt")
-          .forEach((b) => b.classList.remove("on"));
-        btn.classList.add("on");
-        tf = t;
-        pg = 1;
-        renderTable();
-      }
-      function resetFilters() {
-        pg = 1;
-        sq = "";
-        document.getElementById("srch").value = "";
-        document
-          .querySelectorAll(".fbt")
-          .forEach((b) => b.classList.remove("on"));
-        document.querySelector('.fbt[data-tier="all"]').classList.add("on");
-        tf = "all";
-      }
-
-      function renderTable() {
-        const t = getActiveTournament();
-        if (!t || !t.field || !t.field.length) {
-          document.getElementById("ptbody").innerHTML =
-            '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray)">Field not yet set or tournament not selected.</td></tr>';
-          return;
-        }
-        const thresh = deepThresh(t.field);
-        document.getElementById("fp-title").textContent = `Field · ${t.name}`;
-        const elig = t.field.filter((p) => p.o !== "WD");
-        const filt = elig.filter(
-          (p) =>
-            p.n.toLowerCase().includes(sq) &&
-            (tf === "all" || tier(p.o) === tf),
-        );
-        const pages = Math.max(1, Math.ceil(filt.length / PS));
-        pg = Math.min(pg, pages);
-        const sl = filt.slice((pg - 1) * PS, pg * PS);
-        const locked = isDraftLocked();
-
-        document.getElementById("ptbody").innerHTML = sl
-          .map((p) => {
-            const rank = elig.findIndex((x) => x.n === p.n) + 1;
-            const ti = tier(p.o),
-              deep = isDeep(p.o, thresh);
-            const inA = WS.picksA.some((x) => x.n === p.n),
-              inB = WS.picksB.some((x) => x.n === p.n);
-            const rc = inA && inB ? "rAB" : inA ? "rA" : inB ? "rB" : "";
-            const fullA = WS.picksA.length >= PICKS_MAX,
-              fullB = WS.picksB.length >= PICKS_MAX;
-            let acts = "";
-            if (locked) {
-              acts =
-                inA && inB
-                  ? '<span class="chip chip-blue">A</span> <span class="chip chip-red">B</span>'
-                  : inA
-                    ? '<span class="chip chip-blue">A</span>'
-                    : inB
-                      ? '<span class="chip chip-red">B</span>'
-                      : "";
-            } else if (inA && inB) {
-              acts = `<span class="chip chip-blue">A</span> <span class="chip chip-red">B</span>`;
-            } else if (inA) {
-              acts = `<span class="chip chip-blue">✓ A</span> <button class="ab ab-b"${fullB ? " disabled" : ""} onclick="pick('b','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameB}</button>`;
-            } else if (inB) {
-              acts = `<button class="ab ab-a"${fullA ? " disabled" : ""} onclick="pick('a','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameA}</button> <span class="chip chip-red">✓ B</span>`;
-            } else {
-              acts = `<button class="ab ab-a"${fullA || locked ? " disabled" : ""} onclick="pick('a','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameA}</button> <button class="ab ab-b"${fullB || locked ? " disabled" : ""} onclick="pick('b','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameB}</button>`;
-            }
-            return `<tr class="${rc}"><td class="td-r">${rank}</td><td class="td-n">${p.n}${deep ? ` <span class="pr-dt">★</span>` : ""}</td><td class="td-o"><span class="tdot" style="background:${TC[ti]}"></span>${p.o}</td><td><span style="font-family:'JetBrains Mono';font-size:.6rem;color:${TC[ti]}">${TL[ti]}</span></td><td><div class="acts">${acts}</div></td></tr>`;
-          })
-          .join("");
-      }
-
-      function pick(who, name, odds) {
-        if (isDraftLocked()) return toast("Draft is locked");
-        const arr = who === "a" ? WS.picksA : WS.picksB;
-        if (arr.length >= PICKS_MAX || arr.some((x) => x.n === name)) return;
-        arr.push({ n: name, o: odds });
-        WS.matchups = null;
-        WS.locked = false;
-        renderPicks(who);
-        renderTable();
-        // Notice: Removed auto-save here to force manual saves.
-      }
-      function removePick(who, name) {
-        if (isDraftLocked()) return toast("Draft is locked");
-        if (who === "a") WS.picksA = WS.picksA.filter((x) => x.n !== name);
-        else WS.picksB = WS.picksB.filter((x) => x.n !== name);
-        WS.matchups = null;
-        WS.locked = false;
-        renderPicks(who);
-        renderTable();
-        // Notice: Removed auto-save here to force manual saves.
-      }
-
-      function renderPicks(who) {
-        const arr = who === "a" ? WS.picksA : WS.picksB;
-        const t = getActiveTournament();
-        const th = t ? deepThresh(t.field) : 17000;
-        const deep = arr.filter((p) => isDeep(p.o, th)).length;
-        document.getElementById(`pl-${who}`).innerHTML = arr.length
-          ? arr
-              .map(
-                (p) =>
-                  `<div class="prow"><span class="pr-n">${p.n}${isDeep(p.o, th) ? '<span class="pr-dt">★</span>' : ""}</span><span class="pr-o">${p.o}</span>${!isDraftLocked() ? `<button class="pr-del" onclick="removePick('${who}','${p.n.replace(/'/g, "\\'")}')">✕</button>` : ""}</div>`,
-              )
-              .join("")
-          : '<div class="pempty">No picks yet</div>';
-        document.getElementById(`tly-${who}`).textContent =
-          `${arr.length}/${PICKS_MAX}`;
-        document.getElementById(`req-${who}`).innerHTML =
-          `<span class="dreq ${arr.length >= PICKS_MAX ? "met" : ""}">${arr.length}/${PICKS_MAX} picks</span><span class="dreq ${deep >= DEEP_MIN ? "met" : ""}">${deep}/${DEEP_MIN} deep ★</span>`;
-      }
-
-      function syncNames() {
-        document.getElementById("hcn-a").textContent = WS.nameA || "Matt";
-        document.getElementById("hcn-b").textContent = WS.nameB || "Chad";
-      }
-
-      // ═══════════════════════════════════════════════════════
-      // MATCHUPS & LEADERBOARD
-      // ═══════════════════════════════════════════════════════
-      function mkRNG(seed) {
-        let s = seed % 2147483647;
-        if (s <= 0) s += 2147483646;
-        return () => {
-          s = (s * 16807) % 2147483647;
-          return (s - 1) / 2147483646;
-        };
-      }
-      function genMatchups(autoLock = false) {
-        if (WS.picksA.length !== PICKS_MAX || WS.picksB.length !== PICKS_MAX)
-          return toast(`Need ${PICKS_MAX} picks each`);
-        const seed = Date.now();
-        const rng = mkRNG(seed);
-        const pA = WS.picksA,
-          pB = WS.picksB;
-        const bi = [...Array(pB.length).keys()];
-        for (let i = bi.length - 1; i > 0; i--) {
-          const j = Math.floor(rng() * (i + 1));
-          [bi[i], bi[j]] = [bi[j], bi[i]];
-        }
-        for (let i = 0; i < pA.length; i++) {
-          if (pB[bi[i]].n === pA[i].n) {
-            let fixed = false;
-            for (let j = i + 1; j < pB.length; j++) {
-              if (pB[bi[j]].n !== pA[i].n && pB[bi[i]].n !== pA[j].n) {
-                [bi[i], bi[j]] = [bi[j], bi[i]];
-                fixed = true;
-                break;
-              }
-            }
-            if (!fixed) {
-              for (let j = 0; j < pB.length; j++) {
-                if (j !== i && pB[bi[j]].n !== pA[i].n) {
-                  [bi[i], bi[j]] = [bi[j], bi[i]];
-                  break;
+                  document.getElementById("fm-par").value = course?.par || 72;
+                  document.getElementById("fm-purse").value = comp.purse?.value ? (comp.purse.value / 1000000).toFixed(1) : 0;
                 }
-              }
-            }
-          }
-        }
-        WS.matchups = {
-          pairs: pA.map((pa, i) => ({ a: pa.n, b: pB[bi[i]].n })),
-          seed,
-        };
 
-        if (autoLock === true) {
-          WS.locked = true;
-        } else {
-          WS.locked = false;
-        }
-
-        saveGameStateToDB();
-        renderLb();
-      }
-
-      function holePoints(strokes, par) {
-        if (!strokes || !par) return null;
-        const diff = strokes - par;
-        if (diff <= -3) return 8;
-        if (diff === -2) return 5;
-        if (diff === -1) return 3;
-        if (diff === 0) return 1;
-        if (diff === 1) return 0;
-        if (diff === 2) return -2;
-        return -3;
-      }
-      function calcSF(pd, isMC) {
-        if (!pd || pd.status === "pre_tournament" || pd.status === "wd")
-          return null;
-        const rounds = isMC
-          ? (pd.scorecardRounds || []).slice(0, 2)
-          : pd.scorecardRounds || [];
-        if (!rounds.length) return null;
-        let total = 0,
-          anyHole = false;
-        for (const rnd of rounds) {
-          for (const hole of rnd || []) {
-            const pts = holePoints(hole.strokes, hole.par);
-            if (pts !== null) {
-              total += pts;
-              anyHole = true;
-            }
-          }
-        }
-        return anyHole ? Math.max(0, total) : null;
-      }
-      function getPD(name) {
-        return liveData?.players?.[name] || null;
-      }
-
-      function renderLb() {
-        const hasAll =
-          WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX;
-        const muAct = document.getElementById("mu-actions");
-
-        if (!activeTId || !hasAll) {
-          document.getElementById("mu-list").innerHTML =
-            '<div class="no-picks">Complete draft to see matchups</div>';
-          muAct.innerHTML = "";
-          return;
-        }
-
-        if (!WS.matchups) {
-          muAct.innerHTML = `<button class="lock-btn" onclick="genMatchups()">🎲 Randomize Matchups</button>`;
-          document.getElementById("mu-list").innerHTML = "";
-          return;
-        }
-
-        if (WS.locked) {
-          muAct.innerHTML = `<span class="locked-note">✓ Locked</span>`;
-        } else {
-          muAct.innerHTML = `<button class="lock-btn" onclick="WS.locked=true;saveGameStateToDB();renderLb()">🔒 Lock</button> <button class="reshuffle-btn" onclick="genMatchups()">↻ Re-shuffle</button>`;
-        }
-
-        let wA = 0,
-          wB = 0,
-          ties = 0,
-          ptA = 0,
-          ptB = 0,
-          played = 0;
-        const nameA = WS.nameA || "Matt";
-        const nameB = WS.nameB || "Chad";
-
-        const scored = WS.matchups.pairs.map((pair, i) => {
-          const pdA = getPD(pair.a),
-            pdB = getPD(pair.b);
-          const mcA = pdA?.status === "cut",
-            mcB = pdB?.status === "cut";
-          const ptsA = calcSF(pdA, mcA),
-            ptsB = calcSF(pdB, mcB);
-          let res = "pending";
-          if (ptsA !== null && ptsB !== null) {
-            played++;
-            if (ptsA > ptsB) {
-              wA++;
-              res = "a";
-            } else if (ptsB > ptsA) {
-              wB++;
-              res = "b";
-            } else {
-              ties++;
-              res = "tie";
-            }
-          }
-          if (ptsA !== null) ptA += ptsA;
-          if (ptsB !== null) ptB += ptsB;
-          return {
-            pair,
-            i,
-            pdA,
-            pdB,
-            mcA,
-            mcB,
-            ptsA,
-            ptsB,
-            res,
-            same: pair.a === pair.b,
-          };
-        });
-
-        document.getElementById("hcw-a").textContent = played ? wA : "0";
-        document.getElementById("hcw-b").textContent = played ? wB : "0";
-        document.getElementById("hcs-a").innerHTML =
-          `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
-        document.getElementById("hcs-b").innerHTML =
-          `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
-
-        document.getElementById("mu-list").innerHTML = [...scored]
-          .sort(
-            (a, b) =>
-              (a.res === "pending" ? 2 : a.res === "tie" ? 1 : 0) -
-              (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0),
-          )
-          .map((s) => {
-            function cell(name, pd, isMC) {
-              const pts = calcSF(pd, isMC);
-              const status = pd?.status || "pre_tournament";
-
-              const scRounds = pd?.scorecardRounds || [];
-              const scoringRounds = isMC ? scRounds.slice(0, 2) : scRounds;
-              let eagles = 0,
-                birdies = 0,
-                pars = 0,
-                bogeys = 0,
-                doubles = 0,
-                worse = 0;
-
-              for (const rnd of scoringRounds) {
-                for (const h of rnd || []) {
-                  const d = (h.strokes || 0) - (h.par || 0);
-                  if (d <= -2) eagles++;
-                  else if (d === -1) birdies++;
-                  else if (d === 0) pars++;
-                  else if (d === 1) bogeys++;
-                  else if (d === 2) doubles++;
-                  else worse++;
+                // 1. Dig through all competitors to find the true first tee time
+                let earliestTeeTime = null;
+                const competitorsList = ev.competitions?.[0]?.competitors || ev.competitors || ev.leaderboard || [];
+                for (const c of competitorsList) {
+                   const ttStr = c.teeTime || c.status?.teeTime;
+                   if (ttStr) {
+                     const ttDate = new Date(ttStr);
+                     if (!earliestTeeTime || ttDate < earliestTeeTime) {
+                       earliestTeeTime = ttDate;
+                     }
+                   }
                 }
-              }
 
-              const holesPlayed = scoringRounds.reduce(
-                (sum, r) =>
-                  sum + (r || []).filter((h) => h.strokes !== null).length,
-                0,
+                // 2. If tee times are published, use it. Otherwise, use the generic event date.
+                const d = earliestTeeTime || new Date(ev.date);
+
+                if (d && !isNaN(d.getTime())) {
+                  // Check the Timezone dropdown so we format the UTC time into Course Local Time
+                  const tz = document.getElementById("fm-tz").value || "America/New_York";
+
+                  const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz,
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                  });
+                  const parts = Object.fromEntries(formatter.formatToParts(d).map(p => [p.type, p.value]));
+                  let hr = parts.hour === '24' ? '00' : parts.hour; // Handle midnight formatting
+
+                  document.getElementById("fm-tee").value = `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
+                }
+
+                if (earliestTeeTime) {
+                  toast("Details & True Tee Time auto-filled!");
+                } else {
+                  toast("Details filled (Tee times not yet published)");
+                }
+              } catch (e) {
+                toast(`Error fetching info`);
+              }
+            }        const espnId = document.getElementById("fm-espnid").value.trim();
+              if (!espnId) return toast("Please enter an ESPN ID first");
+
+              toast("Fetching tournament details...");
+
+              try {
+                const res = await fetch(
+                  espnUrl(`/leaderboard?tournamentId=${espnId}`),
+                  { headers: { Accept: "application/json" } },
+                );
+                const data = await res.json();
+                const ev = data?.events?.[0];
+                if (!ev) return toast("Tournament not found");
+
+                document.getElementById("fm-name").value = ev.name || "";
+
+                const comp = ev.competitions?.[0];
+                if (comp) {
+                  const course = comp.courses?.[0];
+                  let venueStr = comp.venue?.fullName || "";
+                  if (comp.venue?.address?.city)
+                    venueStr += ` · ${comp.venue.address.city}`;
+                  if (comp.venue?.address?.state)
+                    venueStr += `, ${comp.venue.address.state}`;
+                  document.getElementById("fm-venue").value = venueStr;
+
+                  document.getElementById("fm-par").value = course?.par || 72;
+                  document.getElementById("fm-purse").value = comp.purse?.value
+                    ? (comp.purse.value / 1000000).toFixed(1)
+                    : 0;
+                }
+
+                if (ev.date) {
+                  const d = new Date(ev.date);
+                  const pad = (n) => n.toString().padStart(2, "0");
+                  document.getElementById("fm-tee").value =
+                    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+                toast("Details auto-filled!");
+              } catch (e) {
+                toast(`Error fetching info`);
+              }
+            }
+
+            async function addTournament() {
+              const name = document.getElementById("fm-name").value.trim();
+              if (!name) {
+                toast("Tournament name required");
+                return;
+              }
+              const id = "t-" + Date.now();
+              const tData = {
+                name: name,
+                venue: document.getElementById("fm-venue").value.trim(),
+                par: parseInt(document.getElementById("fm-par").value) || 72,
+                purse: parseFloat(document.getElementById("fm-purse").value) || 0,
+                tz: document.getElementById("fm-tz").value,
+                teeTimeISO: document.getElementById("fm-tee").value,
+                espnId: document.getElementById("fm-espnid").value.trim(),
+                field: [],
+              };
+              await saveTournamentDataToDB(id, tData);
+              toast(`"${name}" added to cloud!`);
+            }
+
+            let pendingDelId = null;
+            function openDelModal(id) {
+              pendingDelId = id;
+              document.getElementById("del-modal").classList.add("open");
+            }
+            async function confirmDelTournament() {
+              if (!pendingDelId) return;
+              await db.from("tournaments").delete().eq("id", pendingDelId);
+              toast("Tournament deleted from cloud");
+              closeModal();
+              loadFromCloud();
+            }
+
+            function renderTournamentList() {
+              const el = document.getElementById("tlist");
+              if (!tournaments.length) {
+                el.innerHTML =
+                  '<div style="color:var(--gray);font-style:italic">No tournaments yet</div>';
+                return;
+              }
+              const sorted = [...tournaments].sort((a, b) =>
+                (a.teeTimeISO || "").localeCompare(b.teeTimeISO || ""),
               );
-              const hasHoles = holesPlayed > 0;
-
-              const stCls =
-                status === "pre_tournament"
-                  ? "st-pre"
-                  : status === "active"
-                    ? "st-act"
-                    : status === "cut"
-                      ? "st-cut"
-                      : status === "finished"
-                        ? "st-done"
-                        : "st-wd";
-              const activeRound =
-                pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
-              const stTxt =
-                status === "pre_tournament"
-                  ? "Pre-Tournament"
-                  : status === "active"
-                    ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})`
-                    : status === "cut"
-                      ? "Missed Cut"
-                      : status === "finished"
-                        ? "Finished"
-                        : "Withdrew";
-
-              return `
-              <div class="mc-pname">${name}</div>
-              <div class="mc-score-row">
-                <span class="mc-pts">${pts !== null ? pts : "—"}</span>
-                <span class="mc-sub">pts${isMC ? " (R1–R2)" : ""}</span>
-              </div>
-              ${
-                hasHoles
-                  ? `<div class="mc-holes" style="margin-top:4px;">
-                ${eagles ? `<span class="mh mh-eagle">🦅${eagles}</span>` : ""}
-                ${birdies ? `<span class="mh mh-birdie">🐦${birdies}</span>` : ""}
-                ${pars ? `<span class="mh mh-par">—${pars}</span>` : ""}
-                ${bogeys ? `<span class="mh mh-bogey">☁${bogeys}</span>` : ""}
-                ${doubles ? `<span class="mh mh-dbl">⛈${doubles}</span>` : ""}
-                ${worse ? `<span class="mh mh-worse">💀${worse}</span>` : ""}
-              </div>`
-                  : ""
-              }
-              <div class="mc-st ${stCls}" style="margin-top:4px;">${stTxt}</div>
-            `;
+              el.innerHTML = sorted
+                .map((t) => {
+                  const isActive = t.id === activeTId;
+                  return `<div class="tcard${isActive ? " active-tourn" : ""}">
+                  <div class="tcard-head">
+                    <div class="tcard-name">${t.name}</div>
+                    <div class="tcard-actions">
+                      ${t.espnId ? `<button class="fetch-field-btn" id="ffb-${t.id}" onclick="fetchField('${t.id}')">⬇ Fetch Field</button>` : ""}
+                      ${!isActive ? `<button class="tcard-sel" onclick="selectTournament('${t.id}')">Select</button>` : ""}
+                      <button class="tcard-del" onclick="openDelModal('${t.id}')">✕</button>
+                    </div>
+                  </div>
+                  <div class="tcard-body">
+                    <div>ESPN ID: <span>${t.espnId || "not set"}</span></div>
+                    <div>Field: <span>${t.field ? t.field.length + " players" : "0"}</span></div>
+                  </div>
+                </div>`;
+                })
+                .join("");
             }
 
-            const ccA = `mc mc-a ${s.res === "a" ? "winner" : s.res === "tie" ? "tied" : s.res === "b" ? "loser" : ""} ${s.mcA ? "mccut" : ""}`;
-            const ccB = `mc mc-b ${s.res === "b" ? "winner" : s.res === "tie" ? "tied" : s.res === "a" ? "loser" : ""} ${s.mcB ? "mccut" : ""}`;
-
-            const mid = s.same
-              ? `<div class="same-tag">Both<br>teams</div>`
-              : s.res === "pending"
-                ? `<div class="mnum">#${s.i + 1}</div><div class="vs-lbl">vs</div>`
-                : `<div class="mnum">#${s.i + 1}</div><div class="mres ${s.res === "a" ? "mres-a" : s.res === "b" ? "mres-b" : "mres-t"}">${s.res === "a" ? nameA : s.res === "b" ? nameB : "TIE"}</div>`;
-
-            return `<div class="mu-row"><div class="${ccA}">${cell(s.pair.a, s.pdA, s.mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(s.pair.b, s.pdB, s.mcB)}</div></div>`;
-          })
-          .join("");
-      }
-
-      async function fetchScores() {
-        const t = getActiveTournament();
-        if (!t || !t.espnId) return toast("No valid tournament/ESPN ID");
-        document.getElementById("rbtn").classList.add("spinning");
-        try {
-          const res = await fetch(
-            espnUrl(`/leaderboard?tournamentId=${t.espnId}`),
-            { headers: { Accept: "application/json" } },
-          );
-          const lb = await res.json();
-          const evts = lb?.events?.[0] || lb?.event || lb;
-          const competitors =
-            evts?.competitions?.[0]?.competitors ||
-            evts?.leaderboard ||
-            evts?.competitors ||
-            [];
-          const nameMap = {};
-          for (const c of competitors) {
-            const ath = c.athlete || c;
-            const name = ath.displayName || ath.fullName || ath.name;
-            const isWD =
-              c.withdrawn ||
-              (c.status?.type?.name || "").toLowerCase().includes("withdraw");
-            nameMap[name.toLowerCase()] = {
-              id: ath.id,
-              status: isWD
-                ? "wd"
-                : (c.status?.type?.name || "").toLowerCase().includes("cut")
-                  ? "cut"
-                  : "active",
+            function oNum(o) {
+              if (!o || o === "WD" || o === "N/A") return 9999999;
+              return parseInt(String(o).replace(/[^0-9]/g, "")) || 9999999;
+            }
+            function deepThresh(field) {
+              const elig = field
+                .filter((p) => p.o !== "WD" && p.o !== "N/A")
+                .sort((a, b) => oNum(a.o) - oNum(b.o));
+              return elig[Math.ceil((elig.length * 2) / 3)]
+                ? oNum(elig[Math.ceil((elig.length * 2) / 3)].o)
+                : 17000;
+            }
+            function isDeep(o, thresh) {
+              return oNum(o) >= thresh;
+            }
+            function tier(o) {
+              const n = oNum(o);
+              if (n <= 2500) return "fav";
+              if (n <= 5999) return "cont";
+              if (n <= 11999) return "long";
+              return "deep";
+            }
+            const TC = {
+              fav: "#e74c3c",
+              cont: "#f39c12",
+              long: "#27ae60",
+              deep: "#7a8c7d",
             };
-          }
+            const TL = {
+              fav: "Favorite",
+              cont: "Contender",
+              long: "Longshot",
+              deep: "Deep",
+            };
 
-          const picked = [
-            ...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n)),
-          ];
-          liveData = { players: {} };
-          for (const name of picked) {
-            const comp = nameMap[name.toLowerCase()];
-            if (comp && comp.id && comp.status !== "pre_tournament") {
-              const scRes = await fetch(
-                espnUrl(
-                  `/leaderboard/scorecards?competitorId=${comp.id}&eventId=${t.espnId}`,
-                ),
-              ).catch(() => null);
-              if (scRes && scRes.ok) {
-                const scData = await scRes.json();
-                const rounds = [];
-                for (const rnd of scData.scorecards || scData.rounds || []) {
-                  const holes = [];
-                  for (const h of rnd.holes || rnd.linescores || []) {
-                    const strokes = h.score ?? h.value ?? null;
-                    const par = h.par ?? null;
-                    if (strokes !== null)
-                      holes.push({
-                        strokes: Number(strokes),
-                        par: Number(par),
-                      });
-                  }
-                  if (holes.length) rounds.push(holes);
-                }
-                liveData.players[name] = {
-                  status: comp.status,
-                  scorecardRounds: rounds,
-                };
+            async function fetchField(tournId) {
+              const t = tournaments.find((x) => x.id === tournId);
+              if (!t || !t.espnId) {
+                toast("No ESPN ID");
+                return;
               }
+              document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
+              try {
+                const res = await fetch(
+                  espnUrl(`/leaderboard?tournamentId=${t.espnId}`),
+                  { headers: { Accept: "application/json" } },
+                );
+                const lb = await res.json();
+                const evts = lb?.events?.[0] || lb?.event || lb;
+                const competitors =
+                  evts?.competitions?.[0]?.competitors ||
+                  evts?.leaderboard ||
+                  evts?.competitors ||
+                  [];
+                const field = [];
+                for (const comp of competitors) {
+                  const name =
+                    comp.athlete?.displayName ||
+                    comp.athlete?.fullName ||
+                    comp.athlete?.name ||
+                    "";
+                  if (!name) continue;
+                  const isWD =
+                    comp.withdrawn ||
+                    (comp.status?.type?.name || "")
+                      .toLowerCase()
+                      .includes("withdraw");
+                  if (isWD) {
+                    field.push({ n: name, o: "WD" });
+                    continue;
+                  }
+                  let oddsRaw =
+                    comp.odds ||
+                    comp.oddsInfo ||
+                    comp.moneyLine ||
+                    comp.statistics?.find?.((s) => s.name === "moneyline")?.value ||
+                    null;
+                  let oddsStr = "N/A";
+                  if (oddsRaw !== null) {
+                    const num = parseInt(String(oddsRaw).replace(/[^0-9\-]/g, ""));
+                    if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
+                  }
+                  field.push({ n: name, o: oddsStr });
+                }
+                field.sort((a, b) => {
+                  if (a.o === "WD" && b.o !== "WD") return 1;
+                  if (b.o === "WD" && a.o !== "WD") return -1;
+                  if (a.o === "N/A" && b.o !== "N/A") return 1;
+                  if (b.o === "N/A" && a.o !== "N/A") return -1;
+                  return oNum(a.o) - oNum(b.o);
+                });
+                // Update DB
+                const tData = {
+                  name: t.name,
+                  venue: t.venue,
+                  par: t.par,
+                  purse: t.purse,
+                  tz: t.tz,
+                  teeTimeISO: t.teeTimeISO,
+                  espnId: t.espnId,
+                  field: field,
+                };
+                await saveTournamentDataToDB(tournId, tData);
+                toast(`Field loaded: ${field.length} players`);
+              } catch (e) {
+                toast(`Error: ${e.message}`);
+              }
+              document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetch Field";
             }
-          }
-          await db
-            .from("tournaments")
-            .update({ scores: liveData })
-            .eq("id", activeTId);
-          toast("Scores fetched and saved to cloud!");
-        } catch (e) {
-          toast("Error fetching scores");
-        }
-        document.getElementById("rbtn").classList.remove("spinning");
-        renderLb();
-      }
 
-      // ═══════════════════════════════════════════════════════
-      // UTILS & AUTO-LOCK LOGIC
-      // ═══════════════════════════════════════════════════════
-      function getDeadlineUTC(t) {
-        if (!t || !t.teeTimeISO) return null;
-        try {
-          const [datePart, timePart] = t.teeTimeISO.split("T");
-          const [yr, mo, dy] = datePart.split("-").map(Number);
-          const [hr, mn] = (timePart || "00:00").split(":").map(Number);
-          const probe = new Date(Date.UTC(yr, mo - 1, dy, hr, mn || 0, 0));
-          const fmt = new Intl.DateTimeFormat("en-US", {
-            timeZone: t.tz,
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          });
-          const parts = Object.fromEntries(
-            fmt.formatToParts(probe).map((p) => [p.type, p.value]),
-          );
-          const local = new Date(
-            `${parts.year}-${parts.month}-${parts.day}T${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}:${parts.second}Z`,
-          );
-          const offsetMin = (local.getTime() - probe.getTime()) / 60000;
-          return new Date(
-            new Date(probe.getTime() - offsetMin * 60000).getTime() -
-              60 * 60 * 1000,
-          );
-        } catch (e) {
-          return null;
-        }
-      }
+            // ═══════════════════════════════════════════════════════
+            // DRAFT LOGIC
+            // ═══════════════════════════════════════════════════════
+            let tf = "all",
+              sq = "",
+              pg = 1;
+            const PS = 20;
+            function filterPlayers() {
+              sq = document.getElementById("srch").value.toLowerCase();
+              pg = 1;
+              renderTable();
+            }
+            function setTier(btn, t) {
+              document
+                .querySelectorAll(".fbt")
+                .forEach((b) => b.classList.remove("on"));
+              btn.classList.add("on");
+              tf = t;
+              pg = 1;
+              renderTable();
+            }
+            function resetFilters() {
+              pg = 1;
+              sq = "";
+              document.getElementById("srch").value = "";
+              document
+                .querySelectorAll(".fbt")
+                .forEach((b) => b.classList.remove("on"));
+              document.querySelector('.fbt[data-tier="all"]').classList.add("on");
+              tf = "all";
+            }
 
-      function isDraftLocked() {
-        const dl = getDeadlineUTC(getActiveTournament());
-        return dl ? Date.now() >= dl.getTime() : false;
-      }
+            function renderTable() {
+              const t = getActiveTournament();
+              if (!t || !t.field || !t.field.length) {
+                document.getElementById("ptbody").innerHTML =
+                  '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray)">Field not yet set or tournament not selected.</td></tr>';
+                return;
+              }
+              const thresh = deepThresh(t.field);
+              document.getElementById("fp-title").textContent = `Field · ${t.name}`;
+              const elig = t.field.filter((p) => p.o !== "WD");
+              const filt = elig.filter(
+                (p) =>
+                  p.n.toLowerCase().includes(sq) &&
+                  (tf === "all" || tier(p.o) === tf),
+              );
+              const pages = Math.max(1, Math.ceil(filt.length / PS));
+              pg = Math.min(pg, pages);
+              const sl = filt.slice((pg - 1) * PS, pg * PS);
+              const locked = isDraftLocked();
 
-      function updateDeadlineBar() {
-        const bar = document.getElementById("deadline-bar"),
-          txt = document.getElementById("deadline-txt"),
-          dl = getDeadlineUTC(getActiveTournament());
+              document.getElementById("ptbody").innerHTML = sl
+                .map((p) => {
+                  const rank = elig.findIndex((x) => x.n === p.n) + 1;
+                  const ti = tier(p.o),
+                    deep = isDeep(p.o, thresh);
+                  const inA = WS.picksA.some((x) => x.n === p.n),
+                    inB = WS.picksB.some((x) => x.n === p.n);
+                  const rc = inA && inB ? "rAB" : inA ? "rA" : inB ? "rB" : "";
+                  const fullA = WS.picksA.length >= PICKS_MAX,
+                    fullB = WS.picksB.length >= PICKS_MAX;
+                  let acts = "";
+                  if (locked) {
+                    acts =
+                      inA && inB
+                        ? '<span class="chip chip-blue">A</span> <span class="chip chip-red">B</span>'
+                        : inA
+                          ? '<span class="chip chip-blue">A</span>'
+                          : inB
+                            ? '<span class="chip chip-red">B</span>'
+                            : "";
+                  } else if (inA && inB) {
+                    acts = `<span class="chip chip-blue">A</span> <span class="chip chip-red">B</span>`;
+                  } else if (inA) {
+                    acts = `<span class="chip chip-blue">✓ A</span> <button class="ab ab-b"${fullB ? " disabled" : ""} onclick="pick('b','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameB}</button>`;
+                  } else if (inB) {
+                    acts = `<button class="ab ab-a"${fullA ? " disabled" : ""} onclick="pick('a','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameA}</button> <span class="chip chip-red">✓ B</span>`;
+                  } else {
+                    acts = `<button class="ab ab-a"${fullA || locked ? " disabled" : ""} onclick="pick('a','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameA}</button> <button class="ab ab-b"${fullB || locked ? " disabled" : ""} onclick="pick('b','${p.n.replace(/'/g, "\\'")}','${p.o}')">+ ${WS.nameB}</button>`;
+                  }
+                  return `<tr class="${rc}"><td class="td-r">${rank}</td><td class="td-n">${p.n}${deep ? ` <span class="pr-dt">★</span>` : ""}</td><td class="td-o"><span class="tdot" style="background:${TC[ti]}"></span>${p.o}</td><td><span style="font-family:'JetBrains Mono';font-size:.6rem;color:${TC[ti]}">${TL[ti]}</span></td><td><div class="acts">${acts}</div></td></tr>`;
+                })
+                .join("");
+            }
 
-        if (!dl) {
-          bar.style.display = "none";
-          return;
-        }
+            function pick(who, name, odds) {
+              if (isDraftLocked()) return toast("Draft is locked");
+              const arr = who === "a" ? WS.picksA : WS.picksB;
+              if (arr.length >= PICKS_MAX || arr.some((x) => x.n === name)) return;
+              arr.push({ n: name, o: odds });
+              WS.matchups = null;
+              WS.locked = false;
+              renderPicks(who);
+              renderTable();
+              // Notice: Removed auto-save here to force manual saves.
+            }
+            function removePick(who, name) {
+              if (isDraftLocked()) return toast("Draft is locked");
+              if (who === "a") WS.picksA = WS.picksA.filter((x) => x.n !== name);
+              else WS.picksB = WS.picksB.filter((x) => x.n !== name);
+              WS.matchups = null;
+              WS.locked = false;
+              renderPicks(who);
+              renderTable();
+              // Notice: Removed auto-save here to force manual saves.
+            }
 
-        bar.style.display = "flex";
-        const diff = dl.getTime() - Date.now();
+            function renderPicks(who) {
+              const arr = who === "a" ? WS.picksA : WS.picksB;
+              const t = getActiveTournament();
+              const th = t ? deepThresh(t.field) : 17000;
+              const deep = arr.filter((p) => isDeep(p.o, th)).length;
+              document.getElementById(`pl-${who}`).innerHTML = arr.length
+                ? arr
+                    .map(
+                      (p) =>
+                        `<div class="prow"><span class="pr-n">${p.n}${isDeep(p.o, th) ? '<span class="pr-dt">★</span>' : ""}</span><span class="pr-o">${p.o}</span>${!isDraftLocked() ? `<button class="pr-del" onclick="removePick('${who}','${p.n.replace(/'/g, "\\'")}')">✕</button>` : ""}</div>`,
+                    )
+                    .join("")
+                : '<div class="pempty">No picks yet</div>';
+              document.getElementById(`tly-${who}`).textContent =
+                `${arr.length}/${PICKS_MAX}`;
+              document.getElementById(`req-${who}`).innerHTML =
+                `<span class="dreq ${arr.length >= PICKS_MAX ? "met" : ""}">${arr.length}/${PICKS_MAX} picks</span><span class="dreq ${deep >= DEEP_MIN ? "met" : ""}">${deep}/${DEEP_MIN} deep ★</span>`;
+            }
 
-        if (diff <= 0) {
-          bar.className = "deadline-bar locked";
-          txt.textContent = "DRAFT LOCKED";
-          document.getElementById("draft-locked-msg").style.display = "block";
-          document.querySelectorAll(".ab-a,.ab-b,.pr-del").forEach((b) => {
-            b.disabled = true;
-            b.style.opacity = ".3";
-          });
+            function syncNames() {
+              document.getElementById("hcn-a").textContent = WS.nameA || "Matt";
+              document.getElementById("hcn-b").textContent = WS.nameB || "Chad";
+            }
 
-          // NEW: Auto-lock and randomize feature
-          if (
-            !WS.locked &&
-            WS.picksA.length === PICKS_MAX &&
-            WS.picksB.length === PICKS_MAX
-          ) {
-            if (!WS.matchups) {
-              genMatchups(true); // Generates matchups, locks it, and pushes to DB
-              toast("Tournament started! Draft board locked automatically.");
-            } else {
-              WS.locked = true;
+            // ═══════════════════════════════════════════════════════
+            // MATCHUPS & LEADERBOARD
+            // ═══════════════════════════════════════════════════════
+            function mkRNG(seed) {
+              let s = seed % 2147483647;
+              if (s <= 0) s += 2147483646;
+              return () => {
+                s = (s * 16807) % 2147483647;
+                return (s - 1) / 2147483646;
+              };
+            }
+            function genMatchups(autoLock = false) {
+              if (WS.picksA.length !== PICKS_MAX || WS.picksB.length !== PICKS_MAX)
+                return toast(`Need ${PICKS_MAX} picks each`);
+              const seed = Date.now();
+              const rng = mkRNG(seed);
+              const pA = WS.picksA,
+                pB = WS.picksB;
+              const bi = [...Array(pB.length).keys()];
+              for (let i = bi.length - 1; i > 0; i--) {
+                const j = Math.floor(rng() * (i + 1));
+                [bi[i], bi[j]] = [bi[j], bi[i]];
+              }
+              for (let i = 0; i < pA.length; i++) {
+                if (pB[bi[i]].n === pA[i].n) {
+                  let fixed = false;
+                  for (let j = i + 1; j < pB.length; j++) {
+                    if (pB[bi[j]].n !== pA[i].n && pB[bi[i]].n !== pA[j].n) {
+                      [bi[i], bi[j]] = [bi[j], bi[i]];
+                      fixed = true;
+                      break;
+                    }
+                  }
+                  if (!fixed) {
+                    for (let j = 0; j < pB.length; j++) {
+                      if (j !== i && pB[bi[j]].n !== pA[i].n) {
+                        [bi[i], bi[j]] = [bi[j], bi[i]];
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              WS.matchups = {
+                pairs: pA.map((pa, i) => ({ a: pa.n, b: pB[bi[i]].n })),
+                seed,
+              };
+
+              if (autoLock === true) {
+                WS.locked = true;
+              } else {
+                WS.locked = false;
+              }
+
               saveGameStateToDB();
               renderLb();
             }
-          }
-        } else {
-          document.getElementById("draft-locked-msg").style.display = "none";
-          bar.className =
-            diff < 3600000 ? "deadline-bar" : "deadline-bar plenty";
-          txt.textContent = diff < 3600000 ? "Closes soon" : "Draft open";
-        }
-      }
 
-      function updateWeekSelector() {
-        document.getElementById("wsel").innerHTML =
-          '<option value="">— select week —</option>' +
-          tournaments
-            .map(
-              (t) =>
-                `<option value="${t.id}"${t.id === activeTId ? " selected" : ""}>${t.name}</option>`,
-            )
-            .join("");
-      }
-      function switchWeek() {
-        selectTournament(document.getElementById("wsel").value);
-      }
-      function updateHeader() {
-        const t = getActiveTournament();
-        document.getElementById("t-name").textContent = t
-          ? t.name
-          : "No tournament";
-        document.getElementById("t-dates").textContent = t ? t.venue : "";
-      }
-      function showTab(t) {
-        document
-          .querySelectorAll(".view, .nbtn")
-          .forEach((e) => e.classList.remove("on"));
-        document.getElementById(`view-${t}`).classList.add("on");
-        const idx = { draft: 0, lb: 1, manage: 2 }[t];
-        document.querySelectorAll(".nbtn")[idx].classList.add("on");
-        if (t === "lb") renderLb();
-        if (t === "manage") renderTournamentList();
-      }
-      function goLb() {
-        showTab("lb");
-      }
-      function openResetModal() {
-        document.getElementById("rst-modal").classList.add("open");
-      }
-      function closeModal() {
-        document
-          .querySelectorAll(".modal-ov")
-          .forEach((m) => m.classList.remove("open"));
-        pendingDelId = null;
-      }
-      function openInstructions() {
-        document.getElementById("instructions-modal").classList.add("open");
-      }
-      function closeInstructionsOnBg(e) {
-        if (e.target === document.getElementById("instructions-modal"))
-          closeModal();
-      }
-      function confirmReset() {
-        WS = {
-          picksA: [],
-          picksB: [],
-          matchups: null,
-          locked: false,
-          nameA: WS.nameA,
-          nameB: WS.nameB,
-        };
-        saveGameStateToDB();
-        closeModal();
-        renderTable();
-        renderPicks("a");
-        renderPicks("b");
-        toast("Week reset");
-      }
-      let tt;
-      function toast(msg) {
-        const el = document.getElementById("toast");
-        el.textContent = msg;
-        el.classList.add("show");
-        clearTimeout(tt);
-        tt = setTimeout(() => el.classList.remove("show"), 3200);
-      }
+            function holePoints(strokes, par) {
+              if (!strokes || !par) return null;
+              const diff = strokes - par;
+              if (diff <= -3) return 8;
+              if (diff === -2) return 5;
+              if (diff === -1) return 3;
+              if (diff === 0) return 1;
+              if (diff === 1) return 0;
+              if (diff === 2) return -2;
+              return -3;
+            }
+            function calcSF(pd, isMC) {
+              if (!pd || pd.status === "pre_tournament" || pd.status === "wd")
+                return null;
+              const rounds = isMC
+                ? (pd.scorecardRounds || []).slice(0, 2)
+                : pd.scorecardRounds || [];
+              if (!rounds.length) return null;
+              let total = 0,
+                anyHole = false;
+              for (const rnd of rounds) {
+                for (const hole of rnd || []) {
+                  const pts = holePoints(hole.strokes, hole.par);
+                  if (pts !== null) {
+                    total += pts;
+                    anyHole = true;
+                  }
+                }
+              }
+              return anyHole ? Math.max(0, total) : null;
+            }
+            function getPD(name) {
+              return liveData?.players?.[name] || null;
+            }
 
-      // ═══════════════════════════════════════════════════════
-      // INIT
-      // ═══════════════════════════════════════════════════════
-      function init() {
-        loadFromCloud();
-        deadlineTimer = setInterval(() => {
-          updateDeadlineBar();
-        }, 1000);
-      }
-      init();
+            function renderLb() {
+              const hasAll =
+                WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX;
+              const muAct = document.getElementById("mu-actions");
+
+              if (!activeTId || !hasAll) {
+                document.getElementById("mu-list").innerHTML =
+                  '<div class="no-picks">Complete draft to see matchups</div>';
+                muAct.innerHTML = "";
+                return;
+              }
+
+              if (!WS.matchups) {
+                muAct.innerHTML = `<button class="lock-btn" onclick="genMatchups()">🎲 Randomize Matchups</button>`;
+                document.getElementById("mu-list").innerHTML = "";
+                return;
+              }
+
+              if (WS.locked) {
+                muAct.innerHTML = `<span class="locked-note">✓ Locked</span>`;
+              } else {
+                muAct.innerHTML = `<button class="lock-btn" onclick="WS.locked=true;saveGameStateToDB();renderLb()">🔒 Lock</button> <button class="reshuffle-btn" onclick="genMatchups()">↻ Re-shuffle</button>`;
+              }
+
+              let wA = 0,
+                wB = 0,
+                ties = 0,
+                ptA = 0,
+                ptB = 0,
+                played = 0;
+              const nameA = WS.nameA || "Matt";
+              const nameB = WS.nameB || "Chad";
+
+              const scored = WS.matchups.pairs.map((pair, i) => {
+                const pdA = getPD(pair.a),
+                  pdB = getPD(pair.b);
+                const mcA = pdA?.status === "cut",
+                  mcB = pdB?.status === "cut";
+                const ptsA = calcSF(pdA, mcA),
+                  ptsB = calcSF(pdB, mcB);
+                let res = "pending";
+                if (ptsA !== null && ptsB !== null) {
+                  played++;
+                  if (ptsA > ptsB) {
+                    wA++;
+                    res = "a";
+                  } else if (ptsB > ptsA) {
+                    wB++;
+                    res = "b";
+                  } else {
+                    ties++;
+                    res = "tie";
+                  }
+                }
+                if (ptsA !== null) ptA += ptsA;
+                if (ptsB !== null) ptB += ptsB;
+                return {
+                  pair,
+                  i,
+                  pdA,
+                  pdB,
+                  mcA,
+                  mcB,
+                  ptsA,
+                  ptsB,
+                  res,
+                  same: pair.a === pair.b,
+                };
+              });
+
+              document.getElementById("hcw-a").textContent = played ? wA : "0";
+              document.getElementById("hcw-b").textContent = played ? wB : "0";
+              document.getElementById("hcs-a").innerHTML =
+                `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
+              document.getElementById("hcs-b").innerHTML =
+                `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
+
+              document.getElementById("mu-list").innerHTML = [...scored]
+                .sort(
+                  (a, b) =>
+                    (a.res === "pending" ? 2 : a.res === "tie" ? 1 : 0) -
+                    (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0),
+                )
+                .map((s) => {
+                  function cell(name, pd, isMC) {
+                    const pts = calcSF(pd, isMC);
+                    const status = pd?.status || "pre_tournament";
+
+                    const scRounds = pd?.scorecardRounds || [];
+                    const scoringRounds = isMC ? scRounds.slice(0, 2) : scRounds;
+                    let eagles = 0,
+                      birdies = 0,
+                      pars = 0,
+                      bogeys = 0,
+                      doubles = 0,
+                      worse = 0;
+
+                    for (const rnd of scoringRounds) {
+                      for (const h of rnd || []) {
+                        const d = (h.strokes || 0) - (h.par || 0);
+                        if (d <= -2) eagles++;
+                        else if (d === -1) birdies++;
+                        else if (d === 0) pars++;
+                        else if (d === 1) bogeys++;
+                        else if (d === 2) doubles++;
+                        else worse++;
+                      }
+                    }
+
+                    const holesPlayed = scoringRounds.reduce(
+                      (sum, r) =>
+                        sum + (r || []).filter((h) => h.strokes !== null).length,
+                      0,
+                    );
+                    const hasHoles = holesPlayed > 0;
+
+                    const stCls =
+                      status === "pre_tournament"
+                        ? "st-pre"
+                        : status === "active"
+                          ? "st-act"
+                          : status === "cut"
+                            ? "st-cut"
+                            : status === "finished"
+                              ? "st-done"
+                              : "st-wd";
+                    const activeRound =
+                      pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
+                    const stTxt =
+                      status === "pre_tournament"
+                        ? "Pre-Tournament"
+                        : status === "active"
+                          ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})`
+                          : status === "cut"
+                            ? "Missed Cut"
+                            : status === "finished"
+                              ? "Finished"
+                              : "Withdrew";
+
+                    return `
+                    <div class="mc-pname">${name}</div>
+                    <div class="mc-score-row">
+                      <span class="mc-pts">${pts !== null ? pts : "—"}</span>
+                      <span class="mc-sub">pts${isMC ? " (R1–R2)" : ""}</span>
+                    </div>
+                    ${
+                      hasHoles
+                        ? `<div class="mc-holes" style="margin-top:4px;">
+                      ${eagles ? `<span class="mh mh-eagle">🦅${eagles}</span>` : ""}
+                      ${birdies ? `<span class="mh mh-birdie">🐦${birdies}</span>` : ""}
+                      ${pars ? `<span class="mh mh-par">—${pars}</span>` : ""}
+                      ${bogeys ? `<span class="mh mh-bogey">☁${bogeys}</span>` : ""}
+                      ${doubles ? `<span class="mh mh-dbl">⛈${doubles}</span>` : ""}
+                      ${worse ? `<span class="mh mh-worse">💀${worse}</span>` : ""}
+                    </div>`
+                        : ""
+                    }
+                    <div class="mc-st ${stCls}" style="margin-top:4px;">${stTxt}</div>
+                  `;
+                  }
+
+                  const ccA = `mc mc-a ${s.res === "a" ? "winner" : s.res === "tie" ? "tied" : s.res === "b" ? "loser" : ""} ${s.mcA ? "mccut" : ""}`;
+                  const ccB = `mc mc-b ${s.res === "b" ? "winner" : s.res === "tie" ? "tied" : s.res === "a" ? "loser" : ""} ${s.mcB ? "mccut" : ""}`;
+
+                  const mid = s.same
+                    ? `<div class="same-tag">Both<br>teams</div>`
+                    : s.res === "pending"
+                      ? `<div class="mnum">#${s.i + 1}</div><div class="vs-lbl">vs</div>`
+                      : `<div class="mnum">#${s.i + 1}</div><div class="mres ${s.res === "a" ? "mres-a" : s.res === "b" ? "mres-b" : "mres-t"}">${s.res === "a" ? nameA : s.res === "b" ? nameB : "TIE"}</div>`;
+
+                  return `<div class="mu-row"><div class="${ccA}">${cell(s.pair.a, s.pdA, s.mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(s.pair.b, s.pdB, s.mcB)}</div></div>`;
+                })
+                .join("");
+            }
+
+            async function fetchScores() {
+              const t = getActiveTournament();
+              if (!t || !t.espnId) return toast("No valid tournament/ESPN ID");
+              document.getElementById("rbtn").classList.add("spinning");
+              try {
+                const res = await fetch(
+                  espnUrl(`/leaderboard?tournamentId=${t.espnId}`),
+                  { headers: { Accept: "application/json" } },
+                );
+                const lb = await res.json();
+                const evts = lb?.events?.[0] || lb?.event || lb;
+                const competitors =
+                  evts?.competitions?.[0]?.competitors ||
+                  evts?.leaderboard ||
+                  evts?.competitors ||
+                  [];
+                const nameMap = {};
+                for (const c of competitors) {
+                  const ath = c.athlete || c;
+                  const name = ath.displayName || ath.fullName || ath.name;
+                  const isWD =
+                    c.withdrawn ||
+                    (c.status?.type?.name || "").toLowerCase().includes("withdraw");
+                  nameMap[name.toLowerCase()] = {
+                    id: ath.id,
+                    status: isWD
+                      ? "wd"
+                      : (c.status?.type?.name || "").toLowerCase().includes("cut")
+                        ? "cut"
+                        : "active",
+                  };
+                }
+
+                const picked = [
+                  ...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n)),
+                ];
+                liveData = { players: {} };
+                for (const name of picked) {
+                  const comp = nameMap[name.toLowerCase()];
+                  if (comp && comp.id && comp.status !== "pre_tournament") {
+                    const scRes = await fetch(
+                      espnUrl(
+                        `/leaderboard/scorecards?competitorId=${comp.id}&eventId=${t.espnId}`,
+                      ),
+                    ).catch(() => null);
+                    if (scRes && scRes.ok) {
+                      const scData = await scRes.json();
+                      const rounds = [];
+                      for (const rnd of scData.scorecards || scData.rounds || []) {
+                        const holes = [];
+                        for (const h of rnd.holes || rnd.linescores || []) {
+                          const strokes = h.score ?? h.value ?? null;
+                          const par = h.par ?? null;
+                          if (strokes !== null)
+                            holes.push({
+                              strokes: Number(strokes),
+                              par: Number(par),
+                            });
+                        }
+                        if (holes.length) rounds.push(holes);
+                      }
+                      liveData.players[name] = {
+                        status: comp.status,
+                        scorecardRounds: rounds,
+                      };
+                    }
+                  }
+                }
+                await db
+                  .from("tournaments")
+                  .update({ scores: liveData })
+                  .eq("id", activeTId);
+                toast("Scores fetched and saved to cloud!");
+              } catch (e) {
+                toast("Error fetching scores");
+              }
+              document.getElementById("rbtn").classList.remove("spinning");
+              renderLb();
+            }
+
+            // ═══════════════════════════════════════════════════════
+            // UTILS & AUTO-LOCK LOGIC
+            // ═══════════════════════════════════════════════════════
+            function getDeadlineUTC(t) {
+              if (!t || !t.teeTimeISO) return null;
+              try {
+                const [datePart, timePart] = t.teeTimeISO.split("T");
+                const [yr, mo, dy] = datePart.split("-").map(Number);
+                const [hr, mn] = (timePart || "00:00").split(":").map(Number);
+                const probe = new Date(Date.UTC(yr, mo - 1, dy, hr, mn || 0, 0));
+                const fmt = new Intl.DateTimeFormat("en-US", {
+                  timeZone: t.tz,
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: false,
+                });
+                const parts = Object.fromEntries(
+                  fmt.formatToParts(probe).map((p) => [p.type, p.value]),
+                );
+                const local = new Date(
+                  `${parts.year}-${parts.month}-${parts.day}T${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}:${parts.second}Z`,
+                );
+                const offsetMin = (local.getTime() - probe.getTime()) / 60000;
+                return new Date(
+                  new Date(probe.getTime() - offsetMin * 60000).getTime() -
+                    60 * 60 * 1000,
+                );
+              } catch (e) {
+                return null;
+              }
+            }
+
+            function isDraftLocked() {
+              const dl = getDeadlineUTC(getActiveTournament());
+              return dl ? Date.now() >= dl.getTime() : false;
+            }
+
+            function updateDeadlineBar() {
+              const bar = document.getElementById("deadline-bar"),
+                txt = document.getElementById("deadline-txt"),
+                dl = getDeadlineUTC(getActiveTournament());
+
+              if (!dl) {
+                bar.style.display = "none";
+                return;
+              }
+
+              bar.style.display = "flex";
+              const diff = dl.getTime() - Date.now();
+
+              if (diff <= 0) {
+                bar.className = "deadline-bar locked";
+                txt.textContent = "DRAFT LOCKED";
+                document.getElementById("draft-locked-msg").style.display = "block";
+                document.querySelectorAll(".ab-a,.ab-b,.pr-del").forEach((b) => {
+                  b.disabled = true;
+                  b.style.opacity = ".3";
+                });
+
+                // NEW: Auto-lock and randomize feature
+                if (
+                  !WS.locked &&
+                  WS.picksA.length === PICKS_MAX &&
+                  WS.picksB.length === PICKS_MAX
+                ) {
+                  if (!WS.matchups) {
+                    genMatchups(true); // Generates matchups, locks it, and pushes to DB
+                    toast("Tournament started! Draft board locked automatically.");
+                  } else {
+                    WS.locked = true;
+                    saveGameStateToDB();
+                    renderLb();
+                  }
+                }
+              } else {
+                document.getElementById("draft-locked-msg").style.display = "none";
+                bar.className =
+                  diff < 3600000 ? "deadline-bar" : "deadline-bar plenty";
+                txt.textContent = diff < 3600000 ? "Closes soon" : "Draft open";
+              }
+            }
+
+            function updateWeekSelector() {
+              document.getElementById("wsel").innerHTML =
+                '<option value="">— select week —</option>' +
+                tournaments
+                  .map(
+                    (t) =>
+                      `<option value="${t.id}"${t.id === activeTId ? " selected" : ""}>${t.name}</option>`,
+                  )
+                  .join("");
+            }
+            function switchWeek() {
+              selectTournament(document.getElementById("wsel").value);
+            }
+            function updateHeader() {
+              const t = getActiveTournament();
+              document.getElementById("t-name").textContent = t
+                ? t.name
+                : "No tournament";
+              document.getElementById("t-dates").textContent = t ? t.venue : "";
+            }
+            function showTab(t) {
+              document
+                .querySelectorAll(".view, .nbtn")
+                .forEach((e) => e.classList.remove("on"));
+              document.getElementById(`view-${t}`).classList.add("on");
+              const idx = { draft: 0, lb: 1, manage: 2 }[t];
+              document.querySelectorAll(".nbtn")[idx].classList.add("on");
+              if (t === "lb") renderLb();
+              if (t === "manage") renderTournamentList();
+            }
+            function goLb() {
+              showTab("lb");
+            }
+            function openResetModal() {
+              document.getElementById("rst-modal").classList.add("open");
+            }
+            function closeModal() {
+              document
+                .querySelectorAll(".modal-ov")
+                .forEach((m) => m.classList.remove("open"));
+              pendingDelId = null;
+            }
+            function openInstructions() {
+              document.getElementById("instructions-modal").classList.add("open");
+            }
+            function closeInstructionsOnBg(e) {
+              if (e.target === document.getElementById("instructions-modal"))
+                closeModal();
+            }
+            function confirmReset() {
+              WS = {
+                picksA: [],
+                picksB: [],
+                matchups: null,
+                locked: false,
+                nameA: WS.nameA,
+                nameB: WS.nameB,
+              };
+              saveGameStateToDB();
+              closeModal();
+              renderTable();
+              renderPicks("a");
+              renderPicks("b");
+              toast("Week reset");
+            }
+            let tt;
+            function toast(msg) {
+              const el = document.getElementById("toast");
+              el.textContent = msg;
+              el.classList.add("show");
+              clearTimeout(tt);
+              tt = setTimeout(() => el.classList.remove("show"), 3200);
+            }
+
+            // ═══════════════════════════════════════════════════════
+            // INIT
+            // ═══════════════════════════════════════════════════════
+            function init() {
+              loadFromCloud();
+              deadlineTimer = setInterval(() => {
+                updateDeadlineBar();
+              }, 1000);
+            }
+            init();
     </script>
   </body>
 </html>
-
