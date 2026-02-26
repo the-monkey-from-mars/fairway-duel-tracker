@@ -2112,89 +2112,77 @@
       }
 
       // Auto-fill feature for Tournaments
+      // Auto-fill feature for Tournaments
       async function autoFillESPN() {
         const espnId = document.getElementById("fm-espnid").value.trim();
         if (!espnId) return toast("Please enter an ESPN ID first");
-
+        
         toast("Fetching tournament details...");
-
+        
         try {
-          const res = await fetch(
-            espnUrl(`/leaderboard?tournamentId=${espnId}`),
-            { headers: { Accept: "application/json" } },
-          );
+          const res = await fetch(espnUrl(`/leaderboard?tournamentId=${espnId}`), { headers: { Accept: "application/json" } });
           const data = await res.json();
-          const ev = data?.events?.[0];
-          if (!ev) return toast("Tournament not found");
-
-          document.getElementById("fm-name").value = ev.name || "";
-
+          
+          // Fallback through ESPN's varying JSON structures
+          const ev = data?.events?.[0] || data?.event || data;
+          
+          if (!ev || (!ev.competitions && !ev.leaderboard && !ev.competitors)) {
+            return toast("Tournament not found. Check ID.");
+          }
+          
+          document.getElementById("fm-name").value = ev.name || ev.shortName || "PGA Tournament";
+          
           const comp = ev.competitions?.[0];
           if (comp) {
             const course = comp.courses?.[0];
-            let venueStr = comp.venue?.fullName || "";
-            if (comp.venue?.address?.city)
-              venueStr += ` · ${comp.venue.address.city}`;
-            if (comp.venue?.address?.state)
-              venueStr += `, ${comp.venue.address.state}`;
+            let venueStr = comp.venue?.fullName || course?.name || "";
+            if (comp.venue?.address?.city) venueStr += ` · ${comp.venue.address.city}`;
+            if (comp.venue?.address?.state) venueStr += `, ${comp.venue.address.state}`;
             document.getElementById("fm-venue").value = venueStr;
-
+            
             document.getElementById("fm-par").value = course?.par || 72;
-            document.getElementById("fm-purse").value = comp.purse?.value
-              ? (comp.purse.value / 1000000).toFixed(1)
-              : 0;
+            document.getElementById("fm-purse").value = comp.purse?.value ? (comp.purse.value / 1000000).toFixed(1) : 0;
           }
 
           // 1. Dig through all competitors to find the true first tee time
           let earliestTeeTime = null;
-          const competitorsList =
-            ev.competitions?.[0]?.competitors ||
-            ev.competitors ||
-            ev.leaderboard ||
-            [];
+          const competitorsList = comp?.competitors || ev.competitors || ev.leaderboard || [];
           for (const c of competitorsList) {
-            const ttStr = c.teeTime || c.status?.teeTime;
-            if (ttStr) {
-              const ttDate = new Date(ttStr);
-              if (!earliestTeeTime || ttDate < earliestTeeTime) {
-                earliestTeeTime = ttDate;
-              }
-            }
+             const ttStr = c.teeTime || c.status?.teeTime;
+             if (ttStr) {
+               const ttDate = new Date(ttStr);
+               if (!earliestTeeTime || ttDate < earliestTeeTime) {
+                 earliestTeeTime = ttDate;
+               }
+             }
           }
 
           // 2. If tee times are published, use it. Otherwise, use the generic event date.
-          const d = earliestTeeTime || new Date(ev.date);
-
+          const d = earliestTeeTime || new Date(ev.date || ev.startDate);
+          
           if (d && !isNaN(d.getTime())) {
             // Check the Timezone dropdown so we format the UTC time into Course Local Time
-            const tz =
-              document.getElementById("fm-tz").value || "America/New_York";
-
-            const formatter = new Intl.DateTimeFormat("en-US", {
+            const tz = document.getElementById("fm-tz").value || "America/New_York";
+            
+            const formatter = new Intl.DateTimeFormat('en-US', {
               timeZone: tz,
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
+              year: 'numeric', month: '2-digit', day: '2-digit',
+              hour: '2-digit', minute: '2-digit', hour12: false
             });
-            const parts = Object.fromEntries(
-              formatter.formatToParts(d).map((p) => [p.type, p.value]),
-            );
-            let hr = parts.hour === "24" ? "00" : parts.hour; // Handle midnight formatting
-
-            document.getElementById("fm-tee").value =
-              `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
+            const parts = Object.fromEntries(formatter.formatToParts(d).map(p => [p.type, p.value]));
+            let hr = parts.hour === '24' ? '00' : parts.hour; // Handle midnight formatting
+            
+            document.getElementById("fm-tee").value = `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
           }
-
+          
           if (earliestTeeTime) {
             toast("Details & True Tee Time auto-filled!");
           } else {
             toast("Details filled (Tee times not yet published)");
           }
         } catch (e) {
-          toast(`Error fetching info`);
+          console.error("ESPN Auto-Fill Error:", e);
+          toast(`Error fetching info. Check Console.`);
         }
       }
 
@@ -3031,3 +3019,4 @@
     </script>
   </body>
 </html>
+
