@@ -478,6 +478,8 @@
         border-radius: 10px;
         border: 1px solid;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
       .db-a {
         border-color: rgba(59, 130, 196, 0.35);
@@ -1153,18 +1155,6 @@
         grid-template-columns: 1fr 1fr;
         gap: 10px;
       }
-      .fm-ta {
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid var(--bdr2);
-        border-radius: 5px;
-        padding: 8px 12px;
-        color: var(--cream);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.72rem;
-        outline: none;
-        width: 100%;
-        min-height: 160px;
-      }
       .add-tourn-btn {
         background: var(--gold);
         color: var(--bg);
@@ -1310,6 +1300,128 @@
         background: var(--win2);
         box-shadow: 0 0 5px var(--win2);
       }
+      /* Instructions Modal Styles */
+      .instr-modal {
+        background: var(--bg2);
+        border: 1px solid var(--bdr2);
+        border-radius: 14px;
+        width: 90%;
+        max-width: 650px;
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
+        text-align: left;
+      }
+      .instr-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 1.4rem 1.6rem 1.1rem;
+        border-bottom: 1px solid var(--bdr);
+        background: linear-gradient(
+          180deg,
+          rgba(201, 168, 76, 0.06),
+          transparent
+        );
+        flex-shrink: 0;
+      }
+      .instr-close {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--bdr);
+        color: var(--gray);
+        font-size: 0.9rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .instr-close:hover {
+        background: rgba(184, 64, 64, 0.2);
+        border-color: var(--red2);
+        color: var(--red2);
+      }
+      .instr-body {
+        overflow-y: auto;
+        padding: 1.4rem 1.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+      .instr-body::-webkit-scrollbar {
+        width: 4px;
+      }
+      .instr-body::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      .instr-body::-webkit-scrollbar-thumb {
+        background: var(--bg3);
+        border-radius: 2px;
+      }
+      .instr-section {
+        border: 1px solid var(--bdr);
+        border-radius: 9px;
+        padding: 1rem 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        background: rgba(0, 0, 0, 0.15);
+      }
+      .instr-section-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--gold);
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--bdr);
+      }
+      .instr-step {
+        display: flex;
+        gap: 0.9rem;
+        align-items: flex-start;
+      }
+      .instr-num {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(201, 168, 76, 0.15);
+        border: 1px solid rgba(201, 168, 76, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: var(--gold);
+        margin-top: 2px;
+      }
+      .instr-content {
+        flex: 1;
+      }
+      .instr-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--cream);
+        margin-bottom: 3px;
+      }
+      .instr-desc {
+        font-size: 0.8rem;
+        color: var(--gray2);
+        line-height: 1.6;
+      }
+      .instr-desc strong {
+        color: var(--cream);
+      }
     </style>
   </head>
   <body>
@@ -1344,6 +1456,13 @@
           <button class="nbtn on" onclick="showTab('draft')">Draft</button>
           <button class="nbtn" onclick="showTab('lb')">Leaderboard</button>
           <button class="nbtn" onclick="showTab('manage')">⚙ Manage</button>
+          <button
+            class="nbtn"
+            onclick="openInstructions()"
+            style="color: var(--gold); opacity: 0.8"
+          >
+            ? How to Play
+          </button>
         </nav>
       </div>
     </header>
@@ -1439,36 +1558,47 @@
             <div class="db db-a">
               <div class="dh">
                 <div class="ddot ddot-a"></div>
-                <input
-                  class="dinp"
-                  id="name-a"
-                  value="Player A"
-                  placeholder="Name…"
-                  oninput="saveGameStateToDB()"
-                />
+                <input class="dinp" id="name-a" value="Matt" readonly />
                 <span class="dtly" id="tly-a">0/20</span>
               </div>
               <div class="plist" id="pl-a">
                 <div class="pempty">No picks yet</div>
               </div>
               <div class="dreqs" id="req-a"></div>
+              <button
+                class="add-tourn-btn"
+                style="
+                  border-radius: 0 0 10px 10px;
+                  background: rgba(59, 130, 196, 0.15);
+                  color: var(--blue2);
+                "
+                onclick="saveGameStateToDB()"
+              >
+                💾 Save Matt's Roster
+              </button>
             </div>
+
             <div class="db db-b">
               <div class="dh">
                 <div class="ddot ddot-b"></div>
-                <input
-                  class="dinp"
-                  id="name-b"
-                  value="Player B"
-                  placeholder="Name…"
-                  oninput="saveGameStateToDB()"
-                />
+                <input class="dinp" id="name-b" value="Chad" readonly />
                 <span class="dtly" id="tly-b">0/20</span>
               </div>
               <div class="plist" id="pl-b">
                 <div class="pempty">No picks yet</div>
               </div>
               <div class="dreqs" id="req-b"></div>
+              <button
+                class="add-tourn-btn"
+                style="
+                  border-radius: 0 0 10px 10px;
+                  background: rgba(184, 64, 64, 0.15);
+                  color: var(--red2);
+                "
+                onclick="saveGameStateToDB()"
+              >
+                💾 Save Chad's Roster
+              </button>
             </div>
             <div class="ctas">
               <button class="cta cta-g" onclick="goLb()">
@@ -1496,7 +1626,7 @@
         </div>
         <div class="hero-row">
           <div class="hcard hc-a" id="hc-a">
-            <div class="hc-name" id="hcn-a">Player A</div>
+            <div class="hc-name" id="hcn-a">Matt</div>
             <div class="hc-pts hc-pts-a" id="hcw-a">—</div>
             <div class="hc-sub">Matchup Wins</div>
             <div class="hc-stats" id="hcs-a"></div>
@@ -1506,7 +1636,7 @@
             <div class="vs-rec" id="vs-rec"></div>
           </div>
           <div class="hcard hc-b" id="hc-b">
-            <div class="hc-name" id="hcn-b">Player B</div>
+            <div class="hc-name" id="hcn-b">Chad</div>
             <div class="hc-pts hc-pts-b" id="hcw-b">—</div>
             <div class="hc-sub">Matchup Wins</div>
             <div class="hc-stats" id="hcs-b"></div>
@@ -1535,6 +1665,24 @@
             <div class="panel">
               <div class="ph"><span class="ph-title">Add Tournament</span></div>
               <div style="padding: 1.2rem">
+                <div class="fm-group">
+                  <div class="fm-label">ESPN ID</div>
+                  <div style="display: flex; gap: 10px">
+                    <input
+                      class="fm-inp"
+                      id="fm-espnid"
+                      placeholder="e.g. 401811934"
+                    />
+                    <button
+                      class="add-tourn-btn"
+                      style="width: auto; padding: 8px 15px"
+                      onclick="autoFillESPN()"
+                    >
+                      🔍 Auto-Fill Details
+                    </button>
+                  </div>
+                </div>
+
                 <div class="fm-group">
                   <div class="fm-label">Tournament Name</div>
                   <input
@@ -1569,26 +1717,23 @@
                     />
                   </div>
                   <div class="fm-group">
-                    <div class="fm-label">ESPN ID</div>
-                    <input class="fm-inp fm-inp-sm" id="fm-espnid" />
+                    <div class="fm-label">Timezone</div>
+                    <input
+                      class="fm-inp fm-inp-sm"
+                      id="fm-tz"
+                      value="America/New_York"
+                    />
                   </div>
                 </div>
                 <div class="fm-group">
-                  <div class="fm-label">First Tee Time (Local)</div>
+                  <div class="fm-label">First Tee Time (Local Course Time)</div>
                   <input
                     class="fm-inp fm-inp-sm"
                     id="fm-tee"
                     type="datetime-local"
                   />
                 </div>
-                <div class="fm-group">
-                  <div class="fm-label">Timezone</div>
-                  <input
-                    class="fm-inp fm-inp-sm"
-                    id="fm-tz"
-                    value="America/New_York"
-                  />
-                </div>
+
                 <button class="add-tourn-btn" onclick="addTournament()">
                   + Add Tournament
                 </button>
@@ -1612,8 +1757,8 @@
         <h2>Reset This Week?</h2>
         <p>All picks and matchups for this tournament will be cleared.</p>
         <div class="macts">
-          <button class="cta cta-g" onclick="confirmReset()">Yes, reset</button
-          ><button class="cta cta-o" onclick="closeModal()">Cancel</button>
+          <button class="cta cta-g" onclick="confirmReset()">Yes, reset</button>
+          <button class="cta cta-o" onclick="closeModal()">Cancel</button>
         </div>
       </div>
     </div>
@@ -1623,8 +1768,191 @@
         <p>This will remove the tournament permanently from the cloud.</p>
         <div class="macts">
           <button class="cta cta-r" onclick="confirmDelTournament()">
-            Delete</button
-          ><button class="cta cta-o" onclick="closeModal()">Cancel</button>
+            Delete
+          </button>
+          <button class="cta cta-o" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="modal-ov"
+      id="instructions-modal"
+      onclick="closeInstructionsOnBg(event)"
+    >
+      <div class="instr-modal">
+        <div class="instr-header">
+          <div>
+            <div
+              style="
+                font-family: &quot;Abril Fatface&quot;, serif;
+                font-size: 1.4rem;
+                color: var(--gold2);
+                letter-spacing: 1px;
+              "
+            >
+              How to Play Fairway Duel
+            </div>
+            <div
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 0.6rem;
+                color: var(--gray);
+                margin-top: 3px;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+              "
+            >
+              Cloud Edition Guide
+            </div>
+          </div>
+          <button class="instr-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="instr-body">
+          <div class="instr-section">
+            <div class="instr-section-label">1. Tournament Setup</div>
+            <div class="instr-step">
+              <div class="instr-num">1</div>
+              <div class="instr-content">
+                <div class="instr-title">Add the Event</div>
+                <div class="instr-desc">
+                  Go to the <strong>⚙ Manage</strong> tab. Paste the ESPN
+                  Tournament ID into the box and click
+                  <strong>🔍 Auto-Fill Details</strong>. Click
+                  <strong>+ Add Tournament</strong> to save it to the cloud.
+                </div>
+              </div>
+            </div>
+            <div class="instr-step">
+              <div class="instr-num">2</div>
+              <div class="instr-content">
+                <div class="instr-title">Fetch the Field</div>
+                <div class="instr-desc">
+                  Once added, click <strong>⬇ Fetch Field</strong> on the
+                  tournament card to pull the live player list and odds from
+                  ESPN. Then click <strong>Select</strong>.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="instr-section"
+            style="
+              border-color: rgba(59, 130, 196, 0.3);
+              background: rgba(59, 130, 196, 0.05);
+            "
+          >
+            <div class="instr-section-label" style="color: var(--blue2)">
+              2. Drafting & Saving
+            </div>
+            <div class="instr-step">
+              <div
+                class="instr-num"
+                style="
+                  color: var(--blue2);
+                  border-color: var(--blue2);
+                  background: transparent;
+                "
+              >
+                3
+              </div>
+              <div class="instr-content">
+                <div class="instr-title">Draft 20 Players</div>
+                <div class="instr-desc">
+                  Matt and Chad both draft exactly <strong>20 players</strong>.
+                  You must each select at least
+                  <strong>3 Deep (★)</strong> sleepers (the bottom 1/3 of the
+                  field by odds).
+                </div>
+              </div>
+            </div>
+            <div class="instr-step">
+              <div
+                class="instr-num"
+                style="
+                  color: var(--blue2);
+                  border-color: var(--blue2);
+                  background: transparent;
+                "
+              >
+                4
+              </div>
+              <div class="instr-content">
+                <div class="instr-title">Save to Cloud</div>
+                <div class="instr-desc">
+                  You <strong>must</strong> click
+                  <strong>💾 Save [Name]'s Roster</strong> at the bottom of your
+                  column to sync your picks to the Supabase cloud so your
+                  opponent can see them!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="instr-section"
+            style="
+              border-color: rgba(184, 64, 64, 0.3);
+              background: rgba(184, 64, 64, 0.05);
+            "
+          >
+            <div class="instr-section-label" style="color: var(--red2)">
+              3. Lock & Live Scoring
+            </div>
+            <div class="instr-step">
+              <div
+                class="instr-num"
+                style="
+                  color: var(--red2);
+                  border-color: var(--red2);
+                  background: transparent;
+                "
+              >
+                5
+              </div>
+              <div class="instr-content">
+                <div class="instr-title">Auto-Lock & Matchups</div>
+                <div class="instr-desc">
+                  If both players have 20 picks when the
+                  <strong>countdown hits zero</strong>, the app will
+                  automatically lock the board and randomize your head-to-head
+                  matchups. You can also manually randomize on the Leaderboard
+                  tab.
+                </div>
+              </div>
+            </div>
+            <div class="instr-step">
+              <div
+                class="instr-num"
+                style="
+                  color: var(--red2);
+                  border-color: var(--red2);
+                  background: transparent;
+                "
+              >
+                6
+              </div>
+              <div class="instr-content">
+                <div class="instr-title">Refresh Scores</div>
+                <div class="instr-desc">
+                  During the tournament, click
+                  <strong>↻ Refresh ESPN Scores</strong> on the Leaderboard. The
+                  app pulls hole-by-hole data to calculate Modified Stableford
+                  points. Points are awarded as follows: <br /><br />
+                  <span style="color: var(--gold2)">Eagle/Better: +5</span> |
+                  <span style="color: var(--win2)">Birdie: +3</span> |
+                  <span style="color: var(--gray2)">Par: +1</span> |
+                  <span style="color: var(--gray)">Bogey: 0</span> |
+                  <span style="color: var(--red2)">Double+: -2</span
+                  ><br /><br />
+                  <em
+                    >Note: Missed-cut players only score points for Rounds 1 &
+                    2.</em
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1634,10 +1962,9 @@
       // ═══════════════════════════════════════════════════════
       // SUPABASE CONFIGURATION
       // ═══════════════════════════════════════════════════════
-      const SUPABASE_URL = "https://xflaabqfjrocnaklaaph.supabase.co";
-      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmbGFhYnFmanJvY25ha2xhYXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzQwMTMsImV4cCI6MjA4NzcxMDAxM30.nU_ADUEfyl_u_5AeXP0F1gakbSNaOYjAQr47SiXWZaw";
-      
-      // FIX: Changed "supabase" to "db" to prevent global naming conflict with the library
+      const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
+      const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+
       const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       // ═══════════════════════════════════════════════════════
@@ -1652,8 +1979,8 @@
         picksB: [],
         matchups: null,
         locked: false,
-        nameA: "Player A",
-        nameB: "Player B",
+        nameA: "Matt",
+        nameB: "Chad",
       };
       let liveData = null;
       let deadlineTimer = null;
@@ -1696,8 +2023,7 @@
         }
 
         // Set up Realtime Subscription
-        db
-          .channel("public:tournaments")
+        db.channel("public:tournaments")
           .on(
             "postgres_changes",
             { event: "UPDATE", schema: "public", table: "tournaments" },
@@ -1720,8 +2046,8 @@
                   picksB: [],
                   matchups: null,
                   locked: false,
-                  nameA: "Player A",
-                  nameB: "Player B",
+                  nameA: "Matt",
+                  nameB: "Chad",
                 };
                 liveData = row.scores || null;
                 syncNames();
@@ -1744,12 +2070,12 @@
           picksB: [],
           matchups: null,
           locked: false,
-          nameA: "Player A",
-          nameB: "Player B",
+          nameA: "Matt",
+          nameB: "Chad",
         };
         liveData = t._scores || null;
-        document.getElementById("name-a").value = WS.nameA || "Player A";
-        document.getElementById("name-b").value = WS.nameB || "Player B";
+        document.getElementById("name-a").value = WS.nameA || "Matt";
+        document.getElementById("name-b").value = WS.nameB || "Chad";
         updateHeader();
         updateDeadlineBar();
         syncNames();
@@ -1764,8 +2090,8 @@
 
       async function saveGameStateToDB() {
         if (!activeTId) return;
-        WS.nameA = document.getElementById("name-a").value || "Player A";
-        WS.nameB = document.getElementById("name-b").value || "Player B";
+        WS.nameA = document.getElementById("name-a").value || "Matt";
+        WS.nameB = document.getElementById("name-b").value || "Chad";
         syncNames();
         // Update local array for fast UI
         const t = getActiveTournament();
@@ -1775,6 +2101,8 @@
           .from("tournaments")
           .update({ game_state: WS })
           .eq("id", activeTId);
+
+        toast("💾 Roster changes saved to cloud");
       }
 
       async function saveTournamentDataToDB(id, tData) {
@@ -1796,8 +2124,62 @@
       }
 
       // ═══════════════════════════════════════════════════════
-      // TOURNAMENT MANAGER
+      // TOURNAMENT MANAGER & ESPN LOGIC
       // ═══════════════════════════════════════════════════════
+      const CORS = "https://corsproxy.io/?url=";
+      const ESPN_BASE =
+        "https://site.api.espn.com/apis/site/v2/sports/golf/pga";
+
+      function espnUrl(path) {
+        return CORS + encodeURIComponent(ESPN_BASE + path);
+      }
+
+      // Auto-fill feature for Tournaments
+      async function autoFillESPN() {
+        const espnId = document.getElementById("fm-espnid").value.trim();
+        if (!espnId) return toast("Please enter an ESPN ID first");
+
+        toast("Fetching tournament details...");
+
+        try {
+          const res = await fetch(
+            espnUrl(`/leaderboard?tournamentId=${espnId}`),
+            { headers: { Accept: "application/json" } },
+          );
+          const data = await res.json();
+          const ev = data?.events?.[0];
+          if (!ev) return toast("Tournament not found");
+
+          document.getElementById("fm-name").value = ev.name || "";
+
+          const comp = ev.competitions?.[0];
+          if (comp) {
+            const course = comp.courses?.[0];
+            let venueStr = comp.venue?.fullName || "";
+            if (comp.venue?.address?.city)
+              venueStr += ` · ${comp.venue.address.city}`;
+            if (comp.venue?.address?.state)
+              venueStr += `, ${comp.venue.address.state}`;
+            document.getElementById("fm-venue").value = venueStr;
+
+            document.getElementById("fm-par").value = course?.par || 72;
+            document.getElementById("fm-purse").value = comp.purse?.value
+              ? (comp.purse.value / 1000000).toFixed(1)
+              : 0;
+          }
+
+          if (ev.date) {
+            const d = new Date(ev.date);
+            const pad = (n) => n.toString().padStart(2, "0");
+            document.getElementById("fm-tee").value =
+              `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          }
+          toast("Details auto-filled!");
+        } catch (e) {
+          toast(`Error fetching info`);
+        }
+      }
+
       async function addTournament() {
         const name = document.getElementById("fm-name").value.trim();
         if (!name) {
@@ -1861,16 +2243,6 @@
           </div>`;
           })
           .join("");
-      }
-
-      // ═══════════════════════════════════════════════════════
-      // FIELD FETCHING (ESPN -> SUPABASE)
-      // ═══════════════════════════════════════════════════════
-      const CORS = "https://corsproxy.io/?url=";
-      const ESPN_BASE =
-        "https://site.api.espn.com/apis/site/v2/sports/golf/pga";
-      function espnUrl(path) {
-        return CORS + encodeURIComponent(ESPN_BASE + path);
       }
 
       function oNum(o) {
@@ -2078,7 +2450,7 @@
         WS.locked = false;
         renderPicks(who);
         renderTable();
-        saveGameStateToDB();
+        // Notice: Removed auto-save here to force manual saves.
       }
       function removePick(who, name) {
         if (isDraftLocked()) return toast("Draft is locked");
@@ -2088,7 +2460,7 @@
         WS.locked = false;
         renderPicks(who);
         renderTable();
-        saveGameStateToDB();
+        // Notice: Removed auto-save here to force manual saves.
       }
 
       function renderPicks(who) {
@@ -2111,8 +2483,8 @@
       }
 
       function syncNames() {
-        document.getElementById("hcn-a").textContent = WS.nameA || "Player A";
-        document.getElementById("hcn-b").textContent = WS.nameB || "Player B";
+        document.getElementById("hcn-a").textContent = WS.nameA || "Matt";
+        document.getElementById("hcn-b").textContent = WS.nameB || "Chad";
       }
 
       // ═══════════════════════════════════════════════════════
@@ -2126,7 +2498,7 @@
           return (s - 1) / 2147483646;
         };
       }
-      function genMatchups() {
+      function genMatchups(autoLock = false) {
         if (WS.picksA.length !== PICKS_MAX || WS.picksB.length !== PICKS_MAX)
           return toast(`Need ${PICKS_MAX} picks each`);
         const seed = Date.now();
@@ -2162,7 +2534,13 @@
           pairs: pA.map((pa, i) => ({ a: pa.n, b: pB[bi[i]].n })),
           seed,
         };
-        WS.locked = false;
+
+        if (autoLock === true) {
+          WS.locked = true;
+        } else {
+          WS.locked = false;
+        }
+
         saveGameStateToDB();
         renderLb();
       }
@@ -2232,8 +2610,8 @@
           ptA = 0,
           ptB = 0,
           played = 0;
-        const nameA = WS.nameA || "Player A";
-        const nameB = WS.nameB || "Player B";
+        const nameA = WS.nameA || "Matt";
+        const nameB = WS.nameB || "Chad";
 
         const scored = WS.matchups.pairs.map((pair, i) => {
           const pdA = getPD(pair.a),
@@ -2272,7 +2650,6 @@
           };
         });
 
-        // Update Hero Scoreboard
         document.getElementById("hcw-a").textContent = played ? wA : "0";
         document.getElementById("hcw-b").textContent = played ? wB : "0";
         document.getElementById("hcs-a").innerHTML =
@@ -2280,7 +2657,6 @@
         document.getElementById("hcs-b").innerHTML =
           `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
 
-        // Build the List
         document.getElementById("mu-list").innerHTML = [...scored]
           .sort(
             (a, b) =>
@@ -2292,7 +2668,6 @@
               const pts = calcSF(pd, isMC);
               const status = pd?.status || "pre_tournament";
 
-              // Hole-by-hole summary
               const scRounds = pd?.scorecardRounds || [];
               const scoringRounds = isMC ? scRounds.slice(0, 2) : scRounds;
               let eagles = 0,
@@ -2461,7 +2836,7 @@
       }
 
       // ═══════════════════════════════════════════════════════
-      // UTILS
+      // UTILS & AUTO-LOCK LOGIC
       // ═══════════════════════════════════════════════════════
       function getDeadlineUTC(t) {
         if (!t || !t.teeTimeISO) return null;
@@ -2495,20 +2870,25 @@
           return null;
         }
       }
+
       function isDraftLocked() {
         const dl = getDeadlineUTC(getActiveTournament());
         return dl ? Date.now() >= dl.getTime() : false;
       }
+
       function updateDeadlineBar() {
         const bar = document.getElementById("deadline-bar"),
           txt = document.getElementById("deadline-txt"),
           dl = getDeadlineUTC(getActiveTournament());
+
         if (!dl) {
           bar.style.display = "none";
           return;
         }
+
         bar.style.display = "flex";
         const diff = dl.getTime() - Date.now();
+
         if (diff <= 0) {
           bar.className = "deadline-bar locked";
           txt.textContent = "DRAFT LOCKED";
@@ -2517,6 +2897,22 @@
             b.disabled = true;
             b.style.opacity = ".3";
           });
+
+          // NEW: Auto-lock and randomize feature
+          if (
+            !WS.locked &&
+            WS.picksA.length === PICKS_MAX &&
+            WS.picksB.length === PICKS_MAX
+          ) {
+            if (!WS.matchups) {
+              genMatchups(true); // Generates matchups, locks it, and pushes to DB
+              toast("Tournament started! Draft board locked automatically.");
+            } else {
+              WS.locked = true;
+              saveGameStateToDB();
+              renderLb();
+            }
+          }
         } else {
           document.getElementById("draft-locked-msg").style.display = "none";
           bar.className =
@@ -2524,6 +2920,7 @@
           txt.textContent = diff < 3600000 ? "Closes soon" : "Draft open";
         }
       }
+
       function updateWeekSelector() {
         document.getElementById("wsel").innerHTML =
           '<option value="">— select week —</option>' +
@@ -2565,6 +2962,13 @@
           .querySelectorAll(".modal-ov")
           .forEach((m) => m.classList.remove("open"));
         pendingDelId = null;
+      }
+      function openInstructions() {
+        document.getElementById("instructions-modal").classList.add("open");
+      }
+      function closeInstructionsOnBg(e) {
+        if (e.target === document.getElementById("instructions-modal"))
+          closeModal();
       }
       function confirmReset() {
         WS = {
