@@ -4,1396 +4,226 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fairway Duel (Cloud Edition)</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
       :root {
-        --bg: #0c1810;
-        --bg2: #111f14;
-        --bg3: #172b1a;
-        --bdr: rgba(255, 255, 255, 0.07);
-        --bdr2: rgba(201, 168, 76, 0.25);
-        --gold: #c9a84c;
-        --gold2: #e8c96e;
-        --cream: #f0ebe0;
-        --gray: #7a8c7d;
-        --gray2: #b0c0b3;
-        --blue: #3b82c4;
-        --blue2: #7db8f0;
-        --blueA: rgba(59, 130, 196, 0.16);
-        --red: #b84040;
-        --red2: #d96060;
-        --redA: rgba(184, 64, 64, 0.16);
-        --win: #27a34e;
-        --win2: #4dd475;
-        --warn: #e8a030;
+        --bg: #0c1810; --bg2: #111f14; --bg3: #172b1a;
+        --bdr: rgba(255, 255, 255, 0.07); --bdr2: rgba(201, 168, 76, 0.25);
+        --gold: #c9a84c; --gold2: #e8c96e; --cream: #f0ebe0;
+        --gray: #7a8c7d; --gray2: #b0c0b3;
+        --blue: #3b82c4; --blue2: #7db8f0; --blueA: rgba(59, 130, 196, 0.16);
+        --red: #b84040; --red2: #d96060; --redA: rgba(184, 64, 64, 0.16);
+        --win: #27a34e; --win2: #4dd475; --warn: #e8a030;
       }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        background: var(--bg);
-        color: var(--cream);
-        font-family: "Instrument Sans", sans-serif;
-        min-height: 100vh;
-        background-image:
-          radial-gradient(
-            ellipse 130% 70% at 5% 0%,
-            rgba(25, 70, 35, 0.28) 0%,
-            transparent 55%
-          ),
-          radial-gradient(
-            ellipse 80% 80% at 95% 100%,
-            rgba(15, 45, 20, 0.3) 0%,
-            transparent 55%
-          );
+        background: var(--bg); color: var(--cream); font-family: "Instrument Sans", sans-serif; min-height: 100vh;
+        background-image: radial-gradient(ellipse 130% 70% at 5% 0%, rgba(25, 70, 35, 0.28) 0%, transparent 55%), radial-gradient(ellipse 80% 80% at 95% 100%, rgba(15, 45, 20, 0.3) 0%, transparent 55%);
       }
-      ::-webkit-scrollbar {
-        width: 5px;
-        height: 5px;
-      }
-      ::-webkit-scrollbar-track {
-        background: var(--bg2);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--bg3);
-        border-radius: 3px;
-      }
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: var(--bg2); }
+      ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
 
       /* ── HEADER ── */
-      header {
-        background: linear-gradient(180deg, #091409, #0e1c11);
-        border-bottom: 1px solid var(--gold);
-        position: sticky;
-        top: 0;
-        z-index: 300;
-        box-shadow: 0 2px 30px rgba(0, 0, 0, 0.8);
-      }
-      .hdr {
-        max-width: 1500px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0 1.5rem;
-        height: 62px;
-        flex-wrap: nowrap;
-      }
-      .logo {
-        font-family: "Abril Fatface", serif;
-        font-size: 1.45rem;
-        color: var(--gold2);
-        letter-spacing: 1px;
-        cursor: default;
-        white-space: nowrap;
-      }
-      .logo sub {
-        color: var(--cream);
-        font-style: normal;
-        font-size: 0.8rem;
-        opacity: 0.4;
-        font-family: "Instrument Sans", sans-serif;
-        vertical-align: middle;
-        margin-left: 4px;
-      }
-      .tchip {
-        background: rgba(201, 168, 76, 0.08);
-        border: 1px solid var(--bdr2);
-        border-radius: 4px;
-        padding: 4px 12px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.58rem;
-        color: var(--gold);
-        line-height: 1.8;
-        min-width: 0;
-        overflow: hidden;
-      }
-      .tchip strong {
-        display: block;
-        color: var(--gold2);
-        font-size: 0.64rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .tchip span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-      }
-      .deadline-bar {
-        background: rgba(232, 160, 48, 0.12);
-        border: 1px solid rgba(232, 160, 48, 0.35);
-        border-radius: 5px;
-        padding: 5px 12px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.62rem;
-        color: var(--warn);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-      }
-      .deadline-bar.locked {
-        background: rgba(184, 64, 64, 0.12);
-        border-color: rgba(184, 64, 64, 0.35);
-        color: var(--red2);
-      }
-      .deadline-bar.plenty {
-        background: rgba(39, 163, 78, 0.08);
-        border-color: rgba(39, 163, 78, 0.25);
-        color: var(--win2);
-      }
-      .spacer {
-        flex: 1;
-        min-width: 8px;
-      }
-      .wsel {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid var(--bdr);
-        border-radius: 6px;
-        padding: 3px 10px;
-        flex-shrink: 0;
-      }
-      .wsel label {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.56rem;
-        color: var(--gray);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-      .wsel select {
-        background: transparent;
-        border: none;
-        color: var(--cream);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.66rem;
-        outline: none;
-        cursor: pointer;
-        padding: 2px;
-        max-width: 160px;
-      }
-      .wsel select option {
-        background: #111f14;
-      }
-      .nav {
-        display: flex;
-        gap: 2px;
-        background: rgba(0, 0, 0, 0.4);
-        padding: 3px;
-        border-radius: 7px;
-        flex-shrink: 0;
-      }
-      .nbtn {
-        background: transparent;
-        border: none;
-        color: var(--gray);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.64rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 6px 13px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.2s;
-        white-space: nowrap;
-      }
-      .nbtn.on {
-        background: var(--gold);
-        color: var(--bg);
-        font-weight: 600;
-      }
-      .nbtn:hover:not(.on) {
-        color: var(--gold2);
-        background: rgba(201, 168, 76, 0.1);
-      }
+      header { background: linear-gradient(180deg, #091409, #0e1c11); border-bottom: 1px solid var(--gold); position: sticky; top: 0; z-index: 300; box-shadow: 0 2px 30px rgba(0, 0, 0, 0.8); }
+      .hdr { max-width: 1500px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 1.5rem; height: 62px; flex-wrap: nowrap; }
+      .logo { font-family: "Abril Fatface", serif; font-size: 1.45rem; color: var(--gold2); letter-spacing: 1px; cursor: default; white-space: nowrap; }
+      .logo sub { color: var(--cream); font-style: normal; font-size: 0.8rem; opacity: 0.4; font-family: "Instrument Sans", sans-serif; vertical-align: middle; margin-left: 4px; }
+      .tchip { background: rgba(201, 168, 76, 0.08); border: 1px solid var(--bdr2); border-radius: 4px; padding: 4px 12px; font-family: "JetBrains Mono", monospace; font-size: 0.58rem; color: var(--gold); line-height: 1.8; min-width: 0; overflow: hidden; }
+      .tchip strong { display: block; color: var(--gold2); font-size: 0.64rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .tchip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+      .deadline-bar { background: rgba(232, 160, 48, 0.12); border: 1px solid rgba(232, 160, 48, 0.35); border-radius: 5px; padding: 5px 12px; font-family: "JetBrains Mono", monospace; font-size: 0.62rem; color: var(--warn); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+      .deadline-bar.locked { background: rgba(184, 64, 64, 0.12); border-color: rgba(184, 64, 64, 0.35); color: var(--red2); }
+      .deadline-bar.plenty { background: rgba(39, 163, 78, 0.08); border-color: rgba(39, 163, 78, 0.25); color: var(--win2); }
+      .spacer { flex: 1; min-width: 8px; }
+      .wsel { display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--bdr); border-radius: 6px; padding: 3px 10px; flex-shrink: 0; }
+      .wsel label { font-family: "JetBrains Mono", monospace; font-size: 0.56rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+      .wsel select { background: transparent; border: none; color: var(--cream); font-family: "JetBrains Mono", monospace; font-size: 0.66rem; outline: none; cursor: pointer; padding: 2px; max-width: 160px; }
+      .wsel select option { background: #111f14; }
+      .nav { display: flex; gap: 2px; background: rgba(0, 0, 0, 0.4); padding: 3px; border-radius: 7px; flex-shrink: 0; }
+      .nbtn { background: transparent; border: none; color: var(--gray); font-family: "JetBrains Mono", monospace; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1px; padding: 6px 13px; border-radius: 5px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+      .nbtn.on { background: var(--gold); color: var(--bg); font-weight: 600; }
+      .nbtn:hover:not(.on) { color: var(--gold2); background: rgba(201, 168, 76, 0.1); }
 
       /* ── LAYOUT ── */
-      .main {
-        max-width: 1500px;
-        margin: 0 auto;
-        padding: 1.5rem;
-      }
-      .view {
-        display: none;
-      }
-      .view.on {
-        display: block;
-      }
-      .panel {
-        background: var(--bg2);
-        border: 1px solid var(--bdr);
-        border-radius: 10px;
-        overflow: hidden;
-      }
-      .ph {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 11px 16px;
-        border-bottom: 1px solid var(--bdr);
-        background: rgba(0, 0, 0, 0.18);
-      }
-      .ph-title {
-        font-family: "DM Serif Display", serif;
-        font-size: 1rem;
-        color: var(--cream);
-      }
-      .ph-right {
-        margin-left: auto;
-        display: flex;
-        gap: 6px;
-        align-items: center;
-      }
-      .ph-sub {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.56rem;
-        color: var(--gray);
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-      }
-      .chip {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.56rem;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        padding: 2px 7px;
-        border-radius: 3px;
-      }
-      .chip-gold {
-        background: rgba(201, 168, 76, 0.12);
-        color: var(--gold);
-        border: 1px solid rgba(201, 168, 76, 0.3);
-      }
-      .chip-blue {
-        background: var(--blueA);
-        color: var(--blue2);
-        border: 1px solid rgba(59, 130, 196, 0.3);
-      }
-      .chip-red {
-        background: var(--redA);
-        color: var(--red2);
-        border: 1px solid rgba(184, 64, 64, 0.3);
-      }
-      .chip-green {
-        background: rgba(39, 163, 78, 0.14);
-        color: var(--win2);
-        border: 1px solid rgba(39, 163, 78, 0.3);
-      }
-      .chip-warn {
-        background: rgba(232, 160, 48, 0.1);
-        color: var(--warn);
-        border: 1px solid rgba(232, 160, 48, 0.3);
-      }
+      .main { max-width: 1500px; margin: 0 auto; padding: 1.5rem; }
+      .view { display: none; } .view.on { display: block; }
+      .panel { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 10px; overflow: hidden; }
+      .ph { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--bdr); background: rgba(0, 0, 0, 0.18); }
+      .ph-title { font-family: "DM Serif Display", serif; font-size: 1rem; color: var(--cream); }
+      .ph-right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+      .ph-sub { font-family: "JetBrains Mono", monospace; font-size: 0.56rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; }
+      .chip { font-family: "JetBrains Mono", monospace; font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.3px; padding: 2px 7px; border-radius: 3px; }
+      .chip-gold { background: rgba(201, 168, 76, 0.12); color: var(--gold); border: 1px solid rgba(201, 168, 76, 0.3); }
+      .chip-blue { background: var(--blueA); color: var(--blue2); border: 1px solid rgba(59, 130, 196, 0.3); }
+      .chip-red { background: var(--redA); color: var(--red2); border: 1px solid rgba(184, 64, 64, 0.3); }
+      .chip-green { background: rgba(39, 163, 78, 0.14); color: var(--win2); border: 1px solid rgba(39, 163, 78, 0.3); }
+      .chip-warn { background: rgba(232, 160, 48, 0.1); color: var(--warn); border: 1px solid rgba(232, 160, 48, 0.3); }
 
       /* ── DRAFT LAYOUT ── */
-      .dlayout {
-        display: grid;
-        grid-template-columns: 1fr 365px;
-        gap: 1.5rem;
-        align-items: start;
-      }
-      .cbar {
-        display: flex;
-        gap: 7px;
-        align-items: center;
-        padding: 10px 14px;
-        border-bottom: 1px solid var(--bdr);
-        background: rgba(0, 0, 0, 0.14);
-        flex-wrap: wrap;
-      }
-      .srch {
-        flex: 1;
-        min-width: 150px;
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid var(--bdr2);
-        border-radius: 5px;
-        padding: 7px 12px;
-        color: var(--cream);
-        font-family: "Instrument Sans", sans-serif;
-        font-size: 0.82rem;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .srch:focus {
-        border-color: var(--gold);
-      }
-      .fbt {
-        background: transparent;
-        border: 1px solid var(--bdr);
-        color: var(--gray);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        text-transform: uppercase;
-        padding: 5px 9px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.15s;
-      }
-      .fbt:hover,
-      .fbt.on {
-        border-color: var(--gold);
-        color: var(--gold);
-        background: rgba(201, 168, 76, 0.08);
-      }
-      .fbt.fbt-d.on {
-        border-color: #e07060;
-        color: #e07060;
-        background: rgba(192, 57, 43, 0.08);
-      }
-      .pt {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.81rem;
-      }
-      .pt thead th {
-        background: rgba(0, 0, 0, 0.28);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.56rem;
-        color: var(--gray);
-        text-transform: uppercase;
-        padding: 8px 12px;
-        text-align: left;
-        border-bottom: 1px solid var(--bdr);
-      }
-      .pt tbody tr {
-        border-bottom: 1px solid var(--bdr);
-        transition: background 0.1s;
-      }
-      .pt tbody tr:hover {
-        background: rgba(201, 168, 76, 0.04);
-      }
-      .pt tbody tr.rA {
-        background: var(--blueA);
-      }
-      .pt tbody tr.rB {
-        background: var(--redA);
-      }
-      .pt tbody tr.rAB {
-        background: linear-gradient(100deg, var(--blueA), var(--redA));
-      }
-      .pt td {
-        padding: 8px 12px;
-        vertical-align: middle;
-      }
-      .td-r {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        color: var(--gray);
-        text-align: center;
-      }
-      .td-n {
-        font-weight: 500;
-      }
-      .td-o {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.7rem;
-        color: var(--gold);
-      }
-      .tdot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 5px;
-      }
-      .acts {
-        display: flex;
-        gap: 4px;
-        justify-content: flex-end;
-      }
-      .ab {
-        background: transparent;
-        border: 1px solid;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.57rem;
-        text-transform: uppercase;
-        padding: 4px 9px;
-        border-radius: 3px;
-        cursor: pointer;
-        transition: all 0.12s;
-      }
-      .ab-a {
-        border-color: rgba(59, 130, 196, 0.5);
-        color: var(--blue2);
-      }
-      .ab-a:not(:disabled):hover {
-        background: var(--blue);
-        color: #fff;
-      }
-      .ab-b {
-        border-color: rgba(184, 64, 64, 0.5);
-        color: var(--red2);
-      }
-      .ab-b:not(:disabled):hover {
-        background: var(--red);
-        color: #fff;
-      }
-      .ab:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-      .pag {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        padding: 10px;
-        border-top: 1px solid var(--bdr);
-      }
-      .pbtn {
-        background: transparent;
-        border: 1px solid var(--bdr);
-        color: var(--gray);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        padding: 4px 9px;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-      .pbtn:hover,
-      .pbtn.on {
-        border-color: var(--gold);
-        color: var(--gold);
-      }
+      .dlayout { display: grid; grid-template-columns: 1fr 365px; gap: 1.5rem; align-items: start; }
+      .cbar { display: flex; gap: 7px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--bdr); background: rgba(0, 0, 0, 0.14); flex-wrap: wrap; }
+      .srch { flex: 1; min-width: 150px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--bdr2); border-radius: 5px; padding: 7px 12px; color: var(--cream); font-family: "Instrument Sans", sans-serif; font-size: 0.82rem; outline: none; transition: border-color 0.2s; }
+      .srch:focus { border-color: var(--gold); }
+      .fbt { background: transparent; border: 1px solid var(--bdr); color: var(--gray); font-family: "JetBrains Mono", monospace; font-size: 0.6rem; text-transform: uppercase; padding: 5px 9px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+      .fbt:hover, .fbt.on { border-color: var(--gold); color: var(--gold); background: rgba(201, 168, 76, 0.08); }
+      .fbt.fbt-d.on { border-color: #e07060; color: #e07060; background: rgba(192, 57, 43, 0.08); }
+      .pt { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+      .pt thead th { background: rgba(0, 0, 0, 0.28); font-family: "JetBrains Mono", monospace; font-size: 0.56rem; color: var(--gray); text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--bdr); }
+      .pt tbody tr { border-bottom: 1px solid var(--bdr); transition: background 0.1s; }
+      .pt tbody tr:hover { background: rgba(201, 168, 76, 0.04); }
+      .pt tbody tr.rA { background: var(--blueA); } .pt tbody tr.rB { background: var(--redA); } .pt tbody tr.rAB { background: linear-gradient(100deg, var(--blueA), var(--redA)); }
+      .pt td { padding: 8px 12px; vertical-align: middle; }
+      .td-r { font-family: "JetBrains Mono", monospace; font-size: 0.6rem; color: var(--gray); text-align: center; }
+      .td-n { font-weight: 500; }
+      .td-o { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; color: var(--gold); }
+      .tdot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+      .acts { display: flex; gap: 4px; justify-content: flex-end; }
+      .ab { background: transparent; border: 1px solid; font-family: "JetBrains Mono", monospace; font-size: 0.57rem; text-transform: uppercase; padding: 4px 9px; border-radius: 3px; cursor: pointer; transition: all 0.12s; }
+      .ab-a { border-color: rgba(59, 130, 196, 0.5); color: var(--blue2); } .ab-a:not(:disabled):hover { background: var(--blue); color: #fff; }
+      .ab-b { border-color: rgba(184, 64, 64, 0.5); color: var(--red2); } .ab-b:not(:disabled):hover { background: var(--red); color: #fff; }
+      .ab:disabled { opacity: 0.3; cursor: not-allowed; }
+      .pag { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border-top: 1px solid var(--bdr); }
+      .pbtn { background: transparent; border: 1px solid var(--bdr); color: var(--gray); font-family: "JetBrains Mono", monospace; font-size: 0.6rem; padding: 4px 9px; border-radius: 3px; cursor: pointer; }
+      .pbtn:hover, .pbtn.on { border-color: var(--gold); color: var(--gold); }
 
       /* Sidebar */
-      .sidebar {
-        position: sticky;
-        top: 78px;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .db {
-        border-radius: 10px;
-        border: 1px solid;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-      .db-a {
-        border-color: rgba(59, 130, 196, 0.35);
-      }
-      .db-b {
-        border-color: rgba(184, 64, 64, 0.35);
-      }
-      .dh {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
-        border-bottom: 1px solid;
-      }
-      .db-a .dh {
-        background: linear-gradient(
-          135deg,
-          rgba(59, 130, 196, 0.18),
-          rgba(59, 130, 196, 0.04)
-        );
-        border-color: rgba(59, 130, 196, 0.18);
-      }
-      .db-b .dh {
-        background: linear-gradient(
-          135deg,
-          rgba(184, 64, 64, 0.18),
-          rgba(184, 64, 64, 0.04)
-        );
-        border-color: rgba(184, 64, 64, 0.18);
-      }
-      .ddot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .ddot-a {
-        background: var(--blue);
-      }
-      .ddot-b {
-        background: var(--red);
-      }
-      .dinp {
-        flex: 1;
-        background: transparent;
-        border: none;
-        color: var(--cream);
-        font-family: "DM Serif Display", serif;
-        font-size: 1rem;
-        outline: none;
-      }
-      .dtly {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        color: var(--gray);
-        margin-left: auto;
-      }
-      .dtly.warn {
-        color: var(--warn);
-      }
-      .dtly.ok {
-        color: var(--win2);
-      }
-      .plist {
-        max-height: 220px;
-        overflow-y: auto;
-        background: rgba(0, 0, 0, 0.12);
-      }
-      .prow {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 14px;
-        border-bottom: 1px solid var(--bdr);
-        font-size: 0.78rem;
-      }
-      .pr-n {
-        flex: 1;
-        font-weight: 500;
-      }
-      .pr-o {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        color: var(--gold);
-      }
-      .pr-dt {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.5rem;
-        color: #e07060;
-        padding: 1px 4px;
-        border: 1px solid rgba(192, 57, 43, 0.4);
-        border-radius: 2px;
-        margin-left: 2px;
-      }
-      .pr-del {
-        background: transparent;
-        border: none;
-        color: var(--gray);
-        cursor: pointer;
-        font-size: 0.82rem;
-        transition: color 0.1s;
-      }
-      .pr-del:hover {
-        color: var(--red2);
-      }
-      .pempty {
-        padding: 14px;
-        text-align: center;
-        color: var(--gray);
-        font-size: 0.78rem;
-        font-style: italic;
-      }
-      .dreqs {
-        display: flex;
-        gap: 8px;
-        padding: 8px 14px;
-        border-top: 1px solid var(--bdr);
-        background: rgba(0, 0, 0, 0.1);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.58rem;
-      }
-      .dreq {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        color: var(--gray);
-      }
-      .dreq.met {
-        color: var(--win2);
-      }
-      .dreq.wrn {
-        color: var(--warn);
-      }
+      .sidebar { position: sticky; top: 78px; display: flex; flex-direction: column; gap: 1rem; }
+      .db { border-radius: 10px; border: 1px solid; overflow: hidden; display: flex; flex-direction: column; }
+      .db-a { border-color: rgba(59, 130, 196, 0.35); } .db-b { border-color: rgba(184, 64, 64, 0.35); }
+      .dh { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid; }
+      .db-a .dh { background: linear-gradient(135deg, rgba(59, 130, 196, 0.18), rgba(59, 130, 196, 0.04)); border-color: rgba(59, 130, 196, 0.18); }
+      .db-b .dh { background: linear-gradient(135deg, rgba(184, 64, 64, 0.18), rgba(184, 64, 64, 0.04)); border-color: rgba(184, 64, 64, 0.18); }
+      .ddot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; } .ddot-a { background: var(--blue); } .ddot-b { background: var(--red); }
+      .dinp { flex: 1; background: transparent; border: none; color: var(--cream); font-family: "DM Serif Display", serif; font-size: 1rem; outline: none; }
+      .dtly { font-family: "JetBrains Mono", monospace; font-size: 0.6rem; color: var(--gray); margin-left: auto; } .dtly.warn { color: var(--warn); } .dtly.ok { color: var(--win2); }
+      .plist { max-height: 220px; overflow-y: auto; background: rgba(0, 0, 0, 0.12); }
+      .prow { display: flex; align-items: center; gap: 6px; padding: 5px 14px; border-bottom: 1px solid var(--bdr); font-size: 0.78rem; }
+      .pr-n { flex: 1; font-weight: 500; } .pr-o { font-family: "JetBrains Mono", monospace; font-size: 0.6rem; color: var(--gold); }
+      .pr-dt { font-family: "JetBrains Mono", monospace; font-size: 0.5rem; color: #e07060; padding: 1px 4px; border: 1px solid rgba(192, 57, 43, 0.4); border-radius: 2px; margin-left: 2px; }
+      .pr-del { background: transparent; border: none; color: var(--gray); cursor: pointer; font-size: 0.82rem; transition: color 0.1s; } .pr-del:hover { color: var(--red2); }
+      .pempty { padding: 14px; text-align: center; color: var(--gray); font-size: 0.78rem; font-style: italic; }
+      .dreqs { display: flex; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--bdr); background: rgba(0, 0, 0, 0.1); font-family: "JetBrains Mono", monospace; font-size: 0.58rem; }
+      .dreq { display: flex; align-items: center; gap: 4px; color: var(--gray); } .dreq.met { color: var(--win2); } .dreq.wrn { color: var(--warn); }
 
-      .ctas {
-        display: flex;
-        gap: 7px;
-      }
-      .cta {
-        flex: 1;
-        padding: 10px;
-        border-radius: 6px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.66rem;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: none;
-        font-weight: 600;
-      }
-      .cta-g {
-        background: var(--gold);
-        color: var(--bg);
-      }
-      .cta-g:hover {
-        background: var(--gold2);
-      }
-      .cta-o {
-        background: transparent;
-        border: 1px solid var(--bdr);
-        color: var(--gray);
-      }
-      .cta-o:hover {
-        border-color: var(--gold);
-        color: var(--gold);
-      }
-      .cta-r {
-        background: transparent;
-        border: 1px solid rgba(184, 64, 64, 0.3);
-        color: var(--red2);
-      }
-      .cta-r:hover {
-        background: var(--red);
-        color: #fff;
-      }
+      .ctas { display: flex; gap: 7px; }
+      .cta { flex: 1; padding: 10px; border-radius: 6px; font-family: "JetBrains Mono", monospace; font-size: 0.66rem; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: none; font-weight: 600; }
+      .cta-g { background: var(--gold); color: var(--bg); } .cta-g:hover { background: var(--gold2); }
+      .cta-o { background: transparent; border: 1px solid var(--bdr); color: var(--gray); } .cta-o:hover { border-color: var(--gold); color: var(--gold); }
+      .cta-r { background: transparent; border: 1px solid rgba(184, 64, 64, 0.3); color: var(--red2); } .cta-r:hover { background: var(--red); color: #fff; }
 
       /* ── LEADERBOARD ── */
-      .lbhdr {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-      }
-      .lbttl {
-        font-family: "Abril Fatface", serif;
-        font-size: 1.5rem;
-        color: var(--gold2);
-        letter-spacing: 1px;
-      }
-      .rbtn {
-        background: transparent;
-        border: 1px solid var(--bdr2);
-        color: var(--gold);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.64rem;
-        text-transform: uppercase;
-        padding: 7px 13px;
-        border-radius: 5px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .rbtn:hover {
-        background: rgba(201, 168, 76, 0.1);
-      }
-      .rspin {
-        display: inline-block;
-      }
-      .spinning .rspin {
-        animation: spin 1s linear infinite;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-      .updlbl {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.56rem;
-        color: var(--gray);
-      }
+      .lbhdr { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+      .lbttl { font-family: "Abril Fatface", serif; font-size: 1.5rem; color: var(--gold2); letter-spacing: 1px; }
+      .rbtn { background: transparent; border: 1px solid var(--bdr2); color: var(--gold); font-family: "JetBrains Mono", monospace; font-size: 0.64rem; text-transform: uppercase; padding: 7px 13px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+      .rbtn:hover { background: rgba(201, 168, 76, 0.1); }
+      .rspin { display: inline-block; } .spinning .rspin { animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .updlbl { font-family: "JetBrains Mono", monospace; font-size: 0.56rem; color: var(--gray); }
 
-      .hero-row {
-        display: grid;
-        grid-template-columns: 1fr 110px 1fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        align-items: center;
-      }
-      .hcard {
-        border-radius: 12px;
-        padding: 1.4rem;
-        border: 1px solid;
-        position: relative;
-        overflow: hidden;
-      }
-      .hcard::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-      }
-      .hc-a {
-        background: linear-gradient(
-          145deg,
-          rgba(59, 130, 196, 0.16),
-          rgba(10, 20, 14, 0.9)
-        );
-        border-color: rgba(59, 130, 196, 0.32);
-      }
-      .hc-a::before {
-        background: linear-gradient(90deg, var(--blue), var(--blue2));
-      }
-      .hc-b {
-        background: linear-gradient(
-          145deg,
-          rgba(184, 64, 64, 0.16),
-          rgba(10, 20, 14, 0.9)
-        );
-        border-color: rgba(184, 64, 64, 0.32);
-      }
-      .hc-b::before {
-        background: linear-gradient(90deg, var(--red), var(--red2));
-      }
-      .hcard.winning {
-        border-color: rgba(201, 168, 76, 0.6) !important;
-        box-shadow: 0 0 28px rgba(201, 168, 76, 0.14);
-      }
-      .hc-ldrtag {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.54rem;
-        color: var(--gold);
-        background: rgba(201, 168, 76, 0.12);
-        padding: 2px 8px;
-        border-radius: 3px;
-      }
-      .hc-name {
-        font-family: "DM Serif Display", serif;
-        font-size: 1.2rem;
-        margin-bottom: 4px;
-      }
-      .hc-pts {
-        font-family: "Abril Fatface", serif;
-        font-size: 2.8rem;
-        line-height: 1;
-        margin: 0.3rem 0;
-      }
-      .hc-pts-a {
-        color: var(--blue2);
-      }
-      .hc-pts-b {
-        color: var(--red2);
-      }
-      .hc-sub {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.56rem;
-        color: var(--gray);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-      }
-      .hc-stats {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--bdr);
-      }
-      .hcs {
-        text-align: center;
-        flex: 1;
-      }
-      .hcs-v {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--gold);
-      }
-      .hcs-l {
-        font-size: 0.56rem;
-        color: var(--gray);
-        text-transform: uppercase;
-      }
-      .vs-box {
-        text-align: center;
-      }
-      .vs-txt {
-        font-family: "Abril Fatface", serif;
-        font-size: 1.55rem;
-        color: var(--gold);
-        opacity: 0.45;
-      }
-      .vs-rec {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.68rem;
-        color: var(--gray2);
-        margin-top: 4px;
-      }
+      .hero-row { display: grid; grid-template-columns: 1fr 110px 1fr; gap: 1rem; margin-bottom: 1.5rem; align-items: center; }
+      .hcard { border-radius: 12px; padding: 1.4rem; border: 1px solid; position: relative; overflow: hidden; }
+      .hcard::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+      .hc-a { background: linear-gradient(145deg, rgba(59, 130, 196, 0.16), rgba(10, 20, 14, 0.9)); border-color: rgba(59, 130, 196, 0.32); } .hc-a::before { background: linear-gradient(90deg, var(--blue), var(--blue2)); }
+      .hc-b { background: linear-gradient(145deg, rgba(184, 64, 64, 0.16), rgba(10, 20, 14, 0.9)); border-color: rgba(184, 64, 64, 0.32); } .hc-b::before { background: linear-gradient(90deg, var(--red), var(--red2)); }
+      .hcard.winning { border-color: rgba(201, 168, 76, 0.6) !important; box-shadow: 0 0 28px rgba(201, 168, 76, 0.14); }
+      .hc-ldrtag { position: absolute; top: 12px; right: 12px; font-family: "JetBrains Mono", monospace; font-size: 0.54rem; color: var(--gold); background: rgba(201, 168, 76, 0.12); padding: 2px 8px; border-radius: 3px; }
+      .hc-name { font-family: "DM Serif Display", serif; font-size: 1.2rem; margin-bottom: 4px; }
+      .hc-pts { font-family: "Abril Fatface", serif; font-size: 2.8rem; line-height: 1; margin: 0.3rem 0; }
+      .hc-pts-a { color: var(--blue2); } .hc-pts-b { color: var(--red2); }
+      .hc-sub { font-family: "JetBrains Mono", monospace; font-size: 0.56rem; color: var(--gray); text-transform: uppercase; letter-spacing: 2px; }
+      .hc-stats { display: flex; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--bdr); }
+      .hcs { text-align: center; flex: 1; } .hcs-v { font-family: "JetBrains Mono", monospace; font-size: 1.05rem; font-weight: 600; color: var(--gold); } .hcs-l { font-size: 0.56rem; color: var(--gray); text-transform: uppercase; }
+      .vs-box { text-align: center; } .vs-txt { font-family: "Abril Fatface", serif; font-size: 1.55rem; color: var(--gold); opacity: 0.45; } .vs-rec { font-family: "JetBrains Mono", monospace; font-size: 0.68rem; color: var(--gray2); margin-top: 4px; }
 
-      .mu-sh {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-      }
-      .mu-stitle {
-        font-family: "DM Serif Display", serif;
-        font-size: 1.1rem;
-      }
-      .mu-sh-right {
-        margin-left: auto;
-        display: flex;
-        gap: 8px;
-      }
-      .lock-btn {
-        background: var(--gold);
-        color: var(--bg);
-        border: none;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        text-transform: uppercase;
-        padding: 7px 16px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: 600;
-      }
-      .reshuffle-btn {
-        background: transparent;
-        border: 1px solid var(--bdr);
-        color: var(--gray);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.58rem;
-        text-transform: uppercase;
-        padding: 7px 11px;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .locked-note {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.58rem;
-        color: var(--win2);
-        background: rgba(39, 163, 78, 0.1);
-        border: 1px solid rgba(39, 163, 78, 0.28);
-        padding: 4px 12px;
-        border-radius: 4px;
-      }
+      .mu-sh { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+      .mu-stitle { font-family: "DM Serif Display", serif; font-size: 1.1rem; }
+      .mu-sh-right { margin-left: auto; display: flex; gap: 8px; }
+      .lock-btn { background: var(--gold); color: var(--bg); border: none; font-family: "JetBrains Mono", monospace; font-size: 0.6rem; text-transform: uppercase; padding: 7px 16px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+      .reshuffle-btn { background: transparent; border: 1px solid var(--bdr); color: var(--gray); font-family: "JetBrains Mono", monospace; font-size: 0.58rem; text-transform: uppercase; padding: 7px 11px; border-radius: 5px; cursor: pointer; }
+      .locked-note { font-family: "JetBrains Mono", monospace; font-size: 0.58rem; color: var(--win2); background: rgba(39, 163, 78, 0.1); border: 1px solid rgba(39, 163, 78, 0.28); padding: 4px 12px; border-radius: 4px; }
 
-      .mu-row {
-        display: grid;
-        grid-template-columns: 1fr 70px 1fr;
-        gap: 8px;
-        align-items: stretch;
-        margin-bottom: 8px;
-      }
-      .mc {
-        border-radius: 8px;
-        border: 1px solid var(--bdr);
-        padding: 10px 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        background: var(--bg2);
-        position: relative;
-      }
-      .mc::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 3px;
-        height: 100%;
-        opacity: 0;
-      }
-      .mc-a::after {
-        background: linear-gradient(180deg, var(--blue), var(--blue2));
-      }
-      .mc-b::after {
-        background: linear-gradient(180deg, var(--red), var(--red2));
-      }
-      .mc.winner {
-        border-color: rgba(39, 163, 78, 0.5) !important;
-      }
-      .mc.winner::after {
-        opacity: 1;
-        background: linear-gradient(180deg, var(--win), var(--win2)) !important;
-      }
-      .mc.loser {
-        border-color: rgba(100, 120, 100, 0.18) !important;
-        opacity: 0.72;
-      }
-      .mc.tied {
-        border-color: rgba(201, 168, 76, 0.32) !important;
-      }
-      .mc.tied::after {
-        opacity: 1;
-        background: linear-gradient(
-          180deg,
-          var(--gold),
-          var(--gold2)
-        ) !important;
-      }
-      .mc.mccut {
-        opacity: 0.7;
-      }
-      .mc-pname {
-        font-weight: 600;
-        font-size: 0.84rem;
-      }
-      .mc-odds {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.57rem;
-        color: var(--gray);
-      }
-      .mc-score-row {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        margin-top: 3px;
-      }
-      .mc-pts {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--gold);
-      }
-      .mc-sub {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.57rem;
-        color: var(--gray);
-      }
-      .mc-tpar {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.7rem;
-      }
-      .mc-tpar.under {
-        color: var(--red2);
-      }
-      .mc-tpar.over {
-        color: var(--gray2);
-      }
-      .mc-rounds {
-        display: flex;
-        gap: 4px;
-        flex-wrap: wrap;
-        margin-top: 3px;
-      }
-      .mc-rc {
-        background: rgba(0, 0, 0, 0.28);
-        border: 1px solid var(--bdr);
-        border-radius: 3px;
-        padding: 2px 6px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.55rem;
-        color: var(--gray);
-      }
-      .mc-rc.has {
-        color: var(--cream);
-        border-color: rgba(255, 255, 255, 0.12);
-      }
-      .mc-holes {
-        display: flex;
-        gap: 4px;
-        flex-wrap: wrap;
-        margin-top: 3px;
-      }
-      .mh {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.58rem;
-        padding: 2px 5px;
-        border-radius: 3px;
-        border: 1px solid;
-      }
-      .mh-eagle {
-        color: #e8c96e;
-        border-color: rgba(232, 201, 110, 0.3);
-        background: rgba(232, 201, 110, 0.08);
-      }
-      .mh-birdie {
-        color: var(--win2);
-        border-color: rgba(77, 212, 117, 0.3);
-        background: rgba(77, 212, 117, 0.07);
-      }
-      .mh-par {
-        color: var(--gray2);
-        border-color: rgba(176, 192, 179, 0.2);
-        background: rgba(176, 192, 179, 0.05);
-      }
-      .mh-bogey {
-        color: var(--gray);
-        border-color: rgba(122, 140, 125, 0.2);
-      }
-      .mh-dbl {
-        color: var(--red2);
-        border-color: rgba(184, 64, 64, 0.3);
-        background: rgba(184, 64, 64, 0.07);
-      }
-      .mc-st {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.57rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-top: 2px;
-      }
-      .st-pre {
-        color: var(--gray);
-      }
-      .st-act {
-        color: var(--win2);
-      }
-      .st-cut {
-        color: var(--red2);
-      }
-      .st-done {
-        color: var(--gold);
-      }
+      .mu-row { display: grid; grid-template-columns: 1fr 70px 1fr; gap: 8px; align-items: stretch; margin-bottom: 8px; }
+      .mc { border-radius: 8px; border: 1px solid var(--bdr); padding: 10px 14px; display: flex; flex-direction: column; gap: 3px; background: var(--bg2); position: relative; }
+      .mc::after { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; opacity: 0; }
+      .mc-a::after { background: linear-gradient(180deg, var(--blue), var(--blue2)); } .mc-b::after { background: linear-gradient(180deg, var(--red), var(--red2)); }
+      .mc.winner { border-color: rgba(39, 163, 78, 0.5) !important; } .mc.winner::after { opacity: 1; background: linear-gradient(180deg, var(--win), var(--win2)) !important; }
+      .mc.loser { border-color: rgba(100, 120, 100, 0.18) !important; opacity: 0.72; }
+      .mc.tied { border-color: rgba(201, 168, 76, 0.32) !important; } .mc.tied::after { opacity: 1; background: linear-gradient(180deg, var(--gold), var(--gold2)) !important; }
+      .mc.mccut { opacity: 0.7; }
+      .mc-pname { font-weight: 600; font-size: 0.84rem; } .mc-odds { font-family: "JetBrains Mono", monospace; font-size: 0.57rem; color: var(--gray); }
+      .mc-score-row { display: flex; align-items: baseline; gap: 6px; margin-top: 3px; }
+      .mc-pts { font-family: "JetBrains Mono", monospace; font-size: 1.1rem; font-weight: 600; color: var(--gold); }
+      .mc-sub { font-family: "JetBrains Mono", monospace; font-size: 0.57rem; color: var(--gray); }
+      .mc-tpar { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; } .mc-tpar.under { color: var(--red2); } .mc-tpar.over { color: var(--gray2); }
+      .mc-rounds { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+      .mc-rc { background: rgba(0, 0, 0, 0.28); border: 1px solid var(--bdr); border-radius: 3px; padding: 2px 6px; font-family: "JetBrains Mono", monospace; font-size: 0.55rem; color: var(--gray); }
+      .mc-rc.has { color: var(--cream); border-color: rgba(255, 255, 255, 0.12); }
+      .mc-holes { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+      .mh { font-family: "JetBrains Mono", monospace; font-size: 0.58rem; padding: 2px 5px; border-radius: 3px; border: 1px solid; }
+      .mh-eagle { color: #e8c96e; border-color: rgba(232, 201, 110, 0.3); background: rgba(232, 201, 110, 0.08); }
+      .mh-birdie { color: var(--win2); border-color: rgba(77, 212, 117, 0.3); background: rgba(77, 212, 117, 0.07); }
+      .mh-par { color: var(--gray2); border-color: rgba(176, 192, 179, 0.2); background: rgba(176, 192, 179, 0.05); }
+      .mh-bogey { color: var(--gray); border-color: rgba(122, 140, 125, 0.2); }
+      .mh-dbl { color: var(--red2); border-color: rgba(184, 64, 64, 0.3); background: rgba(184, 64, 64, 0.07); }
+      .mc-st { font-family: "JetBrains Mono", monospace; font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+      .st-pre { color: var(--gray); } .st-act { color: var(--win2); } .st-cut { color: var(--red2); } .st-done { color: var(--gold); }
 
-      .mu-mid {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-      }
-      .mnum {
-        color: var(--gray);
-        font-size: 0.56rem;
-      }
-      .vs-lbl {
-        font-size: 1.1rem;
-        color: var(--gray);
-        opacity: 0.5;
-      }
-      .mres {
-        font-weight: 600;
-        font-size: 0.68rem;
-        text-align: center;
-        padding: 3px 6px;
-        border-radius: 3px;
-      }
-      .mres-a {
-        color: var(--blue2);
-        background: rgba(59, 130, 196, 0.12);
-        border: 1px solid rgba(59, 130, 196, 0.25);
-      }
-      .mres-b {
-        color: var(--red2);
-        background: rgba(184, 64, 64, 0.12);
-        border: 1px solid rgba(184, 64, 64, 0.25);
-      }
-      .mres-t {
-        color: var(--gold);
-        background: rgba(201, 168, 76, 0.1);
-        border: 1px solid rgba(201, 168, 76, 0.25);
-      }
-      .no-picks {
-        text-align: center;
-        padding: 3rem;
-        color: var(--gray);
-      }
+      .mu-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-family: "JetBrains Mono", monospace; font-size: 0.6rem; }
+      .mnum { color: var(--gray); font-size: 0.56rem; } .vs-lbl { font-size: 1.1rem; color: var(--gray); opacity: 0.5; }
+      .mres { font-weight: 600; font-size: 0.68rem; text-align: center; padding: 3px 6px; border-radius: 3px; }
+      .mres-a { color: var(--blue2); background: rgba(59, 130, 196, 0.12); border: 1px solid rgba(59, 130, 196, 0.25); }
+      .mres-b { color: var(--red2); background: rgba(184, 64, 64, 0.12); border: 1px solid rgba(184, 64, 64, 0.25); }
+      .mres-t { color: var(--gold); background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.25); }
+      .no-picks { text-align: center; padding: 3rem; color: var(--gray); }
 
       /* ── TOURNAMENT MANAGER VIEW ── */
-      .tm-layout {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-      }
-      .fm-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        margin-bottom: 1rem;
-      }
-      .fm-label {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        color: var(--gray);
-        text-transform: uppercase;
-      }
-      .fm-inp {
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid var(--bdr2);
-        border-radius: 5px;
-        padding: 8px 12px;
-        color: var(--cream);
-        font-family: "Instrument Sans", sans-serif;
-        font-size: 0.88rem;
-        outline: none;
-        width: 100%;
-      }
-      .fm-inp:focus {
-        border-color: var(--gold);
-      }
-      .fm-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .add-tourn-btn {
-        background: var(--gold);
-        color: var(--bg);
-        border: none;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        padding: 11px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        width: 100%;
-      }
+      .tm-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .fm-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 1rem; }
+      .fm-label { font-family: "JetBrains Mono", monospace; font-size: 0.6rem; color: var(--gray); text-transform: uppercase; }
+      .fm-inp { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--bdr2); border-radius: 5px; padding: 8px 12px; color: var(--cream); font-family: "Instrument Sans", sans-serif; font-size: 0.88rem; outline: none; width: 100%; }
+      .fm-inp:focus { border-color: var(--gold); }
+      .fm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .add-tourn-btn { background: var(--gold); color: var(--bg); border: none; font-family: "JetBrains Mono", monospace; font-size: 0.7rem; text-transform: uppercase; padding: 11px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
 
-      .tcard {
-        background: var(--bg2);
-        border: 1px solid var(--bdr);
-        border-radius: 8px;
-        margin-bottom: 8px;
-        overflow: hidden;
-      }
-      .tcard.active-tourn {
-        border-color: rgba(201, 168, 76, 0.5);
-        background: rgba(201, 168, 76, 0.04);
-      }
-      .tcard-head {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        border-bottom: 1px solid var(--bdr);
-      }
-      .tcard-name {
-        font-weight: 600;
-        font-size: 0.88rem;
-        flex: 1;
-      }
-      .tcard-actions {
-        display: flex;
-        gap: 5px;
-      }
-      .tcard-body {
-        padding: 8px 14px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.62rem;
-        color: var(--gray);
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 4px 1rem;
-      }
-      .tcard-sel {
-        background: transparent;
-        border: 1px solid rgba(201, 168, 76, 0.3);
-        color: var(--gold);
-        padding: 3px 9px;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 0.6rem;
-        text-transform: uppercase;
-        font-family: "JetBrains Mono";
-      }
-      .tcard-del {
-        background: transparent;
-        border: 1px solid rgba(184, 64, 64, 0.3);
-        color: var(--red2);
-        padding: 3px 9px;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 0.6rem;
-      }
+      .tcard { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+      .tcard.active-tourn { border-color: rgba(201, 168, 76, 0.5); background: rgba(201, 168, 76, 0.04); }
+      .tcard-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--bdr); }
+      .tcard-name { font-weight: 600; font-size: 0.88rem; flex: 1; }
+      .tcard-actions { display: flex; gap: 5px; }
+      .tcard-body { padding: 8px 14px; font-family: "JetBrains Mono", monospace; font-size: 0.62rem; color: var(--gray); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 1rem; }
+      .tcard-sel { background: transparent; border: 1px solid rgba(201, 168, 76, 0.3); color: var(--gold); padding: 3px 9px; border-radius: 3px; cursor: pointer; font-size: 0.6rem; text-transform: uppercase; font-family: "JetBrains Mono"; }
+      .tcard-del { background: transparent; border: 1px solid rgba(184, 64, 64, 0.3); color: var(--red2); padding: 3px 9px; border-radius: 3px; cursor: pointer; font-size: 0.6rem; }
 
-      .fetch-field-btn {
-        background: transparent;
-        border: 1px solid rgba(59, 130, 196, 0.4);
-        color: var(--blue2);
-        padding: 3px 9px;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 0.6rem;
-        text-transform: uppercase;
-        font-family: "JetBrains Mono";
-      }
+      .fetch-field-btn { background: transparent; border: 1px solid rgba(59, 130, 196, 0.4); color: var(--blue2); padding: 3px 9px; border-radius: 3px; cursor: pointer; font-size: 0.6rem; text-transform: uppercase; font-family: "JetBrains Mono"; }
 
       /* Modal / Toast */
-      .modal-ov {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.75);
-        z-index: 400;
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-ov.open {
-        display: flex;
-      }
-      .modal {
-        background: var(--bg2);
-        border: 1px solid var(--bdr2);
-        border-radius: 12px;
-        padding: 2rem;
-        max-width: 420px;
-        width: 90%;
-        text-align: center;
-      }
-      .toast {
-        position: fixed;
-        bottom: 22px;
-        right: 22px;
-        z-index: 500;
-        background: var(--bg3);
-        border: 1px solid var(--bdr2);
-        border-radius: 8px;
-        padding: 11px 18px;
-        font-size: 0.8rem;
-        color: var(--cream);
-        transform: translateY(70px);
-        opacity: 0;
-        transition: all 0.3s;
-      }
-      .toast.show {
-        transform: translateY(0);
-        opacity: 1;
-      }
+      .modal-ov { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 400; align-items: center; justify-content: center; }
+      .modal-ov.open { display: flex; }
+      .modal { background: var(--bg2); border: 1px solid var(--bdr2); border-radius: 12px; padding: 2rem; max-width: 420px; width: 90%; text-align: center; }
+      .toast { position: fixed; bottom: 22px; right: 22px; z-index: 500; background: var(--bg3); border: 1px solid var(--bdr2); border-radius: 8px; padding: 11px 18px; font-size: 0.8rem; color: var(--cream); transform: translateY(70px); opacity: 0; transition: all 0.3s; }
+      .toast.show { transform: translateY(0); opacity: 1; }
 
       /* Cloud Sync Badge */
-      .sync-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 12px;
-        border-radius: 5px;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.6rem;
-        border: 1px solid rgba(39, 163, 78, 0.35);
-        background: rgba(39, 163, 78, 0.12);
-        color: var(--win2);
-      }
-      .sync-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--win2);
-        box-shadow: 0 0 5px var(--win2);
-      }
+      .sync-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 5px; font-family: "JetBrains Mono", monospace; font-size: 0.6rem; border: 1px solid rgba(39, 163, 78, 0.35); background: rgba(39, 163, 78, 0.12); color: var(--win2); }
+      .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--win2); box-shadow: 0 0 5px var(--win2); }
 
       /* Instructions Modal Styles */
-      .instr-modal {
-        background: var(--bg2);
-        border: 1px solid var(--bdr2);
-        border-radius: 14px;
-        width: 90%;
-        max-width: 650px;
-        max-height: 85vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
-        text-align: left;
-      }
-      .instr-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        padding: 1.4rem 1.6rem 1.1rem;
-        border-bottom: 1px solid var(--bdr);
-        background: linear-gradient(
-          180deg,
-          rgba(201, 168, 76, 0.06),
-          transparent
-        );
-        flex-shrink: 0;
-      }
-      .instr-close {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid var(--bdr);
-        color: var(--gray);
-        font-size: 0.9rem;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.15s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 2px;
-      }
-      .instr-close:hover {
-        background: rgba(184, 64, 64, 0.2);
-        border-color: var(--red2);
-        color: var(--red2);
-      }
-      .instr-body {
-        overflow-y: auto;
-        padding: 1.4rem 1.6rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-      }
-      .instr-body::-webkit-scrollbar {
-        width: 4px;
-      }
-      .instr-body::-webkit-scrollbar-track {
-        background: var(--bg);
-      }
-      .instr-body::-webkit-scrollbar-thumb {
-        background: var(--bg3);
-        border-radius: 2px;
-      }
-      .instr-section {
-        border: 1px solid var(--bdr);
-        border-radius: 9px;
-        padding: 1rem 1.1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.9rem;
-        background: rgba(0, 0, 0, 0.15);
-      }
-      .instr-section-label {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.65rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--gold);
-        padding-bottom: 0.4rem;
-        border-bottom: 1px solid var(--bdr);
-      }
-      .instr-step {
-        display: flex;
-        gap: 0.9rem;
-        align-items: flex-start;
-      }
-      .instr-num {
-        flex-shrink: 0;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: rgba(201, 168, 76, 0.15);
-        border: 1px solid rgba(201, 168, 76, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.62rem;
-        font-weight: 600;
-        color: var(--gold);
-        margin-top: 2px;
-      }
-      .instr-content {
-        flex: 1;
-      }
-      .instr-title {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--cream);
-        margin-bottom: 3px;
-      }
-      .instr-desc {
-        font-size: 0.8rem;
-        color: var(--gray2);
-        line-height: 1.6;
-      }
-      .instr-desc strong {
-        color: var(--cream);
-      }
+      .instr-modal { background: var(--bg2); border: 1px solid var(--bdr2); border-radius: 14px; width: 90%; max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9); text-align: left; }
+      .instr-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 1.4rem 1.6rem 1.1rem; border-bottom: 1px solid var(--bdr); background: linear-gradient(180deg, rgba(201, 168, 76, 0.06), transparent); flex-shrink: 0; }
+      .instr-close { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--bdr); color: var(--gray); font-size: 0.9rem; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+      .instr-close:hover { background: rgba(184, 64, 64, 0.2); border-color: var(--red2); color: var(--red2); }
+      .instr-body { overflow-y: auto; padding: 1.4rem 1.6rem; display: flex; flex-direction: column; gap: 1.2rem; }
+      .instr-body::-webkit-scrollbar { width: 4px; } .instr-body::-webkit-scrollbar-track { background: var(--bg); } .instr-body::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+      .instr-section { border: 1px solid var(--bdr); border-radius: 9px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.9rem; background: rgba(0,0,0,0.15); }
+      .instr-section-label { font-family: "JetBrains Mono", monospace; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); padding-bottom: 0.4rem; border-bottom: 1px solid var(--bdr); }
+      .instr-step { display: flex; gap: 0.9rem; align-items: flex-start; }
+      .instr-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: rgba(201, 168, 76, 0.15); border: 1px solid rgba(201, 168, 76, 0.3); display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 0.62rem; font-weight: 600; color: var(--gold); margin-top: 2px; }
+      .instr-content { flex: 1; }
+      .instr-title { font-weight: 600; font-size: 0.9rem; color: var(--cream); margin-bottom: 3px; }
+      .instr-desc { font-size: 0.8rem; color: var(--gray2); line-height: 1.6; }
+      .instr-desc strong { color: var(--cream); }
     </style>
   </head>
   <body>
@@ -1428,13 +258,7 @@
           <button class="nbtn on" onclick="showTab('draft')">Draft</button>
           <button class="nbtn" onclick="showTab('lb')">Leaderboard</button>
           <button class="nbtn" onclick="showTab('manage')">⚙ Manage</button>
-          <button
-            class="nbtn"
-            onclick="openInstructions()"
-            style="color: var(--gold); opacity: 0.8"
-          >
-            ? How to Play
-          </button>
+          <button class="nbtn" onclick="openInstructions()" style="color: var(--gold); opacity: 0.8">? How to Play</button>
         </nav>
       </div>
     </header>
@@ -1473,41 +297,11 @@
                 placeholder="Search player…"
                 oninput="filterPlayers()"
               />
-              <button
-                class="fbt on"
-                data-tier="all"
-                onclick="setTier(this, 'all')"
-              >
-                All
-              </button>
-              <button
-                class="fbt"
-                data-tier="fav"
-                onclick="setTier(this, 'fav')"
-              >
-                Favorites
-              </button>
-              <button
-                class="fbt"
-                data-tier="cont"
-                onclick="setTier(this, 'cont')"
-              >
-                Contenders
-              </button>
-              <button
-                class="fbt"
-                data-tier="long"
-                onclick="setTier(this, 'long')"
-              >
-                Longshots
-              </button>
-              <button
-                class="fbt fbt-d"
-                data-tier="deep"
-                onclick="setTier(this, 'deep')"
-              >
-                ★ Deep (req.)
-              </button>
+              <button class="fbt on" data-tier="all" onclick="setTier(this, 'all')">All</button>
+              <button class="fbt" data-tier="fav" onclick="setTier(this, 'fav')">Favorites</button>
+              <button class="fbt" data-tier="cont" onclick="setTier(this, 'cont')">Contenders</button>
+              <button class="fbt" data-tier="long" onclick="setTier(this, 'long')">Longshots</button>
+              <button class="fbt fbt-d" data-tier="deep" onclick="setTier(this, 'deep')">★ Deep (req.)</button>
             </div>
             <div style="overflow-x: auto">
               <table class="pt">
@@ -1537,19 +331,9 @@
                 <div class="pempty">No picks yet</div>
               </div>
               <div class="dreqs" id="req-a"></div>
-              <button
-                class="add-tourn-btn"
-                style="
-                  border-radius: 0 0 10px 10px;
-                  background: rgba(59, 130, 196, 0.15);
-                  color: var(--blue2);
-                "
-                onclick="saveGameStateToDB()"
-              >
-                💾 Save Matt's Roster
-              </button>
+              <button class="add-tourn-btn" style="border-radius:0 0 10px 10px; background:rgba(59, 130, 196, 0.15); color:var(--blue2);" onclick="saveGameStateToDB()">💾 Save Matt's Roster</button>
             </div>
-
+            
             <div class="db db-b">
               <div class="dh">
                 <div class="ddot ddot-b"></div>
@@ -1560,25 +344,11 @@
                 <div class="pempty">No picks yet</div>
               </div>
               <div class="dreqs" id="req-b"></div>
-              <button
-                class="add-tourn-btn"
-                style="
-                  border-radius: 0 0 10px 10px;
-                  background: rgba(184, 64, 64, 0.15);
-                  color: var(--red2);
-                "
-                onclick="saveGameStateToDB()"
-              >
-                💾 Save Chad's Roster
-              </button>
+              <button class="add-tourn-btn" style="border-radius:0 0 10px 10px; background:rgba(184, 64, 64, 0.15); color:var(--red2);" onclick="saveGameStateToDB()">💾 Save Chad's Roster</button>
             </div>
             <div class="ctas">
-              <button class="cta cta-g" onclick="goLb()">
-                View Leaderboard →
-              </button>
-              <button class="cta cta-o" onclick="openResetModal()">
-                Reset Week
-              </button>
+              <button class="cta cta-g" onclick="goLb()">View Leaderboard →</button>
+              <button class="cta cta-o" onclick="openResetModal()">Reset Week</button>
             </div>
           </div>
         </div>
@@ -1593,8 +363,7 @@
           <span class="updlbl" id="upd">Scores sync automatically on load</span>
         </div>
         <div id="prenote" class="pre-note" style="display: none">
-          ⏱ &nbsp;Tournament hasn't started yet. Matchup pairings shown below —
-          scores will populate once play begins.
+          ⏱ &nbsp;Tournament hasn't started yet. Matchup pairings shown below — scores will populate once play begins.
         </div>
         <div class="hero-row">
           <div class="hcard hc-a" id="hc-a">
@@ -1622,14 +391,7 @@
       </div>
 
       <div id="view-manage" class="view">
-        <div
-          style="
-            font-family: &quot;Abril Fatface&quot;, serif;
-            font-size: 1.5rem;
-            color: var(--gold2);
-            margin-bottom: 1.5rem;
-          "
-        >
+        <div style="font-family: 'Abril Fatface', serif; font-size: 1.5rem; color: var(--gold2); margin-bottom: 1.5rem;">
           Tournament Manager
         </div>
         <div class="tm-layout">
@@ -1637,31 +399,18 @@
             <div class="panel">
               <div class="ph"><span class="ph-title">Add Tournament</span></div>
               <div style="padding: 1.2rem">
+                
                 <div class="fm-group">
                   <div class="fm-label">ESPN ID</div>
-                  <div style="display: flex; gap: 10px">
-                    <input
-                      class="fm-inp"
-                      id="fm-espnid"
-                      placeholder="e.g. 401811934"
-                    />
-                    <button
-                      class="add-tourn-btn"
-                      style="width: auto; padding: 8px 15px"
-                      onclick="autoFillESPN()"
-                    >
-                      🔍 Auto-Fill Details
-                    </button>
+                  <div style="display:flex; gap:10px;">
+                    <input class="fm-inp" id="fm-espnid" placeholder="e.g. 401811934" />
+                    <button class="add-tourn-btn" style="width:auto; padding:8px 15px;" onclick="autoFillESPN()">🔍 Auto-Fill Details</button>
                   </div>
                 </div>
 
                 <div class="fm-group">
                   <div class="fm-label">Tournament Name</div>
-                  <input
-                    class="fm-inp"
-                    id="fm-name"
-                    placeholder="e.g. The Masters"
-                  />
+                  <input class="fm-inp" id="fm-name" placeholder="e.g. The Masters" />
                 </div>
                 <div class="fm-row">
                   <div class="fm-group">
@@ -1670,42 +419,24 @@
                   </div>
                   <div class="fm-group">
                     <div class="fm-label">Par</div>
-                    <input
-                      class="fm-inp fm-inp-sm"
-                      id="fm-par"
-                      type="number"
-                      value="72"
-                    />
+                    <input class="fm-inp fm-inp-sm" id="fm-par" type="number" value="72" />
                   </div>
                 </div>
                 <div class="fm-row">
                   <div class="fm-group">
                     <div class="fm-label">Purse ($M)</div>
-                    <input
-                      class="fm-inp fm-inp-sm"
-                      id="fm-purse"
-                      type="number"
-                      step="0.1"
-                    />
+                    <input class="fm-inp fm-inp-sm" id="fm-purse" type="number" step="0.1" />
                   </div>
                   <div class="fm-group">
                     <div class="fm-label">Timezone</div>
-                    <input
-                      class="fm-inp fm-inp-sm"
-                      id="fm-tz"
-                      value="America/New_York"
-                    />
+                    <input class="fm-inp fm-inp-sm" id="fm-tz" value="America/New_York" />
                   </div>
                 </div>
                 <div class="fm-group">
                   <div class="fm-label">First Tee Time (Local Course Time)</div>
-                  <input
-                    class="fm-inp fm-inp-sm"
-                    id="fm-tee"
-                    type="datetime-local"
-                  />
+                  <input class="fm-inp fm-inp-sm" id="fm-tee" type="datetime-local" />
                 </div>
-
+                
                 <button class="add-tourn-btn" onclick="addTournament()">
                   + Add Tournament
                 </button>
@@ -1724,189 +455,81 @@
       </div>
     </div>
 
-    <div
-      class="modal-ov"
-      id="instructions-modal"
-      onclick="closeInstructionsOnBg(event)"
-    >
+    <div class="modal-ov" id="instructions-modal" onclick="closeInstructionsOnBg(event)">
       <div class="instr-modal">
         <div class="instr-header">
           <div>
-            <div
-              style="
-                font-family: &quot;Abril Fatface&quot;, serif;
-                font-size: 1.4rem;
-                color: var(--gold2);
-                letter-spacing: 1px;
-              "
-            >
-              How to Play Fairway Duel
-            </div>
-            <div
-              style="
-                font-family: &quot;JetBrains Mono&quot;, monospace;
-                font-size: 0.6rem;
-                color: var(--gray);
-                margin-top: 3px;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-              "
-            >
-              Cloud Edition Guide
-            </div>
+            <div style="font-family: 'Abril Fatface', serif; font-size: 1.4rem; color: var(--gold2); letter-spacing: 1px;">How to Play Fairway Duel</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--gray); margin-top: 3px; text-transform: uppercase; letter-spacing: 1.5px;">Cloud Edition Guide</div>
           </div>
           <button class="instr-close" onclick="closeModal()">✕</button>
         </div>
         <div class="instr-body">
+
           <div class="instr-section">
             <div class="instr-section-label">1. Tournament Setup</div>
             <div class="instr-step">
               <div class="instr-num">1</div>
               <div class="instr-content">
                 <div class="instr-title">Add the Event</div>
-                <div class="instr-desc">
-                  Go to the <strong>⚙ Manage</strong> tab. Paste the ESPN
-                  Tournament ID into the box and click
-                  <strong>🔍 Auto-Fill Details</strong>. Click
-                  <strong>+ Add Tournament</strong> to save it to the cloud.
-                </div>
+                <div class="instr-desc">Go to the <strong>⚙ Manage</strong> tab. Paste the ESPN Tournament ID into the box and click <strong>🔍 Auto-Fill Details</strong>. Click <strong>+ Add Tournament</strong> to save it to the cloud.</div>
               </div>
             </div>
             <div class="instr-step">
               <div class="instr-num">2</div>
               <div class="instr-content">
                 <div class="instr-title">Fetch the Field</div>
-                <div class="instr-desc">
-                  Once added, click <strong>⬇ Fetch Field</strong> on the
-                  tournament card to pull the live player list and odds from
-                  ESPN. Then click <strong>Select</strong>.
-                </div>
+                <div class="instr-desc">Once added, click <strong>⬇ Fetch Field</strong> on the tournament card to pull the live player list and odds from ESPN. Then click <strong>Select</strong>.</div>
               </div>
             </div>
           </div>
 
-          <div
-            class="instr-section"
-            style="
-              border-color: rgba(59, 130, 196, 0.3);
-              background: rgba(59, 130, 196, 0.05);
-            "
-          >
-            <div class="instr-section-label" style="color: var(--blue2)">
-              2. Drafting & Saving
-            </div>
+          <div class="instr-section" style="border-color: rgba(59, 130, 196, 0.3); background: rgba(59, 130, 196, 0.05);">
+            <div class="instr-section-label" style="color: var(--blue2);">2. Drafting & Saving</div>
             <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--blue2);
-                  border-color: var(--blue2);
-                  background: transparent;
-                "
-              >
-                3
-              </div>
+              <div class="instr-num" style="color: var(--blue2); border-color: var(--blue2); background: transparent;">3</div>
               <div class="instr-content">
                 <div class="instr-title">Draft 20 Players</div>
-                <div class="instr-desc">
-                  Matt and Chad both draft exactly <strong>20 players</strong>.
-                  You must each select at least
-                  <strong>3 Deep (★)</strong> sleepers (the bottom 1/3 of the
-                  field by odds).
-                </div>
+                <div class="instr-desc">Matt and Chad both draft exactly <strong>20 players</strong>. You must each select at least <strong>3 Deep (★)</strong> sleepers (the bottom 1/3 of the field by odds).</div>
               </div>
             </div>
             <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--blue2);
-                  border-color: var(--blue2);
-                  background: transparent;
-                "
-              >
-                4
-              </div>
+              <div class="instr-num" style="color: var(--blue2); border-color: var(--blue2); background: transparent;">4</div>
               <div class="instr-content">
                 <div class="instr-title">Save to Cloud</div>
-                <div class="instr-desc">
-                  You <strong>must</strong> click
-                  <strong>💾 Save [Name]'s Roster</strong> at the bottom of your
-                  column to sync your picks to the Supabase cloud so your
-                  opponent can see them!
-                </div>
+                <div class="instr-desc">You <strong>must</strong> click <strong>💾 Save [Name]'s Roster</strong> at the bottom of your column to sync your picks to the Supabase cloud so your opponent can see them!</div>
               </div>
             </div>
           </div>
 
-          <div
-            class="instr-section"
-            style="
-              border-color: rgba(184, 64, 64, 0.3);
-              background: rgba(184, 64, 64, 0.05);
-            "
-          >
-            <div class="instr-section-label" style="color: var(--red2)">
-              3. Lock & Live Scoring
-            </div>
+          <div class="instr-section" style="border-color: rgba(184, 64, 64, 0.3); background: rgba(184, 64, 64, 0.05);">
+            <div class="instr-section-label" style="color: var(--red2);">3. Lock & Live Scoring</div>
             <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--red2);
-                  border-color: var(--red2);
-                  background: transparent;
-                "
-              >
-                5
-              </div>
+              <div class="instr-num" style="color: var(--red2); border-color: var(--red2); background: transparent;">5</div>
               <div class="instr-content">
                 <div class="instr-title">Auto-Lock & Matchups</div>
-                <div class="instr-desc">
-                  If both players have 20 picks when the
-                  <strong>countdown hits zero</strong>, the app will
-                  automatically lock the board and randomize your head-to-head
-                  matchups. You can also manually randomize on the Leaderboard
-                  tab.
-                </div>
+                <div class="instr-desc">If both players have 20 picks when the <strong>countdown hits zero</strong>, the app will automatically lock the board and randomize your head-to-head matchups. You can also manually randomize on the Leaderboard tab.</div>
               </div>
             </div>
             <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--red2);
-                  border-color: var(--red2);
-                  background: transparent;
-                "
-              >
-                6
-              </div>
+              <div class="instr-num" style="color: var(--red2); border-color: var(--red2); background: transparent;">6</div>
               <div class="instr-content">
                 <div class="instr-title">Refresh Scores</div>
-                <div class="instr-desc">
-                  During the tournament, click
-                  <strong>↻ Refresh ESPN Scores</strong> on the Leaderboard. The
-                  app pulls hole-by-hole data to calculate Modified Stableford
-                  points. Points are awarded as follows: <br /><br />
-                  <div style="line-height: 1.8">
-                    <span style="color: var(--gold2)">Albatross: +8</span> |
-                    <span style="color: var(--gold2)">Eagle: +5</span> |
-                    <span style="color: var(--win2)">Birdie: +3</span> |
-                    <span style="color: var(--gray2)">Par: +1</span> |
-                    <span style="color: var(--gray)">Bogey: 0</span> |
-                    <span style="color: var(--red2)">Double: -2</span> |
-                    <span style="color: #c03040">Triple+: -3</span>
-                  </div>
-                  <br />
-                  <em
-                    >Note: Missed-cut players only score points for Rounds 1 &
-                    2.</em
-                  >
-                </div>
+                <div class="instr-desc">During the tournament, click <strong>↻ Refresh ESPN Scores</strong> on the Leaderboard. The app pulls hole-by-hole data to calculate Modified Stableford points. Points are awarded as follows: <br><br>
+                <div style="line-height: 1.8;">
+                  <span style="color:var(--gold2)">Albatross: +8</span> | 
+                  <span style="color:var(--gold2)">Eagle: +5</span> | 
+                  <span style="color:var(--win2)">Birdie: +3</span> | 
+                  <span style="color:var(--gray2)">Par: +1</span> | 
+                  <span style="color:var(--gray)">Bogey: 0</span> | 
+                  <span style="color:var(--red2)">Double: -2</span> | 
+                  <span style="color:#c03040">Triple+: -3</span>
+                </div><br>
+                <em>Note: Missed-cut players only score points for Rounds 1 & 2.</em></div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -1926,9 +549,7 @@
         <h2>Delete Tournament?</h2>
         <p>This will remove the tournament permanently from the cloud.</p>
         <div class="macts">
-          <button class="cta cta-r" onclick="confirmDelTournament()">
-            Delete
-          </button>
+          <button class="cta cta-r" onclick="confirmDelTournament()">Delete</button>
           <button class="cta cta-o" onclick="closeModal()">Cancel</button>
         </div>
       </div>
@@ -2000,7 +621,8 @@
         }
 
         // Set up Realtime Subscription
-        db.channel("public:tournaments")
+        db
+          .channel("public:tournaments")
           .on(
             "postgres_changes",
             { event: "UPDATE", schema: "public", table: "tournaments" },
@@ -2078,7 +700,7 @@
           .from("tournaments")
           .update({ game_state: WS })
           .eq("id", activeTId);
-
+          
         toast("💾 Roster changes saved to cloud");
       }
 
@@ -2104,14 +726,15 @@
       // TOURNAMENT MANAGER & ESPN LOGIC
       // ═══════════════════════════════════════════════════════
       const CORS = "https://corsproxy.io/?url=";
-      const ESPN_BASE =
-        "https://site.api.espn.com/apis/site/v2/sports/golf/pga";
-
+      const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/golf";
+      
       function espnUrl(path) {
-        return CORS + encodeURIComponent(ESPN_BASE + path);
+        // Cache Buster: forces the proxy to grab real-time data instead of cached errors/scores
+        const sep = path.includes('?') ? '&' : '?';
+        const bustedPath = path + sep + '_cb=' + Date.now();
+        return CORS + encodeURIComponent(ESPN_BASE + bustedPath);
       }
 
-      // Auto-fill feature for Tournaments
       // Auto-fill feature for Tournaments
       async function autoFillESPN() {
         const espnId = document.getElementById("fm-espnid").value.trim();
@@ -2120,10 +743,15 @@
         toast("Fetching tournament details...");
         
         try {
-          const res = await fetch(espnUrl(`/leaderboard?tournamentId=${espnId}`), { headers: { Accept: "application/json" } });
+          const res = await fetch(espnUrl(`/leaderboard?event=${espnId}`), { headers: { Accept: "application/json" } });
           const data = await res.json();
           
-          // Fallback through ESPN's varying JSON structures
+          console.log("ESPN API Response:", data);
+          
+          if (data.error || data.message) {
+             return toast(`API Error: ${data.error || data.message}`);
+          }
+          
           const ev = data?.events?.[0] || data?.event || data;
           
           if (!ev || (!ev.competitions && !ev.leaderboard && !ev.competitors)) {
@@ -2144,7 +772,6 @@
             document.getElementById("fm-purse").value = comp.purse?.value ? (comp.purse.value / 1000000).toFixed(1) : 0;
           }
 
-          // 1. Dig through all competitors to find the true first tee time
           let earliestTeeTime = null;
           const competitorsList = comp?.competitors || ev.competitors || ev.leaderboard || [];
           for (const c of competitorsList) {
@@ -2157,21 +784,17 @@
              }
           }
 
-          // 2. If tee times are published, use it. Otherwise, use the generic event date.
           const d = earliestTeeTime || new Date(ev.date || ev.startDate);
           
           if (d && !isNaN(d.getTime())) {
-            // Check the Timezone dropdown so we format the UTC time into Course Local Time
             const tz = document.getElementById("fm-tz").value || "America/New_York";
-            
             const formatter = new Intl.DateTimeFormat('en-US', {
               timeZone: tz,
               year: 'numeric', month: '2-digit', day: '2-digit',
               hour: '2-digit', minute: '2-digit', hour12: false
             });
             const parts = Object.fromEntries(formatter.formatToParts(d).map(p => [p.type, p.value]));
-            let hr = parts.hour === '24' ? '00' : parts.hour; // Handle midnight formatting
-            
+            let hr = parts.hour === '24' ? '00' : parts.hour; 
             document.getElementById("fm-tee").value = `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
           }
           
@@ -2223,8 +846,7 @@
       function renderTournamentList() {
         const el = document.getElementById("tlist");
         if (!tournaments.length) {
-          el.innerHTML =
-            '<div style="color:var(--gray);font-style:italic">No tournaments yet</div>';
+          el.innerHTML = '<div style="color:var(--gray);font-style:italic">No tournaments yet</div>';
           return;
         }
         const sorted = [...tournaments].sort((a, b) =>
@@ -2273,18 +895,8 @@
         if (n <= 11999) return "long";
         return "deep";
       }
-      const TC = {
-        fav: "#e74c3c",
-        cont: "#f39c12",
-        long: "#27ae60",
-        deep: "#7a8c7d",
-      };
-      const TL = {
-        fav: "Favorite",
-        cont: "Contender",
-        long: "Longshot",
-        deep: "Deep",
-      };
+      const TC = { fav: "#e74c3c", cont: "#f39c12", long: "#27ae60", deep: "#7a8c7d", };
+      const TL = { fav: "Favorite", cont: "Contender", long: "Longshot", deep: "Deep", };
 
       async function fetchField(tournId) {
         const t = tournaments.find((x) => x.id === tournId);
@@ -2295,39 +907,22 @@
         document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
         try {
           const res = await fetch(
-            espnUrl(`/leaderboard?tournamentId=${t.espnId}`),
+            espnUrl(`/leaderboard?event=${t.espnId}`),
             { headers: { Accept: "application/json" } },
           );
           const lb = await res.json();
           const evts = lb?.events?.[0] || lb?.event || lb;
-          const competitors =
-            evts?.competitions?.[0]?.competitors ||
-            evts?.leaderboard ||
-            evts?.competitors ||
-            [];
+          const competitors = evts?.competitions?.[0]?.competitors || evts?.leaderboard || evts?.competitors || [];
           const field = [];
           for (const comp of competitors) {
-            const name =
-              comp.athlete?.displayName ||
-              comp.athlete?.fullName ||
-              comp.athlete?.name ||
-              "";
+            const name = comp.athlete?.displayName || comp.athlete?.fullName || comp.athlete?.name || "";
             if (!name) continue;
-            const isWD =
-              comp.withdrawn ||
-              (comp.status?.type?.name || "")
-                .toLowerCase()
-                .includes("withdraw");
+            const isWD = comp.withdrawn || (comp.status?.type?.name || "").toLowerCase().includes("withdraw");
             if (isWD) {
               field.push({ n: name, o: "WD" });
               continue;
             }
-            let oddsRaw =
-              comp.odds ||
-              comp.oddsInfo ||
-              comp.moneyLine ||
-              comp.statistics?.find?.((s) => s.name === "moneyline")?.value ||
-              null;
+            let oddsRaw = comp.odds || comp.oddsInfo || comp.moneyLine || comp.statistics?.find?.((s) => s.name === "moneyline")?.value || null;
             let oddsStr = "N/A";
             if (oddsRaw !== null) {
               const num = parseInt(String(oddsRaw).replace(/[^0-9\-]/g, ""));
@@ -2374,9 +969,7 @@
         renderTable();
       }
       function setTier(btn, t) {
-        document
-          .querySelectorAll(".fbt")
-          .forEach((b) => b.classList.remove("on"));
+        document.querySelectorAll(".fbt").forEach((b) => b.classList.remove("on"));
         btn.classList.add("on");
         tf = t;
         pg = 1;
@@ -2386,9 +979,7 @@
         pg = 1;
         sq = "";
         document.getElementById("srch").value = "";
-        document
-          .querySelectorAll(".fbt")
-          .forEach((b) => b.classList.remove("on"));
+        document.querySelectorAll(".fbt").forEach((b) => b.classList.remove("on"));
         document.querySelector('.fbt[data-tier="all"]').classList.add("on");
         tf = "all";
       }
@@ -2403,11 +994,7 @@
         const thresh = deepThresh(t.field);
         document.getElementById("fp-title").textContent = `Field · ${t.name}`;
         const elig = t.field.filter((p) => p.o !== "WD");
-        const filt = elig.filter(
-          (p) =>
-            p.n.toLowerCase().includes(sq) &&
-            (tf === "all" || tier(p.o) === tf),
-        );
+        const filt = elig.filter((p) => p.n.toLowerCase().includes(sq) && (tf === "all" || tier(p.o) === tf));
         const pages = Math.max(1, Math.ceil(filt.length / PS));
         pg = Math.min(pg, pages);
         const sl = filt.slice((pg - 1) * PS, pg * PS);
@@ -2480,10 +1067,8 @@
               )
               .join("")
           : '<div class="pempty">No picks yet</div>';
-        document.getElementById(`tly-${who}`).textContent =
-          `${arr.length}/${PICKS_MAX}`;
-        document.getElementById(`req-${who}`).innerHTML =
-          `<span class="dreq ${arr.length >= PICKS_MAX ? "met" : ""}">${arr.length}/${PICKS_MAX} picks</span><span class="dreq ${deep >= DEEP_MIN ? "met" : ""}">${deep}/${DEEP_MIN} deep ★</span>`;
+        document.getElementById(`tly-${who}`).textContent = `${arr.length}/${PICKS_MAX}`;
+        document.getElementById(`req-${who}`).innerHTML = `<span class="dreq ${arr.length >= PICKS_MAX ? "met" : ""}">${arr.length}/${PICKS_MAX} picks</span><span class="dreq ${deep >= DEEP_MIN ? "met" : ""}">${deep}/${DEEP_MIN} deep ★</span>`;
       }
 
       function syncNames() {
@@ -2503,8 +1088,7 @@
         };
       }
       function genMatchups(autoLock = false) {
-        if (WS.picksA.length !== PICKS_MAX || WS.picksB.length !== PICKS_MAX)
-          return toast(`Need ${PICKS_MAX} picks each`);
+        if (WS.picksA.length !== PICKS_MAX || WS.picksB.length !== PICKS_MAX) return toast(`Need ${PICKS_MAX} picks each`);
         const seed = Date.now();
         const rng = mkRNG(seed);
         const pA = WS.picksA,
@@ -2538,13 +1122,13 @@
           pairs: pA.map((pa, i) => ({ a: pa.n, b: pB[bi[i]].n })),
           seed,
         };
-
-        if (autoLock === true) {
+        
+        if(autoLock === true) {
           WS.locked = true;
         } else {
           WS.locked = false;
         }
-
+        
         saveGameStateToDB();
         renderLb();
       }
@@ -2585,13 +1169,11 @@
       }
 
       function renderLb() {
-        const hasAll =
-          WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX;
+        const hasAll = WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX;
         const muAct = document.getElementById("mu-actions");
 
         if (!activeTId || !hasAll) {
-          document.getElementById("mu-list").innerHTML =
-            '<div class="no-picks">Complete draft to see matchups</div>';
+          document.getElementById("mu-list").innerHTML = '<div class="no-picks">Complete draft to see matchups</div>';
           muAct.innerHTML = "";
           return;
         }
@@ -2608,12 +1190,7 @@
           muAct.innerHTML = `<button class="lock-btn" onclick="WS.locked=true;saveGameStateToDB();renderLb()">🔒 Lock</button> <button class="reshuffle-btn" onclick="genMatchups()">↻ Re-shuffle</button>`;
         }
 
-        let wA = 0,
-          wB = 0,
-          ties = 0,
-          ptA = 0,
-          ptB = 0,
-          played = 0;
+        let wA = 0, wB = 0, ties = 0, ptA = 0, ptB = 0, played = 0;
         const nameA = WS.nameA || "Matt";
         const nameB = WS.nameB || "Chad";
 
@@ -2627,46 +1204,22 @@
           let res = "pending";
           if (ptsA !== null && ptsB !== null) {
             played++;
-            if (ptsA > ptsB) {
-              wA++;
-              res = "a";
-            } else if (ptsB > ptsA) {
-              wB++;
-              res = "b";
-            } else {
-              ties++;
-              res = "tie";
-            }
+            if (ptsA > ptsB) { wA++; res = "a"; } 
+            else if (ptsB > ptsA) { wB++; res = "b"; } 
+            else { ties++; res = "tie"; }
           }
           if (ptsA !== null) ptA += ptsA;
           if (ptsB !== null) ptB += ptsB;
-          return {
-            pair,
-            i,
-            pdA,
-            pdB,
-            mcA,
-            mcB,
-            ptsA,
-            ptsB,
-            res,
-            same: pair.a === pair.b,
-          };
+          return { pair, i, pdA, pdB, mcA, mcB, ptsA, ptsB, res, same: pair.a === pair.b };
         });
 
         document.getElementById("hcw-a").textContent = played ? wA : "0";
         document.getElementById("hcw-b").textContent = played ? wB : "0";
-        document.getElementById("hcs-a").innerHTML =
-          `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
-        document.getElementById("hcs-b").innerHTML =
-          `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
+        document.getElementById("hcs-a").innerHTML = `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
+        document.getElementById("hcs-b").innerHTML = `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
 
         document.getElementById("mu-list").innerHTML = [...scored]
-          .sort(
-            (a, b) =>
-              (a.res === "pending" ? 2 : a.res === "tie" ? 1 : 0) -
-              (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0),
-          )
+          .sort((a, b) => (a.res === "pending" ? 2 : a.res === "tie" ? 1 : 0) - (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0))
           .map((s) => {
             function cell(name, pd, isMC) {
               const pts = calcSF(pd, isMC);
@@ -2674,12 +1227,7 @@
 
               const scRounds = pd?.scorecardRounds || [];
               const scoringRounds = isMC ? scRounds.slice(0, 2) : scRounds;
-              let eagles = 0,
-                birdies = 0,
-                pars = 0,
-                bogeys = 0,
-                doubles = 0,
-                worse = 0;
+              let eagles = 0, birdies = 0, pars = 0, bogeys = 0, doubles = 0, worse = 0;
 
               for (const rnd of scoringRounds) {
                 for (const h of rnd || []) {
@@ -2693,35 +1241,12 @@
                 }
               }
 
-              const holesPlayed = scoringRounds.reduce(
-                (sum, r) =>
-                  sum + (r || []).filter((h) => h.strokes !== null).length,
-                0,
-              );
+              const holesPlayed = scoringRounds.reduce((sum, r) => sum + (r || []).filter((h) => h.strokes !== null).length, 0);
               const hasHoles = holesPlayed > 0;
 
-              const stCls =
-                status === "pre_tournament"
-                  ? "st-pre"
-                  : status === "active"
-                    ? "st-act"
-                    : status === "cut"
-                      ? "st-cut"
-                      : status === "finished"
-                        ? "st-done"
-                        : "st-wd";
-              const activeRound =
-                pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
-              const stTxt =
-                status === "pre_tournament"
-                  ? "Pre-Tournament"
-                  : status === "active"
-                    ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})`
-                    : status === "cut"
-                      ? "Missed Cut"
-                      : status === "finished"
-                        ? "Finished"
-                        : "Withdrew";
+              const stCls = status === "pre_tournament" ? "st-pre" : status === "active" ? "st-act" : status === "cut" ? "st-cut" : status === "finished" ? "st-done" : "st-wd";
+              const activeRound = pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
+              const stTxt = status === "pre_tournament" ? "Pre-Tournament" : status === "active" ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})` : status === "cut" ? "Missed Cut" : status === "finished" ? "Finished" : "Withdrew";
 
               return `
               <div class="mc-pname">${name}</div>
@@ -2765,45 +1290,26 @@
         document.getElementById("rbtn").classList.add("spinning");
         try {
           const res = await fetch(
-            espnUrl(`/leaderboard?tournamentId=${t.espnId}`),
+            espnUrl(`/leaderboard?event=${t.espnId}`),
             { headers: { Accept: "application/json" } },
           );
           const lb = await res.json();
           const evts = lb?.events?.[0] || lb?.event || lb;
-          const competitors =
-            evts?.competitions?.[0]?.competitors ||
-            evts?.leaderboard ||
-            evts?.competitors ||
-            [];
+          const competitors = evts?.competitions?.[0]?.competitors || evts?.leaderboard || evts?.competitors || [];
           const nameMap = {};
           for (const c of competitors) {
             const ath = c.athlete || c;
             const name = ath.displayName || ath.fullName || ath.name;
-            const isWD =
-              c.withdrawn ||
-              (c.status?.type?.name || "").toLowerCase().includes("withdraw");
-            nameMap[name.toLowerCase()] = {
-              id: ath.id,
-              status: isWD
-                ? "wd"
-                : (c.status?.type?.name || "").toLowerCase().includes("cut")
-                  ? "cut"
-                  : "active",
-            };
+            const isWD = c.withdrawn || (c.status?.type?.name || "").toLowerCase().includes("withdraw");
+            nameMap[name.toLowerCase()] = { id: ath.id, status: isWD ? "wd" : (c.status?.type?.name || "").toLowerCase().includes("cut") ? "cut" : "active" };
           }
 
-          const picked = [
-            ...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n)),
-          ];
+          const picked = [...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n))];
           liveData = { players: {} };
           for (const name of picked) {
             const comp = nameMap[name.toLowerCase()];
             if (comp && comp.id && comp.status !== "pre_tournament") {
-              const scRes = await fetch(
-                espnUrl(
-                  `/leaderboard/scorecards?competitorId=${comp.id}&eventId=${t.espnId}`,
-                ),
-              ).catch(() => null);
+              const scRes = await fetch(espnUrl(`/leaderboard/scorecards?competitorId=${comp.id}&event=${t.espnId}`)).catch(() => null);
               if (scRes && scRes.ok) {
                 const scData = await scRes.json();
                 const rounds = [];
@@ -2812,25 +1318,15 @@
                   for (const h of rnd.holes || rnd.linescores || []) {
                     const strokes = h.score ?? h.value ?? null;
                     const par = h.par ?? null;
-                    if (strokes !== null)
-                      holes.push({
-                        strokes: Number(strokes),
-                        par: Number(par),
-                      });
+                    if (strokes !== null) holes.push({ strokes: Number(strokes), par: Number(par) });
                   }
                   if (holes.length) rounds.push(holes);
                 }
-                liveData.players[name] = {
-                  status: comp.status,
-                  scorecardRounds: rounds,
-                };
+                liveData.players[name] = { status: comp.status, scorecardRounds: rounds };
               }
             }
           }
-          await db
-            .from("tournaments")
-            .update({ scores: liveData })
-            .eq("id", activeTId);
+          await db.from("tournaments").update({ scores: liveData }).eq("id", activeTId);
           toast("Scores fetched and saved to cloud!");
         } catch (e) {
           toast("Error fetching scores");
@@ -2851,25 +1347,12 @@
           const probe = new Date(Date.UTC(yr, mo - 1, dy, hr, mn || 0, 0));
           const fmt = new Intl.DateTimeFormat("en-US", {
             timeZone: t.tz,
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
+            year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
           });
-          const parts = Object.fromEntries(
-            fmt.formatToParts(probe).map((p) => [p.type, p.value]),
-          );
-          const local = new Date(
-            `${parts.year}-${parts.month}-${parts.day}T${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}:${parts.second}Z`,
-          );
+          const parts = Object.fromEntries(fmt.formatToParts(probe).map((p) => [p.type, p.value]));
+          const local = new Date(`${parts.year}-${parts.month}-${parts.day}T${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}:${parts.second}Z`);
           const offsetMin = (local.getTime() - probe.getTime()) / 60000;
-          return new Date(
-            new Date(probe.getTime() - offsetMin * 60000).getTime() -
-              60 * 60 * 1000,
-          );
+          return new Date(new Date(probe.getTime() - offsetMin * 60000).getTime() - 60 * 60 * 1000);
         } catch (e) {
           return null;
         }
@@ -2884,15 +1367,15 @@
         const bar = document.getElementById("deadline-bar"),
           txt = document.getElementById("deadline-txt"),
           dl = getDeadlineUTC(getActiveTournament());
-
+        
         if (!dl) {
           bar.style.display = "none";
           return;
         }
-
+        
         bar.style.display = "flex";
         const diff = dl.getTime() - Date.now();
-
+        
         if (diff <= 0) {
           bar.className = "deadline-bar locked";
           txt.textContent = "DRAFT LOCKED";
@@ -2903,11 +1386,7 @@
           });
 
           // NEW: Auto-lock and randomize feature
-          if (
-            !WS.locked &&
-            WS.picksA.length === PICKS_MAX &&
-            WS.picksB.length === PICKS_MAX
-          ) {
+          if (!WS.locked && WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX) {
             if (!WS.matchups) {
               genMatchups(true); // Generates matchups, locks it, and pushes to DB
               toast("Tournament started! Draft board locked automatically.");
@@ -2917,79 +1396,49 @@
               renderLb();
             }
           }
+
         } else {
           document.getElementById("draft-locked-msg").style.display = "none";
-          bar.className =
-            diff < 3600000 ? "deadline-bar" : "deadline-bar plenty";
-
+          bar.className = diff < 3600000 ? "deadline-bar" : "deadline-bar plenty";
+          
           const hrs = Math.floor(diff / 3600000);
           const mins = Math.floor((diff % 3600000) / 60000);
           const secs = Math.floor((diff % 60000) / 1000);
           const timeStr = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m ${secs}s`;
-
-          txt.textContent =
-            diff < 3600000 ? `Closes in ${timeStr}` : "Draft open";
+          
+          txt.textContent = diff < 3600000 ? `Closes in ${timeStr}` : "Draft open";
         }
       }
 
       function updateWeekSelector() {
         document.getElementById("wsel").innerHTML =
           '<option value="">— select week —</option>' +
-          tournaments
-            .map(
-              (t) =>
-                `<option value="${t.id}"${t.id === activeTId ? " selected" : ""}>${t.name}</option>`,
-            )
-            .join("");
+          tournaments.map((t) => `<option value="${t.id}"${t.id === activeTId ? " selected" : ""}>${t.name}</option>`).join("");
       }
-      function switchWeek() {
-        selectTournament(document.getElementById("wsel").value);
-      }
+      function switchWeek() { selectTournament(document.getElementById("wsel").value); }
       function updateHeader() {
         const t = getActiveTournament();
-        document.getElementById("t-name").textContent = t
-          ? t.name
-          : "No tournament";
+        document.getElementById("t-name").textContent = t ? t.name : "No tournament";
         document.getElementById("t-dates").textContent = t ? t.venue : "";
       }
       function showTab(t) {
-        document
-          .querySelectorAll(".view, .nbtn")
-          .forEach((e) => e.classList.remove("on"));
+        document.querySelectorAll(".view, .nbtn").forEach((e) => e.classList.remove("on"));
         document.getElementById(`view-${t}`).classList.add("on");
         const idx = { draft: 0, lb: 1, manage: 2 }[t];
         document.querySelectorAll(".nbtn")[idx].classList.add("on");
         if (t === "lb") renderLb();
         if (t === "manage") renderTournamentList();
       }
-      function goLb() {
-        showTab("lb");
-      }
-      function openResetModal() {
-        document.getElementById("rst-modal").classList.add("open");
-      }
-      function openInstructions() {
-        document.getElementById("instructions-modal").classList.add("open");
-      }
-      function closeInstructionsOnBg(e) {
-        if (e.target === document.getElementById("instructions-modal"))
-          closeModal();
-      }
+      function goLb() { showTab("lb"); }
+      function openResetModal() { document.getElementById("rst-modal").classList.add("open"); }
+      function openInstructions() { document.getElementById("instructions-modal").classList.add("open"); }
+      function closeInstructionsOnBg(e) { if (e.target === document.getElementById("instructions-modal")) closeModal(); }
       function closeModal() {
-        document
-          .querySelectorAll(".modal-ov")
-          .forEach((m) => m.classList.remove("open"));
+        document.querySelectorAll(".modal-ov").forEach((m) => m.classList.remove("open"));
         pendingDelId = null;
       }
       function confirmReset() {
-        WS = {
-          picksA: [],
-          picksB: [],
-          matchups: null,
-          locked: false,
-          nameA: WS.nameA,
-          nameB: WS.nameB,
-        };
+        WS = { picksA: [], picksB: [], matchups: null, locked: false, nameA: WS.nameA, nameB: WS.nameB };
         saveGameStateToDB();
         closeModal();
         renderTable();
@@ -3019,4 +1468,3 @@
     </script>
   </body>
 </html>
-
