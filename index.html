@@ -1634,9 +1634,11 @@
       // ═══════════════════════════════════════════════════════
       // SUPABASE CONFIGURATION
       // ═══════════════════════════════════════════════════════
-     const SUPABASE_URL = "https://xflaabqfjrocnaklaaph.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmbGFhYnFmanJvY25ha2xhYXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzQwMTMsImV4cCI6MjA4NzcxMDAxM30.nU_ADUEfyl_u_5AeXP0F1gakbSNaOYjAQr47SiXWZaw";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const SUPABASE_URL = "https://xflaabqfjrocnaklaaph.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmbGFhYnFmanJvY25ha2xhYXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzQwMTMsImV4cCI6MjA4NzcxMDAxM30.nU_ADUEfyl_u_5AeXP0F1gakbSNaOYjAQr47SiXWZaw";
+      
+      // FIX: Changed "supabase" to "db" to prevent global naming conflict with the library
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       // ═══════════════════════════════════════════════════════
       // GLOBALS & STATE
@@ -1664,7 +1666,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
       // DATABASE LOGIC
       // ═══════════════════════════════════════════════════════
       async function loadFromCloud() {
-        const { data, error } = await supabase.from("tournaments").select("*");
+        const { data, error } = await db.from("tournaments").select("*");
         if (error) {
           toast("Error loading from cloud");
           return;
@@ -1694,7 +1696,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         }
 
         // Set up Realtime Subscription
-        supabase
+        db
           .channel("public:tournaments")
           .on(
             "postgres_changes",
@@ -1769,7 +1771,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
         const t = getActiveTournament();
         if (t) t._gameState = WS;
         // Push to cloud
-        await supabase
+        await db
           .from("tournaments")
           .update({ game_state: WS })
           .eq("id", activeTId);
@@ -1777,7 +1779,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
       async function saveTournamentDataToDB(id, tData) {
         // Upsert tournament row
-        const { error } = await supabase.from("tournaments").upsert({
+        const { error } = await db.from("tournaments").upsert({
           id: id,
           tournament_data: tData,
         });
@@ -1824,7 +1826,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
       }
       async function confirmDelTournament() {
         if (!pendingDelId) return;
-        await supabase.from("tournaments").delete().eq("id", pendingDelId);
+        await db.from("tournaments").delete().eq("id", pendingDelId);
         toast("Tournament deleted from cloud");
         closeModal();
         loadFromCloud();
@@ -2201,18 +2203,20 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
       }
 
       function renderLb() {
-        const hasAll = WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX;
+        const hasAll =
+          WS.picksA.length === PICKS_MAX && WS.picksB.length === PICKS_MAX;
         const muAct = document.getElementById("mu-actions");
 
         if (!activeTId || !hasAll) {
-          document.getElementById("mu-list").innerHTML = '<div class="no-picks">Complete draft to see matchups</div>';
-          muAct.innerHTML="";
+          document.getElementById("mu-list").innerHTML =
+            '<div class="no-picks">Complete draft to see matchups</div>';
+          muAct.innerHTML = "";
           return;
         }
 
         if (!WS.matchups) {
           muAct.innerHTML = `<button class="lock-btn" onclick="genMatchups()">🎲 Randomize Matchups</button>`;
-          document.getElementById("mu-list").innerHTML = '';
+          document.getElementById("mu-list").innerHTML = "";
           return;
         }
 
@@ -2222,64 +2226,125 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
           muAct.innerHTML = `<button class="lock-btn" onclick="WS.locked=true;saveGameStateToDB();renderLb()">🔒 Lock</button> <button class="reshuffle-btn" onclick="genMatchups()">↻ Re-shuffle</button>`;
         }
 
-        let wA = 0, wB = 0, ties = 0, ptA = 0, ptB = 0, played = 0;
+        let wA = 0,
+          wB = 0,
+          ties = 0,
+          ptA = 0,
+          ptB = 0,
+          played = 0;
         const nameA = WS.nameA || "Player A";
         const nameB = WS.nameB || "Player B";
 
         const scored = WS.matchups.pairs.map((pair, i) => {
-          const pdA = getPD(pair.a), pdB = getPD(pair.b);
-          const mcA = pdA?.status === "cut", mcB = pdB?.status === "cut";
-          const ptsA = calcSF(pdA, mcA), ptsB = calcSF(pdB, mcB);
+          const pdA = getPD(pair.a),
+            pdB = getPD(pair.b);
+          const mcA = pdA?.status === "cut",
+            mcB = pdB?.status === "cut";
+          const ptsA = calcSF(pdA, mcA),
+            ptsB = calcSF(pdB, mcB);
           let res = "pending";
           if (ptsA !== null && ptsB !== null) {
             played++;
-            if (ptsA > ptsB) { wA++; res = "a"; }
-            else if (ptsB > ptsA) { wB++; res = "b"; }
-            else { ties++; res = "tie"; }
+            if (ptsA > ptsB) {
+              wA++;
+              res = "a";
+            } else if (ptsB > ptsA) {
+              wB++;
+              res = "b";
+            } else {
+              ties++;
+              res = "tie";
+            }
           }
           if (ptsA !== null) ptA += ptsA;
           if (ptsB !== null) ptB += ptsB;
-          return { pair, i, pdA, pdB, mcA, mcB, ptsA, ptsB, res, same: pair.a === pair.b };
+          return {
+            pair,
+            i,
+            pdA,
+            pdB,
+            mcA,
+            mcB,
+            ptsA,
+            ptsB,
+            res,
+            same: pair.a === pair.b,
+          };
         });
 
         // Update Hero Scoreboard
         document.getElementById("hcw-a").textContent = played ? wA : "0";
         document.getElementById("hcw-b").textContent = played ? wB : "0";
-        document.getElementById("hcs-a").innerHTML = `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
-        document.getElementById("hcs-b").innerHTML = `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
+        document.getElementById("hcs-a").innerHTML =
+          `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
+        document.getElementById("hcs-b").innerHTML =
+          `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
 
         // Build the List
-        document.getElementById("mu-list").innerHTML = [...scored].sort((a,b)=>(a.res==='pending'?2:a.res==='tie'?1:0)-(b.res==='pending'?2:b.res==='tie'?1:0)).map((s) => {
+        document.getElementById("mu-list").innerHTML = [...scored]
+          .sort(
+            (a, b) =>
+              (a.res === "pending" ? 2 : a.res === "tie" ? 1 : 0) -
+              (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0),
+          )
+          .map((s) => {
+            function cell(name, pd, isMC) {
+              const pts = calcSF(pd, isMC);
+              const status = pd?.status || "pre_tournament";
 
-          function cell(name, pd, isMC) {
-            const pts = calcSF(pd, isMC);
-            const status = pd?.status || "pre_tournament";
+              // Hole-by-hole summary
+              const scRounds = pd?.scorecardRounds || [];
+              const scoringRounds = isMC ? scRounds.slice(0, 2) : scRounds;
+              let eagles = 0,
+                birdies = 0,
+                pars = 0,
+                bogeys = 0,
+                doubles = 0,
+                worse = 0;
 
-            // Hole-by-hole summary
-            const scRounds = pd?.scorecardRounds || [];
-            const scoringRounds = isMC ? scRounds.slice(0, 2) : scRounds;
-            let eagles = 0, birdies = 0, pars = 0, bogeys = 0, doubles = 0, worse = 0;
-
-            for (const rnd of scoringRounds) {
-              for (const h of rnd || []) {
-                const d = (h.strokes || 0) - (h.par || 0);
-                if (d <= -2) eagles++;
-                else if (d === -1) birdies++;
-                else if (d === 0) pars++;
-                else if (d === 1) bogeys++;
-                else if (d === 2) doubles++;
-                else worse++;
+              for (const rnd of scoringRounds) {
+                for (const h of rnd || []) {
+                  const d = (h.strokes || 0) - (h.par || 0);
+                  if (d <= -2) eagles++;
+                  else if (d === -1) birdies++;
+                  else if (d === 0) pars++;
+                  else if (d === 1) bogeys++;
+                  else if (d === 2) doubles++;
+                  else worse++;
+                }
               }
-            }
 
-            const holesPlayed = scoringRounds.reduce((sum, r) => sum + (r || []).filter((h) => h.strokes !== null).length, 0);
-            const hasHoles = holesPlayed > 0;
+              const holesPlayed = scoringRounds.reduce(
+                (sum, r) =>
+                  sum + (r || []).filter((h) => h.strokes !== null).length,
+                0,
+              );
+              const hasHoles = holesPlayed > 0;
 
-            const stCls = status === "pre_tournament" ? "st-pre" : status === "active" ? "st-act" : status === "cut" ? "st-cut" : status === "finished" ? "st-done" : "st-wd";
-            const activeRound = pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
-            const stTxt = status === "pre_tournament" ? "Pre-Tournament" : status === "active" ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})` : status === "cut" ? "Missed Cut" : status === "finished" ? "Finished" : "Withdrew";
+              const stCls =
+                status === "pre_tournament"
+                  ? "st-pre"
+                  : status === "active"
+                    ? "st-act"
+                    : status === "cut"
+                      ? "st-cut"
+                      : status === "finished"
+                        ? "st-done"
+                        : "st-wd";
+              const activeRound =
+                pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
+              const stTxt =
+                status === "pre_tournament"
+                  ? "Pre-Tournament"
+                  : status === "active"
+                    ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})`
+                    : status === "cut"
+                      ? "Missed Cut"
+                      : status === "finished"
+                        ? "Finished"
+                        : "Withdrew";
 
-            return `
+              return `
               <div class="mc-pname">${name}</div>
               <div class="mc-score-row">
                 <span class="mc-pts">${pts !== null ? pts : "—"}</span>
@@ -2299,19 +2364,20 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
               }
               <div class="mc-st ${stCls}" style="margin-top:4px;">${stTxt}</div>
             `;
-          }
+            }
 
-          const ccA = `mc mc-a ${s.res === 'a' ? 'winner' : s.res === 'tie' ? 'tied' : s.res === 'b' ? 'loser' : ''} ${s.mcA ? 'mccut' : ''}`;
-          const ccB = `mc mc-b ${s.res === 'b' ? 'winner' : s.res === 'tie' ? 'tied' : s.res === 'a' ? 'loser' : ''} ${s.mcB ? 'mccut' : ''}`;
+            const ccA = `mc mc-a ${s.res === "a" ? "winner" : s.res === "tie" ? "tied" : s.res === "b" ? "loser" : ""} ${s.mcA ? "mccut" : ""}`;
+            const ccB = `mc mc-b ${s.res === "b" ? "winner" : s.res === "tie" ? "tied" : s.res === "a" ? "loser" : ""} ${s.mcB ? "mccut" : ""}`;
 
-          const mid = s.same
-            ? `<div class="same-tag">Both<br>teams</div>`
-            : s.res === 'pending'
-              ? `<div class="mnum">#${s.i + 1}</div><div class="vs-lbl">vs</div>`
-              : `<div class="mnum">#${s.i + 1}</div><div class="mres ${s.res === 'a' ? 'mres-a' : s.res === 'b' ? 'mres-b' : 'mres-t'}">${s.res === 'a' ? nameA : s.res === 'b' ? nameB : 'TIE'}</div>`;
+            const mid = s.same
+              ? `<div class="same-tag">Both<br>teams</div>`
+              : s.res === "pending"
+                ? `<div class="mnum">#${s.i + 1}</div><div class="vs-lbl">vs</div>`
+                : `<div class="mnum">#${s.i + 1}</div><div class="mres ${s.res === "a" ? "mres-a" : s.res === "b" ? "mres-b" : "mres-t"}">${s.res === "a" ? nameA : s.res === "b" ? nameB : "TIE"}</div>`;
 
-          return `<div class="mu-row"><div class="${ccA}">${cell(s.pair.a, s.pdA, s.mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(s.pair.b, s.pdB, s.mcB)}</div></div>`;
-        }).join("");
+            return `<div class="mu-row"><div class="${ccA}">${cell(s.pair.a, s.pdA, s.mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(s.pair.b, s.pdB, s.mcB)}</div></div>`;
+          })
+          .join("");
       }
 
       async function fetchScores() {
@@ -2382,7 +2448,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
               }
             }
           }
-          await supabase
+          await db
             .from("tournaments")
             .update({ scores: liveData })
             .eq("id", activeTId);
@@ -2538,8 +2604,3 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     </script>
   </body>
 </html>
-
-
-
-
-
