@@ -2157,8 +2157,9 @@
             "",
           );
 
-          // 3. Par
-          document.getElementById("fm-par").value = courseObj.par || 72;
+          // 3. Par (Aggressive scraping for different ESPN formats)
+let parVal = courseObj.par || courseObj.standardPar || tourn.par || tourn.standardPar || comp.par || ev.par || 72;
+document.getElementById("fm-par").value = parVal;
 
           // 4. Purse
           let purseVal =
@@ -2999,3 +3000,4 @@
     </script>
   </body>
 </html>
+
