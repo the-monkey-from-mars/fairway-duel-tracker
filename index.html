@@ -894,13 +894,22 @@
         left: 0;
         width: 3px;
         height: 100%;
-        opacity: 0;
+        border-radius: 8px 0 0 8px;
+        opacity: 0.5;
       }
       .mc-a::after {
         background: linear-gradient(180deg, var(--blue), var(--blue2));
       }
+      .mc-a {
+        background: rgba(56, 128, 200, 0.06);
+        border-color: rgba(56, 128, 200, 0.15);
+      }
       .mc-b::after {
         background: linear-gradient(180deg, var(--red), var(--red2));
+      }
+      .mc-b {
+        background: rgba(200, 56, 56, 0.06);
+        border-color: rgba(200, 56, 56, 0.15);
       }
       .mc.winner {
         border-color: rgba(39, 163, 78, 0.5) !important;
@@ -2649,6 +2658,7 @@
         } else {
           muAct.innerHTML = `<button class="lock-btn" onclick="WS.locked=true;saveGameStateToDB();renderLb()">🔒 Lock</button> <button class="reshuffle-btn" onclick="genMatchups()">↻ Re-shuffle</button>`;
         }
+        syncNames();
 
         // Load wager from game state (synced via Supabase)
         const wagerInput = document.getElementById("wager-amt");
