@@ -2093,7 +2093,8 @@
       // TOURNAMENT MANAGER & ESPN LOGIC
       // ═══════════════════════════════════════════════════════
       const CORS = "https://api.codetabs.com/v1/proxy?quest=";
-      const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/golf";
+      const ESPN_BASE =
+        "https://site.api.espn.com/apis/site/v2/sports/golf/pga";
 
       function espnUrl(path) {
         const sep = path.includes("?") ? "&" : "?";
@@ -2332,6 +2333,7 @@
         if (!t || !t.espnId) return toast("No ESPN ID");
         document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
         try {
+          // 1. Fetch Primary Leaderboard
           const res = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
             headers: { Accept: "application/json" },
           });
@@ -2342,14 +2344,35 @@
             evts?.leaderboard ||
             evts?.competitors ||
             [];
+
+          // 2. Fetch Secondary Summary Endpoint (Where ESPN hides odds for Signature events)
+          let summaryOddsMap = {};
+          try {
+            const sumRes = await fetch(espnUrl(`/summary?event=${t.espnId}`));
+            if (sumRes.ok) {
+              const sumData = await sumRes.json();
+              const pickcenter = sumData?.pickcenter || sumData?.odds || [];
+              for (const provider of pickcenter) {
+                const outcomes = provider.details || provider.outcomes || [];
+                for (const out of outcomes) {
+                  if (out.athlete?.id && (out.odds || out.displayValue)) {
+                    summaryOddsMap[out.athlete.id] =
+                      out.odds || out.displayValue;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            /* Ignore if summary endpoint fails */
+          }
+
           const field = [];
           for (const comp of competitors) {
-            const name =
-              comp.athlete?.displayName ||
-              comp.athlete?.fullName ||
-              comp.athlete?.name ||
-              "";
+            const ath = comp.athlete || comp;
+            const name = ath.displayName || ath.fullName || ath.name || "";
+            const athId = ath.id;
             if (!name) continue;
+
             const isWD =
               comp.withdrawn ||
               (comp.status?.type?.name || "")
@@ -2362,7 +2385,12 @@
 
             // --- ULTRA-ROBUST ODDS EXTRACTION ---
             let oddsRaw = null;
-            if (Array.isArray(comp.odds) && comp.odds.length > 0) {
+            // A. Check our secondary Summary map first!
+            if (summaryOddsMap[athId]) {
+              oddsRaw = summaryOddsMap[athId];
+            }
+            // B. Check standard Leaderboard locations
+            else if (Array.isArray(comp.odds) && comp.odds.length > 0) {
               oddsRaw =
                 comp.odds[0]?.details ||
                 comp.odds[0]?.value ||
@@ -2385,7 +2413,7 @@
             if (oddsRaw !== null && oddsRaw !== undefined) {
               const rawStr = String(oddsRaw).trim().toUpperCase();
               if (rawStr === "EVEN" || rawStr === "EV") {
-                oddsStr = "+100"; // Converts Even money to standard format
+                oddsStr = "+100";
               } else {
                 const num = parseInt(rawStr.replace(/[^0-9\-]/g, ""));
                 if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
