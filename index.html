@@ -1439,7 +1439,7 @@
             <div class="db db-a">
               <div class="dh">
                 <div class="ddot ddot-a"></div>
-                <input class="dinp" id="name-a" value="Matt" readonly />
+                <input class="dinp" id="name-a" value="Matt" onchange="WS.nameA=this.value;syncNames();saveGameStateToDB()" placeholder="Player A name" />
                 <span class="dtly" id="tly-a">0/20</span>
               </div>
               <div class="plist" id="pl-a">
@@ -1462,7 +1462,7 @@
             <div class="db db-b">
               <div class="dh">
                 <div class="ddot ddot-b"></div>
-                <input class="dinp" id="name-b" value="Chad" readonly />
+                <input class="dinp" id="name-b" value="Chad" onchange="WS.nameB=this.value;syncNames();saveGameStateToDB()" placeholder="Player B name" />
                 <span class="dtly" id="tly-b">0/20</span>
               </div>
               <div class="plist" id="pl-b">
@@ -1552,6 +1552,11 @@
           <div class="ph"><span class="ph-title">API Settings</span></div>
           <div style="padding: 1.2rem">
             <div class="fm-group">
+              <div class="fm-label">Player Names</div>
+              <div style="display:flex;gap:10px;margin-bottom:1rem;">
+                <input class="fm-inp" id="mgr-name-a" placeholder="Player A name" style="flex:1" onchange="WS.nameA=this.value;document.getElementById('name-a').value=this.value;syncNames();saveGameStateToDB()">
+                <input class="fm-inp" id="mgr-name-b" placeholder="Player B name" style="flex:1" onchange="WS.nameB=this.value;document.getElementById('name-b').value=this.value;syncNames();saveGameStateToDB()">
+              </div>
               <div class="fm-label">The Odds API Key <span style="font-size:0.6rem;color:var(--gray)">(optional — for major tournaments)</span></div>
               <input
                 class="fm-inp"
@@ -1799,6 +1804,8 @@
         liveData = t._scores || null;
         document.getElementById("name-a").value = WS.nameA || "Matt";
         document.getElementById("name-b").value = WS.nameB || "Chad";
+        if (document.getElementById("mgr-name-a")) document.getElementById("mgr-name-a").value = WS.nameA || "Matt";
+        if (document.getElementById("mgr-name-b")) document.getElementById("mgr-name-b").value = WS.nameB || "Chad";
         updateHeader();
         updateDeadlineBar();
         syncNames();
