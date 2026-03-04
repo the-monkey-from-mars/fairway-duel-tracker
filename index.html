@@ -1262,6 +1262,43 @@
         background: var(--win2);
         box-shadow: 0 0 5px var(--win2);
       }
+      /* ── MOBILE RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .dlayout {
+          grid-template-columns: 1fr !important;
+        }
+        .tm-layout {
+          grid-template-columns: 1fr !important;
+        }
+        .hero-row {
+          grid-template-columns: 1fr !important;
+          text-align: center;
+        }
+        .hero-row > div:nth-child(2) {
+          order: -1;
+          margin-bottom: 0.5rem;
+        }
+        .mu-row {
+          grid-template-columns: 1fr 50px 1fr !important;
+          gap: 4px !important;
+        }
+        .fm-row {
+          grid-template-columns: 1fr !important;
+        }
+        .panel {
+          border-radius: 8px;
+        }
+        body > div {
+          padding-left: 0.5rem !important;
+          padding-right: 0.5rem !important;
+        }
+        .cbar {
+          flex-wrap: wrap;
+        }
+        table {
+          font-size: 0.75rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -2079,7 +2116,7 @@
                             for (const outcome of market.outcomes) {
                               const nameKey = outcome.name
                                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                                .toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th")
+                                .toLowerCase()
                                 .replace(/[^a-z]/g, "");
                               if (!oddsMap[nameKey]) {
                                 oddsMap[nameKey] =
@@ -2127,11 +2164,11 @@
 
             // Try The Odds API map first using Fuzzy Match
             if (oddsCount > 0) {
-              const nameKey = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th").replace(/[^a-z]/g, "");
+              const nameKey = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
               if (oddsMap[nameKey]) {
                 oddsStr = oddsMap[nameKey];
               } else {
-                const cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th");
+                const cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
                 const parts = cleanName.split(" ");
                 const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
                 const firstChar = parts[0][0];
@@ -2257,7 +2294,7 @@
         const unmatchedNames = [];
 
         // Normalize helper
-        const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th").replace(/[^a-z]/g, "");
+        const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
 
         // Build lookup from field
         const fieldNorms = t.field.map((p) => ({ norm: norm(p.n), parts: p.n.toLowerCase().split(" "), player: p }));
