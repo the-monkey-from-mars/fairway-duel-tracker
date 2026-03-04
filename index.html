@@ -2221,30 +2221,29 @@
         }
         const overlay = document.createElement("div");
         overlay.id = "paste-odds-overlay";
-        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;";
+        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;";
         overlay.innerHTML = `
-          <div style="background:var(--panel);border-radius:14px;padding:28px;max-width:560px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.3)">
-            <h3 style="margin:0 0 8px;color:var(--fg)">📋 Paste Odds for ${t.name}</h3>
-            <p style="font-size:0.72rem;color:var(--gray);margin:0 0 12px">
-              Paste lines from any odds source. Format: <code>Player Name, +odds</code> (one per line).<br>
+          <div style="background:#1a2332;border:1px solid #2d3f52;border-radius:14px;padding:28px;max-width:560px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 12px 48px rgba(0,0,0,.6)">
+            <h3 style="margin:0 0 8px;color:#e8edf3">📋 Paste Odds for ${t.name}</h3>
+            <p style="font-size:0.72rem;color:#8a9bb5;margin:0 0 12px">
+              Paste lines from any odds source. Format: <code style="background:#0d1520;padding:2px 5px;border-radius:3px;color:#7ec8e3">Player Name, +odds</code> (one per line).<br>
               Example:<br>
-              <code style="font-size:0.65rem">Scottie Scheffler, +350<br>Rory McIlroy, +1000<br>Tommy Fleetwood, +2000</code><br><br>
+              <code style="font-size:0.65rem;background:#0d1520;padding:4px 8px;border-radius:3px;display:inline-block;margin-top:4px;color:#7ec8e3;line-height:1.6">Scottie Scheffler, +350<br>Rory McIlroy, +1000<br>Tommy Fleetwood, +2000</code><br><br>
               Tip: Copy from DraftKings, FanDuel, Covers.com, etc. and paste here.
               The app will fuzzy-match names to the existing field.
             </p>
-            <textarea id="paste-odds-text" rows="14" style="width:100%;font-family:monospace;font-size:0.75rem;padding:10px;border:1px solid var(--bdr);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical;" placeholder="Scottie Scheffler, +350&#10;Rory McIlroy, +1000&#10;Tommy Fleetwood, +2000"></textarea>
+            <textarea id="paste-odds-text" rows="14" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:0.75rem;padding:10px;border:1px solid #2d3f52;border-radius:8px;background:#0d1520;color:#d0dae8;resize:vertical;" placeholder="Scottie Scheffler, +350&#10;Rory McIlroy, +1000&#10;Tommy Fleetwood, +2000"></textarea>
             <div style="display:flex;gap:10px;margin-top:14px">
-              <button class="btn" onclick="applyPastedOdds()" style="flex:1">✅ Apply Odds</button>
-              <button class="btn" onclick="document.getElementById('paste-odds-overlay').remove()" style="flex:1;background:var(--bdr);color:var(--fg)">Cancel</button>
+              <button class="btn" onclick="applyPastedOdds()" style="flex:1;font-size:0.8rem;padding:10px">✅ Apply Odds</button>
+              <button onclick="document.getElementById('paste-odds-overlay').remove()" style="flex:1;font-size:0.8rem;padding:10px;background:#2d3f52;color:#c0cee0;border:none;border-radius:8px;cursor:pointer">Cancel</button>
             </div>
-            <div id="paste-odds-result" style="font-size:0.7rem;margin-top:10px;color:var(--gray)"></div>
           </div>
         `;
         document.body.appendChild(overlay);
         overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
       }
 
-      function applyPastedOdds() {
+      async function applyPastedOdds() {
         const t = getActiveTournament();
         if (!t || !t.field) return;
 
@@ -2314,21 +2313,20 @@
           return oNum(a.o) - oNum(b.o);
         });
 
-        // Save and re-render
-        const tObj = tournaments.find((x) => x.id === activeTournamentId);
-        if (tObj) {
-          saveTournamentDataToDB(tObj.id, {
-            name: t.name, venue: t.venue, par: t.par, purse: t.purse,
-            tz: t.tz, teeTimeISO: t.teeTimeISO, espnId: t.espnId, field: t.field,
-          });
-        }
-        renderTable();
+        // Save to DB using the correct variable name (activeTId)
+        await saveTournamentDataToDB(t.id, {
+          name: t.name, venue: t.venue, par: t.par, purse: t.purse,
+          tz: t.tz, teeTimeISO: t.teeTimeISO, espnId: t.espnId, field: t.field,
+        });
 
-        const resultEl = document.getElementById("paste-odds-result");
-        let msg = `✅ Matched ${matched} players.`;
-        if (unmatched > 0) msg += ` ⚠️ ${unmatched} unmatched: ${unmatchedNames.slice(0, 5).join(", ")}${unmatchedNames.length > 5 ? "…" : ""}`;
-        resultEl.textContent = msg;
-        toast(`Odds applied: ${matched} matched, ${unmatched} unmatched`);
+        // Close the modal
+        const overlay = document.getElementById("paste-odds-overlay");
+        if (overlay) overlay.remove();
+
+        // Show result
+        let msg = `Odds applied: ${matched} matched`;
+        if (unmatched > 0) msg += `, ${unmatched} unmatched (${unmatchedNames.slice(0, 3).join(", ")}${unmatchedNames.length > 3 ? "…" : ""})`;
+        toast(msg);
       }
 
       // ═══════════════════════════════════════════════════════
