@@ -1784,8 +1784,7 @@
       // TOURNAMENT MANAGER & ESPN API
       // ═══════════════════════════════════════════════════════
       const CORS = "https://api.codetabs.com/v1/proxy?quest=";
-      const ESPN_BASE =
-        "https://site.api.espn.com/apis/site/v2/sports/golf";
+      const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/golf";
 
       function espnUrl(path) {
         const sep = path.includes("?") ? "&" : "?";
@@ -1864,34 +1863,59 @@
           document.getElementById("fm-purse").value =
             purseVal > 1000 ? (purseVal / 1000000).toFixed(1) : purseVal || 0;
 
+          // --- FIX: Find the actual earliest tee time among all competitors ---
+          const competitors =
+            ev.competitions?.[0]?.competitors ||
+            ev.leaderboard ||
+            ev.competitors ||
+            [];
+          let earliestTeeTime = null;
+
+          for (const c of competitors) {
+            // Check status tee time or linescore tee time
+            let p1Tee = c.status?.teeTime;
+            if (!p1Tee && c.linescores) {
+              const r1 = c.linescores.find((l) => l.period === 1);
+              if (r1 && r1.teeTime) p1Tee = r1.teeTime;
+            }
+            if (p1Tee) {
+              const tDate = new Date(p1Tee);
+              if (!isNaN(tDate.getTime())) {
+                if (!earliestTeeTime || tDate < earliestTeeTime)
+                  earliestTeeTime = tDate;
+              }
+            }
+          }
+
+          // Fallback to the generic start date if tee times aren't published yet
           const dStr =
             ev.startDate ||
             ev.date ||
             comp.startDate ||
             comp.date ||
             tourn.startDate;
-          if (dStr) {
-            const d = new Date(dStr);
-            if (!isNaN(d.getTime())) {
-              const tz =
-                document.getElementById("fm-tz").value || "America/New_York";
-              const formatter = new Intl.DateTimeFormat("en-US", {
-                timeZone: tz,
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              });
-              const parts = Object.fromEntries(
-                formatter.formatToParts(d).map((p) => [p.type, p.value]),
-              );
-              let hr = parts.hour === "24" ? "00" : parts.hour;
-              document.getElementById("fm-tee").value =
-                `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
-            }
+          const targetDate = earliestTeeTime || (dStr ? new Date(dStr) : null);
+
+          if (targetDate && !isNaN(targetDate.getTime())) {
+            const tz =
+              document.getElementById("fm-tz").value || "America/New_York";
+            const formatter = new Intl.DateTimeFormat("en-US", {
+              timeZone: tz,
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+            const parts = Object.fromEntries(
+              formatter.formatToParts(targetDate).map((p) => [p.type, p.value]),
+            );
+            let hr = parts.hour === "24" ? "00" : parts.hour;
+            document.getElementById("fm-tee").value =
+              `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
           }
+
           toast("Details auto-filled perfectly!");
         } catch (e) {
           toast(`Error fetching info.`);
@@ -2804,4 +2828,3 @@
     </script>
   </body>
 </html>
-
