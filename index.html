@@ -2158,8 +2158,15 @@
           );
 
           // 3. Par (Aggressive scraping for different ESPN formats)
-let parVal = courseObj.par || courseObj.standardPar || tourn.par || tourn.standardPar || comp.par || ev.par || 72;
-document.getElementById("fm-par").value = parVal;
+          let parVal =
+            courseObj.par ||
+            courseObj.standardPar ||
+            tourn.par ||
+            tourn.standardPar ||
+            comp.par ||
+            ev.par ||
+            72;
+          document.getElementById("fm-par").value = parVal;
 
           // 4. Purse
           let purseVal =
@@ -2351,14 +2358,19 @@ document.getElementById("fm-par").value = parVal;
               field.push({ n: name, o: "WD" });
               continue;
             }
+
+            // Updated odds extraction to handle nested objects
             let oddsRaw =
-              comp.odds ||
+              comp.odds?.details ||
+              comp.odds?.value ||
+              (typeof comp.odds === "string" ? comp.odds : null) ||
               comp.oddsInfo ||
               comp.moneyLine ||
               comp.statistics?.find?.((s) => s.name === "moneyline")?.value ||
               null;
+
             let oddsStr = "N/A";
-            if (oddsRaw !== null) {
+            if (oddsRaw !== null && oddsRaw !== undefined) {
               const num = parseInt(String(oddsRaw).replace(/[^0-9\-]/g, ""));
               if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
             }
@@ -2426,6 +2438,7 @@ document.getElementById("fm-par").value = parVal;
         if (!t || !t.field || !t.field.length) {
           document.getElementById("ptbody").innerHTML =
             '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray)">Field not yet set or tournament not selected.</td></tr>';
+          document.getElementById("pag").innerHTML = "";
           return;
         }
         const thresh = deepThresh(t.field);
@@ -2473,6 +2486,31 @@ document.getElementById("fm-par").value = parVal;
             return `<tr class="${rc}"><td class="td-r">${rank}</td><td class="td-n">${p.n}${deep ? ` <span class="pr-dt">★</span>` : ""}</td><td class="td-o"><span class="tdot" style="background:${TC[ti]}"></span>${p.o}</td><td><span style="font-family:'JetBrains Mono';font-size:.6rem;color:${TC[ti]}">${TL[ti]}</span></td><td><div class="acts">${acts}</div></td></tr>`;
           })
           .join("");
+
+        // Added missing pagination logic here
+        const pag = document.getElementById("pag");
+        if (pages <= 1) {
+          pag.innerHTML = "";
+        } else {
+          let h = `<span class="pi">${filt.length} players</span>`;
+          if (pg > 1)
+            h += `<button class="pbtn" onclick="goP(${pg - 1})">‹</button>`;
+          for (
+            let p2 = Math.max(1, pg - 2);
+            p2 <= Math.min(pages, pg + 2);
+            p2++
+          ) {
+            h += `<button class="pbtn${p2 === pg ? " on" : ""}" onclick="goP(${p2})">${p2}</button>`;
+          }
+          if (pg < pages)
+            h += `<button class="pbtn" onclick="goP(${pg + 1})">›</button>`;
+          pag.innerHTML = h;
+        }
+      }
+
+      function goP(p2) {
+        pg = p2;
+        renderTable();
       }
 
       function pick(who, name, odds) {
@@ -3000,4 +3038,3 @@ document.getElementById("fm-par").value = parVal;
     </script>
   </body>
 </html>
-
