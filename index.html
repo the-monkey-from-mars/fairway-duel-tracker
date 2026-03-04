@@ -2079,7 +2079,7 @@
                             for (const outcome of market.outcomes) {
                               const nameKey = outcome.name
                                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                                .toLowerCase()
+                                .toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th")
                                 .replace(/[^a-z]/g, "");
                               if (!oddsMap[nameKey]) {
                                 oddsMap[nameKey] =
@@ -2127,11 +2127,11 @@
 
             // Try The Odds API map first using Fuzzy Match
             if (oddsCount > 0) {
-              const nameKey = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+              const nameKey = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th").replace(/[^a-z]/g, "");
               if (oddsMap[nameKey]) {
                 oddsStr = oddsMap[nameKey];
               } else {
-                const cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                const cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th");
                 const parts = cleanName.split(" ");
                 const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
                 const firstChar = parts[0][0];
@@ -2257,7 +2257,7 @@
         const unmatchedNames = [];
 
         // Normalize helper
-        const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+        const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ð/g,"d").replace(/đ/g,"d").replace(/ł/g,"l").replace(/ß/g,"ss").replace(/þ/g,"th").replace(/[^a-z]/g, "");
 
         // Build lookup from field
         const fieldNorms = t.field.map((p) => ({ norm: norm(p.n), parts: p.n.toLowerCase().split(" "), player: p }));
