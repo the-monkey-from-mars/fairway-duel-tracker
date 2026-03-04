@@ -2021,7 +2021,6 @@
         long: "Longshot",
         deep: "Deep",
       };
-
       // ── THE ODDS API HYBRID FETCHER ──
       async function fetchField(tournId) {
         const t = tournaments.find((x) => x.id === tournId);
@@ -2047,29 +2046,24 @@
           const oddsMap = {};
           if (oddsKey) {
             try {
-              const sportsRes = await fetch(
-                `https://api.the-odds-api.com/v4/sports?apiKey=${oddsKey}`,
-              );
-              const sports = await sportsRes.json();
-              const golfSports = sports.filter(
-                (s) => s.group && s.group.toLowerCase().includes("golf"),
+              // OPTIMIZATION: Instead of searching all sports and looping, directly fetch PGA Tour Outrights.
+              // This uses only 1 API request, preventing 429 Too Many Requests errors.
+              const oddsRes = await fetch(
+                `https://api.the-odds-api.com/v4/sports/golf_pga_tournament_winner/odds?apiKey=${oddsKey}&regions=us&markets=outrights&oddsFormat=american`,
               );
 
-              const now = new Date();
-              const tenDaysFromNow = new Date(
-                now.getTime() + 10 * 24 * 60 * 60 * 1000,
-              );
-
-              for (const sport of golfSports) {
-                const oddsRes = await fetch(
-                  `https://api.the-odds-api.com/v4/sports/${sport.key}/odds?apiKey=${oddsKey}&regions=us&markets=outrights&oddsFormat=american`,
-                );
+              if (oddsRes.status === 429) {
+                toast("Odds API limit reached. Pulling field without odds...");
+              } else if (oddsRes.ok) {
                 const events = await oddsRes.json();
+                const now = new Date();
+                const tenDaysFromNow = new Date(
+                  now.getTime() + 10 * 24 * 60 * 60 * 1000,
+                );
 
                 for (const event of events) {
                   const eventDate = new Date(event.commence_time);
-                  // Ensure we only grab odds for tournaments playing this week, ignoring Futures
-                  if (eventDate > tenDaysFromNow) continue;
+                  if (eventDate > tenDaysFromNow) continue; // Ignore Futures
 
                   for (const bookie of event.bookmakers || []) {
                     const market = bookie.markets?.find(
