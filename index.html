@@ -1298,6 +1298,9 @@
         table {
           font-size: 0.75rem;
         }
+        #mu-detail-overlay > div > div:last-child {
+          grid-template-columns: 1fr !important;
+        }
       }
     </style>
   </head>
@@ -1511,6 +1514,12 @@
             <div class="hc-stats" id="hcs-b"></div>
           </div>
         </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 16px;flex-wrap:wrap;">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gray);text-transform:uppercase;">Per Matchup $</label>
+          <input id="wager-amt" type="number" step="0.25" min="0" value="0" style="width:70px;background:rgba(0,0,0,0.5);border:1px solid var(--bdr2);border-radius:5px;padding:6px 8px;color:var(--cream);font-size:0.85rem;text-align:center;font-family:'JetBrains Mono',monospace;" onchange="saveWager(this.value)" oninput="renderLb()">
+          <span id="wager-total" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--gray);"></span>
+        </div>
+        <div id="money-summary" style="text-align:center;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;min-height:1.2em;"></div>
         <div class="mu-sh">
           <div class="mu-stitle">Head-to-Head Matchups</div>
           <div class="mu-sh-right" id="mu-actions"></div>
@@ -1805,6 +1814,18 @@
           .update({ game_state: WS })
           .eq("id", activeTId);
         toast("💾 Roster changes saved to cloud");
+      }
+
+      async function saveWager(val) {
+        const amt = parseFloat(val) || 0;
+        WS.wagerPerMatchup = amt;
+        const t = getActiveTournament();
+        if (t) t._gameState = WS;
+        await db
+          .from("tournaments")
+          .update({ game_state: WS })
+          .eq("id", activeTId);
+        renderLb();
       }
 
       async function saveTournamentDataToDB(id, tData) {
@@ -2628,6 +2649,15 @@
         } else {
           muAct.innerHTML = `<button class="lock-btn" onclick="WS.locked=true;saveGameStateToDB();renderLb()">🔒 Lock</button> <button class="reshuffle-btn" onclick="genMatchups()">↻ Re-shuffle</button>`;
         }
+
+        // Load wager from game state (synced via Supabase)
+        const wagerInput = document.getElementById("wager-amt");
+        if (WS.wagerPerMatchup !== undefined && WS.wagerPerMatchup > 0) {
+          wagerInput.value = WS.wagerPerMatchup;
+        }
+        const wagerPer = parseFloat(wagerInput.value) || 0;
+        const numMatchups = WS.matchups.pairs.length;
+
         let wA = 0,
           wB = 0,
           ties = 0,
@@ -2678,6 +2708,30 @@
           `<div class="hcs"><div class="hcs-v">${ptA}</div><div class="hcs-l">Total Pts</div></div>`;
         document.getElementById("hcs-b").innerHTML =
           `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
+
+        // Money summary
+        const wagerTotalEl = document.getElementById("wager-total");
+        const moneySumEl = document.getElementById("money-summary");
+        if (wagerPer > 0) {
+          const totalAtRisk = wagerPer * numMatchups;
+          wagerTotalEl.textContent = `(${numMatchups} matchups × $${wagerPer.toFixed(2)} = $${totalAtRisk.toFixed(2)} at risk)`;
+          const netMatchups = wA - wB;
+          const netMoney = Math.abs(netMatchups) * wagerPer;
+          const tieMoney = ties * wagerPer;
+          if (played === 0) {
+            moneySumEl.innerHTML = "";
+          } else if (netMatchups > 0) {
+            moneySumEl.innerHTML = `<span style="color:#4ade80;">💰 ${nameA} up <strong>$${netMoney.toFixed(2)}</strong></span><span style="color:var(--gray);margin-left:10px;">(${wA}W-${wB}L-${ties}T · ${played}/${numMatchups} decided)</span>`;
+          } else if (netMatchups < 0) {
+            moneySumEl.innerHTML = `<span style="color:#f87171;">💰 ${nameB} up <strong>$${netMoney.toFixed(2)}</strong></span><span style="color:var(--gray);margin-left:10px;">(${wA}W-${wB}L-${ties}T · ${played}/${numMatchups} decided)</span>`;
+          } else {
+            moneySumEl.innerHTML = `<span style="color:var(--gold);">🤝 Even — $0.00</span><span style="color:var(--gray);margin-left:10px;">(${wA}W-${wB}L-${ties}T · ${played}/${numMatchups} decided)</span>`;
+          }
+        } else {
+          wagerTotalEl.textContent = "";
+          moneySumEl.innerHTML = "";
+        }
+
         document.getElementById("mu-list").innerHTML = [...scored]
           .sort(
             (a, b) =>
@@ -2685,6 +2739,22 @@
               (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0),
           )
           .map((s) => {
+            function getToParStr(pd, isMC) {
+              if (!pd) return "";
+              // Try ESPN-provided scoreToPar first
+              if (pd.scoreToPar && pd.scoreToPar !== "-") return pd.scoreToPar;
+              // Compute from scorecard
+              const rounds = isMC ? (pd.scorecardRounds || []).slice(0, 2) : (pd.scorecardRounds || []);
+              let totalStrokes = 0, totalPar = 0, any = false;
+              for (const rnd of rounds) {
+                for (const h of rnd || []) {
+                  if (h.strokes && h.par) { totalStrokes += h.strokes; totalPar += h.par; any = true; }
+                }
+              }
+              if (!any) return "";
+              const diff = totalStrokes - totalPar;
+              return diff === 0 ? "E" : diff > 0 ? `+${diff}` : `${diff}`;
+            }
             function cell(name, pd, isMC) {
               const pts = calcSF(pd, isMC);
               const status = pd?.status || "pre_tournament";
@@ -2735,18 +2805,122 @@
                       : status === "finished"
                         ? "Finished"
                         : "Withdrew";
-              return `<div class="mc-pname">${name}</div><div class="mc-score-row"><span class="mc-pts">${pts !== null ? pts : "—"}</span><span class="mc-sub">pts${isMC ? " (R1–R2)" : ""}</span></div>${hasHoles ? `<div class="mc-holes" style="margin-top:4px;">${eagles ? `<span class="mh mh-eagle">🦅${eagles}</span>` : ""}${birdies ? `<span class="mh mh-birdie">🐦${birdies}</span>` : ""}${pars ? `<span class="mh mh-par">—${pars}</span>` : ""}${bogeys ? `<span class="mh mh-bogey">☁${bogeys}</span>` : ""}${doubles ? `<span class="mh mh-dbl">⛈${doubles}</span>` : ""}${worse ? `<span class="mh mh-worse">💀${worse}</span>` : ""}</div>` : ""}<div class="mc-st ${stCls}" style="margin-top:4px;">${stTxt}</div>`;
+              const toPar = getToParStr(pd, isMC);
+              const toParHtml = toPar ? `<span style="font-size:0.7rem;color:${toPar.startsWith("-") ? "#4ade80" : toPar === "E" ? "var(--gray)" : "#f87171"};margin-left:6px;">(${toPar})</span>` : "";
+              const posHtml = pd?.position ? `<span style="font-size:0.6rem;color:var(--gray);margin-right:4px;">${pd.position}</span> ` : "";
+              return `<div class="mc-pname">${posHtml}${name}${toParHtml}</div><div class="mc-score-row"><span class="mc-pts">${pts !== null ? pts : "—"}</span><span class="mc-sub">pts${isMC ? " (R1–R2)" : ""}</span></div>${hasHoles ? `<div class="mc-holes" style="margin-top:4px;">${eagles ? `<span class="mh mh-eagle">🦅${eagles}</span>` : ""}${birdies ? `<span class="mh mh-birdie">🐦${birdies}</span>` : ""}${pars ? `<span class="mh mh-par">—${pars}</span>` : ""}${bogeys ? `<span class="mh mh-bogey">☁${bogeys}</span>` : ""}${doubles ? `<span class="mh mh-dbl">⛈${doubles}</span>` : ""}${worse ? `<span class="mh mh-worse">💀${worse}</span>` : ""}</div>` : ""}<div class="mc-st ${stCls}" style="margin-top:4px;">${stTxt}</div>`;
             }
             const ccA = `mc mc-a ${s.res === "a" ? "winner" : s.res === "tie" ? "tied" : s.res === "b" ? "loser" : ""} ${s.mcA ? "mccut" : ""}`;
             const ccB = `mc mc-b ${s.res === "b" ? "winner" : s.res === "tie" ? "tied" : s.res === "a" ? "loser" : ""} ${s.mcB ? "mccut" : ""}`;
+            // Money tag for decided matchups
+            let moneyTag = "";
+            if (wagerPer > 0 && s.res !== "pending") {
+              if (s.res === "a") moneyTag = `<div style="font-size:0.6rem;color:#4ade80;margin-top:2px;">💰 ${nameA} +$${wagerPer.toFixed(2)}</div>`;
+              else if (s.res === "b") moneyTag = `<div style="font-size:0.6rem;color:#f87171;margin-top:2px;">💰 ${nameB} +$${wagerPer.toFixed(2)}</div>`;
+              else moneyTag = `<div style="font-size:0.6rem;color:var(--gold);margin-top:2px;">🤝 Push</div>`;
+            }
             const mid = s.same
               ? `<div class="same-tag">Both<br>teams</div>`
               : s.res === "pending"
                 ? `<div class="mnum">#${s.i + 1}</div><div class="vs-lbl">vs</div>`
-                : `<div class="mnum">#${s.i + 1}</div><div class="mres ${s.res === "a" ? "mres-a" : s.res === "b" ? "mres-b" : "mres-t"}">${s.res === "a" ? nameA : s.res === "b" ? nameB : "TIE"}</div>`;
-            return `<div class="mu-row"><div class="${ccA}">${cell(s.pair.a, s.pdA, s.mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(s.pair.b, s.pdB, s.mcB)}</div></div>`;
+                : `<div class="mnum">#${s.i + 1}</div><div class="mres ${s.res === "a" ? "mres-a" : s.res === "b" ? "mres-b" : "mres-t"}">${s.res === "a" ? nameA : s.res === "b" ? nameB : "TIE"}</div>${moneyTag}`;
+            return `<div class="mu-row" style="cursor:pointer;" onclick="showMatchupDetail(${s.i})"><div class="${ccA}">${cell(s.pair.a, s.pdA, s.mcA)}</div><div class="mu-mid">${mid}</div><div class="${ccB}">${cell(s.pair.b, s.pdB, s.mcB)}</div></div>`;
           })
           .join("");
+      }
+
+      // ═══════════════════════════════════════════════════════
+      // MATCHUP DETAIL MODAL
+      // ═══════════════════════════════════════════════════════
+      function showMatchupDetail(idx) {
+        if (!WS.matchups || !WS.matchups.pairs[idx]) return;
+        const pair = WS.matchups.pairs[idx];
+        const pdA = getPD(pair.a), pdB = getPD(pair.b);
+        const mcA = pdA?.status === "cut", mcB = pdB?.status === "cut";
+        const nameA = WS.nameA || "Matt", nameB = WS.nameB || "Chad";
+
+        function buildRoundTable(pd, isMC, playerName) {
+          if (!pd || !pd.scorecardRounds || !pd.scorecardRounds.length)
+            return `<div style="color:var(--gray);font-size:0.75rem;padding:10px;">No scorecard data yet for ${playerName}</div>`;
+          const rounds = pd.scorecardRounds;
+          const maxRound = isMC ? Math.min(rounds.length, 2) : rounds.length;
+          let html = "";
+          let grandTotalPts = 0, grandStrokes = 0, grandPar = 0;
+          for (let r = 0; r < maxRound; r++) {
+            const holes = rounds[r] || [];
+            if (!holes.length) continue;
+            let rndPts = 0, rndStrokes = 0, rndPar = 0;
+            html += `<div style="font-size:0.7rem;font-weight:600;color:var(--gold2);margin:10px 0 4px;">Round ${r + 1}${isMC && r < 2 ? " (scored)" : ""}</div>`;
+            html += `<table style="width:100%;font-size:0.65rem;border-collapse:collapse;">`;
+            html += `<tr style="color:var(--gray);border-bottom:1px solid var(--bdr)"><th style="text-align:left;padding:3px 4px;">Hole</th><th>Par</th><th>Score</th><th>+/-</th><th>Pts</th></tr>`;
+            for (let hi = 0; hi < holes.length; hi++) {
+              const h = holes[hi];
+              const diff = h.strokes - h.par;
+              const pts = holePoints(h.strokes, h.par) || 0;
+              rndPts += pts; rndStrokes += h.strokes; rndPar += h.par;
+              const diffStr = diff === 0 ? "E" : diff > 0 ? `+${diff}` : `${diff}`;
+              const color = diff < -1 ? "#fbbf24" : diff === -1 ? "#4ade80" : diff === 0 ? "#94a3b8" : diff === 1 ? "#f87171" : "#ef4444";
+              const label = diff <= -3 ? "Alb/HIO" : diff === -2 ? "Eagle" : diff === -1 ? "Birdie" : diff === 0 ? "Par" : diff === 1 ? "Bogey" : diff === 2 ? "Double" : "Triple+";
+              html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                <td style="padding:3px 4px;">${hi + 1}</td>
+                <td style="text-align:center;">${h.par}</td>
+                <td style="text-align:center;font-weight:600;color:${color}">${h.strokes}</td>
+                <td style="text-align:center;color:${color};font-size:0.6rem;">${diffStr} ${label}</td>
+                <td style="text-align:center;font-weight:600;color:${pts > 0 ? "#4ade80" : pts < 0 ? "#f87171" : "#94a3b8"}">${pts > 0 ? "+" : ""}${pts}</td>
+              </tr>`;
+            }
+            const rndDiff = rndStrokes - rndPar;
+            const rndDiffStr = rndDiff === 0 ? "E" : rndDiff > 0 ? `+${rndDiff}` : `${rndDiff}`;
+            html += `<tr style="font-weight:700;border-top:2px solid var(--bdr);"><td style="padding:4px;">Total</td><td style="text-align:center;">${rndPar}</td><td style="text-align:center;">${rndStrokes}</td><td style="text-align:center;">${rndDiffStr}</td><td style="text-align:center;color:${rndPts > 0 ? "#4ade80" : rndPts < 0 ? "#f87171" : "#94a3b8"}">${rndPts > 0 ? "+" : ""}${rndPts}</td></tr>`;
+            html += `</table>`;
+            grandTotalPts += rndPts; grandStrokes += rndStrokes; grandPar += rndPar;
+          }
+          if (maxRound > 1) {
+            const gDiff = grandStrokes - grandPar;
+            const gDiffStr = gDiff === 0 ? "E" : gDiff > 0 ? `+${gDiff}` : `${gDiff}`;
+            html += `<div style="margin-top:8px;padding:6px 8px;background:rgba(0,0,0,0.3);border-radius:6px;font-size:0.7rem;display:flex;justify-content:space-between;">
+              <span>Tournament: ${grandStrokes} strokes (${gDiffStr})</span>
+              <span style="color:${grandTotalPts > 0 ? "#4ade80" : grandTotalPts < 0 ? "#f87171" : "#94a3b8"};font-weight:700;">Fantasy: ${grandTotalPts > 0 ? "+" : ""}${grandTotalPts} pts</span>
+            </div>`;
+          }
+          return html;
+        }
+
+        const ptsA = calcSF(pdA, mcA), ptsB = calcSF(pdB, mcB);
+        let resText = "In Progress", resColor = "var(--gold)";
+        if (ptsA !== null && ptsB !== null) {
+          if (ptsA > ptsB) { resText = `${nameA} wins`; resColor = "#4ade80"; }
+          else if (ptsB > ptsA) { resText = `${nameB} wins`; resColor = "#f87171"; }
+          else { resText = "Tied"; resColor = "var(--gold)"; }
+        }
+
+        const overlay = document.createElement("div");
+        overlay.id = "mu-detail-overlay";
+        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:10px;";
+        overlay.innerHTML = `
+          <div style="background:#1a2332;border:1px solid #2d3f52;border-radius:14px;padding:20px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.6)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="margin:0;color:#e8edf3;font-size:1rem;">Matchup #${idx + 1}</h3>
+              <button onclick="document.getElementById('mu-detail-overlay').remove()" style="background:none;border:none;color:#8a9bb5;font-size:1.3rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="text-align:center;margin-bottom:14px;">
+              <span style="font-size:0.85rem;font-weight:700;color:${resColor}">${resText}</span>
+              <span style="font-size:0.75rem;color:var(--gray);margin-left:8px;">${ptsA !== null ? ptsA : "—"} – ${ptsB !== null ? ptsB : "—"} pts</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <div style="font-size:0.8rem;font-weight:600;color:var(--green2);margin-bottom:6px;text-align:center;">${nameA}: ${pair.a}${mcA ? " (MC)" : ""}</div>
+                ${buildRoundTable(pdA, mcA, pair.a)}
+              </div>
+              <div>
+                <div style="font-size:0.8rem;font-weight:600;color:#f87171;margin-bottom:6px;text-align:center;">${nameB}: ${pair.b}${mcB ? " (MC)" : ""}</div>
+                ${buildRoundTable(pdB, mcB, pair.b)}
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
       }
 
       async function fetchScores() {
@@ -2778,6 +2952,13 @@
                 : (c.status?.type?.name || "").toLowerCase().includes("cut")
                   ? "cut"
                   : "active",
+              position: c.status?.position?.displayName || c.sortOrder || null,
+              scoreToPar: (() => {
+                const stp = (c.statistics || []).find(s => s.name === "scoreToPar");
+                if (stp && stp.displayValue && stp.displayValue !== "-") return stp.displayValue;
+                if (c.score && c.score.displayValue && c.score.displayValue !== "-") return c.score.displayValue;
+                return null;
+              })(),
             };
           }
           const picked = [
@@ -2810,6 +2991,8 @@
                 }
                 liveData.players[name] = {
                   status: comp.status,
+                  position: comp.position || null,
+                  scoreToPar: comp.scoreToPar ?? null,
                   scorecardRounds: rounds,
                 };
               }
