@@ -613,7 +613,6 @@
       .dreq.wrn {
         color: var(--warn);
       }
-
       .ctas {
         display: flex;
         gap: 7px;
@@ -703,7 +702,6 @@
         font-size: 0.56rem;
         color: var(--gray);
       }
-
       .hero-row {
         display: grid;
         grid-template-columns: 1fr 110px 1fr;
@@ -824,7 +822,6 @@
         color: var(--gray2);
         margin-top: 4px;
       }
-
       .mu-sh {
         display: flex;
         align-items: center;
@@ -873,7 +870,6 @@
         padding: 4px 12px;
         border-radius: 4px;
       }
-
       .mu-row {
         display: grid;
         grid-template-columns: 1fr 70px 1fr;
@@ -1042,7 +1038,6 @@
       .st-done {
         color: var(--gold);
       }
-
       .mu-mid {
         display: flex;
         flex-direction: column;
@@ -1139,7 +1134,6 @@
         font-weight: 600;
         width: 100%;
       }
-
       .tcard {
         background: var(--bg2);
         border: 1px solid var(--bdr);
@@ -1196,7 +1190,6 @@
         cursor: pointer;
         font-size: 0.6rem;
       }
-
       .fetch-field-btn {
         background: transparent;
         border: 1px solid rgba(59, 130, 196, 0.4);
@@ -1250,8 +1243,6 @@
         transform: translateY(0);
         opacity: 1;
       }
-
-      /* Cloud Sync Badge */
       .sync-badge {
         display: inline-flex;
         align-items: center;
@@ -1271,129 +1262,6 @@
         background: var(--win2);
         box-shadow: 0 0 5px var(--win2);
       }
-
-      /* Instructions Modal Styles */
-      .instr-modal {
-        background: var(--bg2);
-        border: 1px solid var(--bdr2);
-        border-radius: 14px;
-        width: 90%;
-        max-width: 650px;
-        max-height: 85vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
-        text-align: left;
-      }
-      .instr-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        padding: 1.4rem 1.6rem 1.1rem;
-        border-bottom: 1px solid var(--bdr);
-        background: linear-gradient(
-          180deg,
-          rgba(201, 168, 76, 0.06),
-          transparent
-        );
-        flex-shrink: 0;
-      }
-      .instr-close {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid var(--bdr);
-        color: var(--gray);
-        font-size: 0.9rem;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.15s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 2px;
-      }
-      .instr-close:hover {
-        background: rgba(184, 64, 64, 0.2);
-        border-color: var(--red2);
-        color: var(--red2);
-      }
-      .instr-body {
-        overflow-y: auto;
-        padding: 1.4rem 1.6rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-      }
-      .instr-body::-webkit-scrollbar {
-        width: 4px;
-      }
-      .instr-body::-webkit-scrollbar-track {
-        background: var(--bg);
-      }
-      .instr-body::-webkit-scrollbar-thumb {
-        background: var(--bg3);
-        border-radius: 2px;
-      }
-      .instr-section {
-        border: 1px solid var(--bdr);
-        border-radius: 9px;
-        padding: 1rem 1.1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.9rem;
-        background: rgba(0, 0, 0, 0.15);
-      }
-      .instr-section-label {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.65rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--gold);
-        padding-bottom: 0.4rem;
-        border-bottom: 1px solid var(--bdr);
-      }
-      .instr-step {
-        display: flex;
-        gap: 0.9rem;
-        align-items: flex-start;
-      }
-      .instr-num {
-        flex-shrink: 0;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: rgba(201, 168, 76, 0.15);
-        border: 1px solid rgba(201, 168, 76, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.62rem;
-        font-weight: 600;
-        color: var(--gold);
-        margin-top: 2px;
-      }
-      .instr-content {
-        flex: 1;
-      }
-      .instr-title {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--cream);
-        margin-bottom: 3px;
-      }
-      .instr-desc {
-        font-size: 0.8rem;
-        color: var(--gray2);
-        line-height: 1.6;
-      }
-      .instr-desc strong {
-        color: var(--cream);
-      }
     </style>
   </head>
   <body>
@@ -1412,7 +1280,6 @@
           <span class="dl-icon">⏱</span>
           <span id="deadline-txt">—</span>
         </div>
-
         <div class="sync-badge">
           <span class="sync-dot"></span>
           <span>☁ Cloud Sync: ON</span>
@@ -1428,13 +1295,6 @@
           <button class="nbtn on" onclick="showTab('draft')">Draft</button>
           <button class="nbtn" onclick="showTab('lb')">Leaderboard</button>
           <button class="nbtn" onclick="showTab('manage')">⚙ Manage</button>
-          <button
-            class="nbtn"
-            onclick="openInstructions()"
-            style="color: var(--gold); opacity: 0.8"
-          >
-            ? How to Play
-          </button>
         </nav>
       </div>
     </header>
@@ -1632,6 +1492,29 @@
         >
           Tournament Manager
         </div>
+
+        <div class="panel" style="margin-bottom: 1.5rem">
+          <div class="ph"><span class="ph-title">API Settings</span></div>
+          <div style="padding: 1.2rem">
+            <div class="fm-group">
+              <div class="fm-label">The Odds API Key (For Live Odds)</div>
+              <input
+                class="fm-inp"
+                id="fm-odds-key"
+                placeholder="Paste key from the-odds-api.com"
+                onchange="localStorage.setItem('fd_odds_key', this.value)"
+              />
+              <div
+                style="font-size: 0.65rem; color: var(--gray); margin-top: 6px"
+              >
+                If provided, the app will silently fetch DraftKings/FanDuel odds
+                for the current week's tournament when you click "Fetch Field"
+                and stitch them to the ESPN players.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="tm-layout">
           <div>
             <div class="panel">
@@ -1654,7 +1537,6 @@
                     </button>
                   </div>
                 </div>
-
                 <div class="fm-group">
                   <div class="fm-label">Tournament Name</div>
                   <input
@@ -1705,7 +1587,6 @@
                     type="datetime-local"
                   />
                 </div>
-
                 <button class="add-tourn-btn" onclick="addTournament()">
                   + Add Tournament
                 </button>
@@ -1718,193 +1599,6 @@
                 <span class="ph-title">Cloud Tournaments</span>
               </div>
               <div style="padding: 1rem" id="tlist"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="modal-ov"
-      id="instructions-modal"
-      onclick="closeInstructionsOnBg(event)"
-    >
-      <div class="instr-modal">
-        <div class="instr-header">
-          <div>
-            <div
-              style="
-                font-family: &quot;Abril Fatface&quot;, serif;
-                font-size: 1.4rem;
-                color: var(--gold2);
-                letter-spacing: 1px;
-              "
-            >
-              How to Play Fairway Duel
-            </div>
-            <div
-              style="
-                font-family: &quot;JetBrains Mono&quot;, monospace;
-                font-size: 0.6rem;
-                color: var(--gray);
-                margin-top: 3px;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-              "
-            >
-              Cloud Edition Guide
-            </div>
-          </div>
-          <button class="instr-close" onclick="closeModal()">✕</button>
-        </div>
-        <div class="instr-body">
-          <div class="instr-section">
-            <div class="instr-section-label">1. Tournament Setup</div>
-            <div class="instr-step">
-              <div class="instr-num">1</div>
-              <div class="instr-content">
-                <div class="instr-title">Add the Event</div>
-                <div class="instr-desc">
-                  Go to the <strong>⚙ Manage</strong> tab. Paste the ESPN
-                  Tournament ID into the box and click
-                  <strong>🔍 Auto-Fill Details</strong>. Click
-                  <strong>+ Add Tournament</strong> to save it to the cloud.
-                </div>
-              </div>
-            </div>
-            <div class="instr-step">
-              <div class="instr-num">2</div>
-              <div class="instr-content">
-                <div class="instr-title">Fetch the Field</div>
-                <div class="instr-desc">
-                  Once added, click <strong>⬇ Fetch Field</strong> on the
-                  tournament card to pull the live player list and odds from
-                  ESPN. Then click <strong>Select</strong>.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="instr-section"
-            style="
-              border-color: rgba(59, 130, 196, 0.3);
-              background: rgba(59, 130, 196, 0.05);
-            "
-          >
-            <div class="instr-section-label" style="color: var(--blue2)">
-              2. Drafting & Saving
-            </div>
-            <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--blue2);
-                  border-color: var(--blue2);
-                  background: transparent;
-                "
-              >
-                3
-              </div>
-              <div class="instr-content">
-                <div class="instr-title">Draft 20 Players</div>
-                <div class="instr-desc">
-                  Matt and Chad both draft exactly <strong>20 players</strong>.
-                  You must each select at least
-                  <strong>3 Deep (★)</strong> sleepers (the bottom 1/3 of the
-                  field by odds).
-                </div>
-              </div>
-            </div>
-            <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--blue2);
-                  border-color: var(--blue2);
-                  background: transparent;
-                "
-              >
-                4
-              </div>
-              <div class="instr-content">
-                <div class="instr-title">Save to Cloud</div>
-                <div class="instr-desc">
-                  You <strong>must</strong> click
-                  <strong>💾 Save [Name]'s Roster</strong> at the bottom of your
-                  column to sync your picks to the Supabase cloud so your
-                  opponent can see them!
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="instr-section"
-            style="
-              border-color: rgba(184, 64, 64, 0.3);
-              background: rgba(184, 64, 64, 0.05);
-            "
-          >
-            <div class="instr-section-label" style="color: var(--red2)">
-              3. Lock & Live Scoring
-            </div>
-            <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--red2);
-                  border-color: var(--red2);
-                  background: transparent;
-                "
-              >
-                5
-              </div>
-              <div class="instr-content">
-                <div class="instr-title">Auto-Lock & Matchups</div>
-                <div class="instr-desc">
-                  If both players have 20 picks when the
-                  <strong>countdown hits zero</strong>, the app will
-                  automatically lock the board and randomize your head-to-head
-                  matchups. You can also manually randomize on the Leaderboard
-                  tab.
-                </div>
-              </div>
-            </div>
-            <div class="instr-step">
-              <div
-                class="instr-num"
-                style="
-                  color: var(--red2);
-                  border-color: var(--red2);
-                  background: transparent;
-                "
-              >
-                6
-              </div>
-              <div class="instr-content">
-                <div class="instr-title">Refresh Scores</div>
-                <div class="instr-desc">
-                  During the tournament, click
-                  <strong>↻ Refresh ESPN Scores</strong> on the Leaderboard. The
-                  app pulls hole-by-hole data to calculate Modified Stableford
-                  points. Points are awarded as follows: <br /><br />
-                  <div style="line-height: 1.8">
-                    <span style="color: var(--gold2)">Albatross: +8</span> |
-                    <span style="color: var(--gold2)">Eagle: +5</span> |
-                    <span style="color: var(--win2)">Birdie: +3</span> |
-                    <span style="color: var(--gray2)">Par: +1</span> |
-                    <span style="color: var(--gray)">Bogey: 0</span> |
-                    <span style="color: var(--red2)">Double: -2</span> |
-                    <span style="color: #c03040">Triple+: -3</span>
-                  </div>
-                  <br />
-                  <em
-                    >Note: Missed-cut players only score points for Rounds 1 &
-                    2.</em
-                  >
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1971,10 +1665,8 @@
       // ═══════════════════════════════════════════════════════
       async function loadFromCloud() {
         const { data, error } = await db.from("tournaments").select("*");
-        if (error) {
-          toast("Error loading from cloud");
-          return;
-        }
+        if (error) return toast("Error loading from cloud");
+
         tournaments = data.map((row) => ({
           id: row.id,
           ...row.tournament_data,
@@ -1983,13 +1675,13 @@
         }));
         updateWeekSelector();
         renderTournamentList();
+
         if (activeTId && !tournaments.find((t) => t.id === activeTId)) {
           activeTId = "";
           localStorage.removeItem("fd-cloud-active");
         }
         if (activeTId) {
-          // FIX: Set skipRender to false so the draft board draws immediately on load
-          applyCloudStateForActive(false);
+          applyCloudStateForActive(false); // FALSE to render immediately
         } else if (tournaments.length > 0) {
           selectTournament(tournaments[0].id);
         } else {
@@ -2026,7 +1718,6 @@
                 renderPicks("a");
                 renderPicks("b");
                 renderLb();
-                toast("🔄 Cloud sync updated");
               }
             },
           )
@@ -2090,7 +1781,7 @@
       }
 
       // ═══════════════════════════════════════════════════════
-      // TOURNAMENT MANAGER & ESPN LOGIC
+      // TOURNAMENT MANAGER & ESPN API
       // ═══════════════════════════════════════════════════════
       const CORS = "https://api.codetabs.com/v1/proxy?quest=";
       const ESPN_BASE =
@@ -2098,19 +1789,17 @@
 
       function espnUrl(path) {
         const sep = path.includes("?") ? "&" : "?";
-        const bustedPath = path + sep + "_cb=" + Date.now();
-        return CORS + encodeURIComponent(ESPN_BASE + bustedPath);
+        return (
+          CORS +
+          encodeURIComponent(ESPN_BASE + path + sep + "_cb=" + Date.now())
+        );
       }
 
-      // Auto-fill feature for Tournaments
       async function autoFillESPN() {
-        // Force extract ONLY numbers in case a slash or full URL was pasted
         const rawId = document.getElementById("fm-espnid").value;
         const espnId = rawId.replace(/[^0-9]/g, "");
         document.getElementById("fm-espnid").value = espnId;
-
         if (!espnId) return toast("Please enter an ESPN ID first");
-
         toast("Fetching tournament details...");
 
         try {
@@ -2118,13 +1807,10 @@
             headers: { Accept: "application/json" },
           });
           const data = await res.json();
-
-          if (data.error || data.message) {
+          if (data.error || data.message)
             return toast(`API Error: ${data.error || data.message}`);
-          }
 
           const ev = data?.events?.[0] || data?.event || data;
-
           if (
             !ev ||
             (!ev.competitions &&
@@ -2135,7 +1821,6 @@
             return toast("Tournament not found. Check ID.");
           }
 
-          // Fallback through ESPN's shifting data structures
           const comp = ev.competitions?.[0] || {};
           const tourn = ev.tournament || comp.tournament || {};
           const courseObj =
@@ -2143,23 +1828,19 @@
           const venueObj =
             comp.venue || tourn.venue || ev.venue || courseObj || {};
 
-          // 1. Name
           document.getElementById("fm-name").value =
             ev.name || tourn.name || ev.shortName || "PGA Tournament";
 
-          // 2. Venue
           let venueStr =
             venueObj.fullName || courseObj.name || tourn.name || "";
           if (venueObj.address?.city) venueStr += ` · ${venueObj.address.city}`;
           if (venueObj.address?.state)
             venueStr += `, ${venueObj.address.state}`;
-          // Clean up any weird formatting and assign
           document.getElementById("fm-venue").value = venueStr.replace(
             /(^[ \·,]+)|([ \·,]+$)/g,
             "",
           );
 
-          // 3. Par (Aggressive scraping for different ESPN formats)
           let parVal =
             courseObj.par ||
             courseObj.standardPar ||
@@ -2170,7 +1851,6 @@
             72;
           document.getElementById("fm-par").value = parVal;
 
-          // 4. Purse
           let purseVal =
             comp.purse?.value ||
             tourn.purse ||
@@ -2181,17 +1861,9 @@
             purseVal = purseVal.value;
           if (typeof purseVal === "string")
             purseVal = parseFloat(purseVal.replace(/[^0-9.]/g, ""));
+          document.getElementById("fm-purse").value =
+            purseVal > 1000 ? (purseVal / 1000000).toFixed(1) : purseVal || 0;
 
-          if (purseVal && purseVal > 1000) {
-            document.getElementById("fm-purse").value = (
-              purseVal / 1000000
-            ).toFixed(1);
-          } else {
-            document.getElementById("fm-purse").value = purseVal || 0;
-          }
-
-          // 5. First Tee Time (Lock Time)
-          // Using the static Tournament Start Date instead of active player tee-times
           const dStr =
             ev.startDate ||
             ev.date ||
@@ -2220,11 +1892,9 @@
                 `${parts.year}-${parts.month}-${parts.day}T${hr}:${parts.minute}`;
             }
           }
-
           toast("Details auto-filled perfectly!");
         } catch (e) {
-          console.error("ESPN Auto-Fill Error:", e);
-          toast(`Error fetching info. Check Console.`);
+          toast(`Error fetching info.`);
         }
       }
 
@@ -2328,12 +1998,16 @@
         deep: "Deep",
       };
 
+      // ── THE ODDS API HYBRID FETCHER ──
       async function fetchField(tournId) {
         const t = tournaments.find((x) => x.id === tournId);
         if (!t || !t.espnId) return toast("No ESPN ID");
+
+        const oddsKey = localStorage.getItem("fd_odds_key") || "";
         document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
+
         try {
-          // 1. Fetch Primary Leaderboard
+          // 1. Fetch Primary Leaderboard from ESPN
           const res = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
             headers: { Accept: "application/json" },
           });
@@ -2345,32 +2019,66 @@
             evts?.competitors ||
             [];
 
-          // 2. Fetch Secondary Summary Endpoint (Where ESPN hides odds for Signature events)
-          let summaryOddsMap = {};
-          try {
-            const sumRes = await fetch(espnUrl(`/summary?event=${t.espnId}`));
-            if (sumRes.ok) {
-              const sumData = await sumRes.json();
-              const pickcenter = sumData?.pickcenter || sumData?.odds || [];
-              for (const provider of pickcenter) {
-                const outcomes = provider.details || provider.outcomes || [];
-                for (const out of outcomes) {
-                  if (out.athlete?.id && (out.odds || out.displayValue)) {
-                    summaryOddsMap[out.athlete.id] =
-                      out.odds || out.displayValue;
+          // 2. Build Odds Map from The Odds API
+          const oddsMap = {};
+          if (oddsKey) {
+            try {
+              const sportsRes = await fetch(
+                `https://api.the-odds-api.com/v4/sports?apiKey=${oddsKey}`,
+              );
+              const sports = await sportsRes.json();
+              const golfSports = sports.filter(
+                (s) => s.group && s.group.toLowerCase().includes("golf"),
+              );
+
+              const now = new Date();
+              const tenDaysFromNow = new Date(
+                now.getTime() + 10 * 24 * 60 * 60 * 1000,
+              );
+
+              for (const sport of golfSports) {
+                const oddsRes = await fetch(
+                  `https://api.the-odds-api.com/v4/sports/${sport.key}/odds?apiKey=${oddsKey}&regions=us&markets=outrights&oddsFormat=american`,
+                );
+                const events = await oddsRes.json();
+
+                for (const event of events) {
+                  const eventDate = new Date(event.commence_time);
+                  // Ensure we only grab odds for tournaments playing this week, ignoring Futures
+                  if (eventDate > tenDaysFromNow) continue;
+
+                  for (const bookie of event.bookmakers || []) {
+                    const market = bookie.markets?.find(
+                      (m) => m.key === "outrights",
+                    );
+                    if (market && market.outcomes) {
+                      for (const outcome of market.outcomes) {
+                        const nameKey = outcome.name
+                          .toLowerCase()
+                          .replace(/[^a-z]/g, "");
+                        if (!oddsMap[nameKey]) {
+                          oddsMap[nameKey] =
+                            outcome.price > 0
+                              ? `+${outcome.price}`
+                              : `${outcome.price}`;
+                        }
+                      }
+                    }
                   }
                 }
               }
+            } catch (e) {
+              console.error("Odds API Error:", e);
             }
-          } catch (e) {
-            /* Ignore if summary endpoint fails */
           }
 
           const field = [];
           for (const comp of competitors) {
-            const ath = comp.athlete || comp;
-            const name = ath.displayName || ath.fullName || ath.name || "";
-            const athId = ath.id;
+            const name =
+              comp.athlete?.displayName ||
+              comp.athlete?.fullName ||
+              comp.athlete?.name ||
+              "";
             if (!name) continue;
 
             const isWD =
@@ -2383,46 +2091,62 @@
               continue;
             }
 
-            // --- ULTRA-ROBUST ODDS EXTRACTION ---
-            let oddsRaw = null;
-            // A. Check our secondary Summary map first!
-            if (summaryOddsMap[athId]) {
-              oddsRaw = summaryOddsMap[athId];
-            }
-            // B. Check standard Leaderboard locations
-            else if (Array.isArray(comp.odds) && comp.odds.length > 0) {
-              oddsRaw =
-                comp.odds[0]?.details ||
-                comp.odds[0]?.value ||
-                comp.odds[0]?.displayValue;
-            } else if (comp.odds && typeof comp.odds === "object") {
-              oddsRaw =
-                comp.odds.details || comp.odds.value || comp.odds.displayValue;
-            } else if (typeof comp.odds === "string") {
-              oddsRaw = comp.odds;
-            }
-            if (!oddsRaw) oddsRaw = comp.oddsInfo || comp.moneyLine;
-            if (!oddsRaw && Array.isArray(comp.statistics)) {
-              const oddsStat = comp.statistics.find(
-                (s) => s.name === "moneyline" || s.name === "preTournamentOdds",
-              );
-              if (oddsStat) oddsRaw = oddsStat.displayValue || oddsStat.value;
-            }
-
             let oddsStr = "N/A";
-            if (oddsRaw !== null && oddsRaw !== undefined) {
-              const rawStr = String(oddsRaw).trim().toUpperCase();
-              if (rawStr === "EVEN" || rawStr === "EV") {
-                oddsStr = "+100";
+
+            // Try to match The Odds API map first using Fuzzy Match
+            if (oddsKey && Object.keys(oddsMap).length > 0) {
+              const nameKey = name.toLowerCase().replace(/[^a-z]/g, "");
+              if (oddsMap[nameKey]) {
+                oddsStr = oddsMap[nameKey];
               } else {
-                const num = parseInt(rawStr.replace(/[^0-9\-]/g, ""));
-                if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
+                const parts = name.toLowerCase().split(" ");
+                const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
+                const firstChar = parts[0][0];
+                for (const oName of Object.keys(oddsMap)) {
+                  if (oName.endsWith(last) && oName.startsWith(firstChar)) {
+                    oddsStr = oddsMap[oName];
+                    break;
+                  }
+                }
               }
             }
-            // -------------------------------------
+
+            // Fallback to ESPN odds if The Odds API missed them or wasn't provided
+            if (oddsStr === "N/A") {
+              let oddsRaw = null;
+              if (Array.isArray(comp.odds) && comp.odds.length > 0)
+                oddsRaw =
+                  comp.odds[0]?.details ||
+                  comp.odds[0]?.value ||
+                  comp.odds[0]?.displayValue;
+              else if (comp.odds && typeof comp.odds === "object")
+                oddsRaw =
+                  comp.odds.details ||
+                  comp.odds.value ||
+                  comp.odds.displayValue;
+              else if (typeof comp.odds === "string") oddsRaw = comp.odds;
+              if (!oddsRaw) oddsRaw = comp.oddsInfo || comp.moneyLine;
+              if (!oddsRaw && Array.isArray(comp.statistics)) {
+                const oddsStat = comp.statistics.find(
+                  (s) =>
+                    s.name === "moneyline" || s.name === "preTournamentOdds",
+                );
+                if (oddsStat) oddsRaw = oddsStat.displayValue || oddsStat.value;
+              }
+
+              if (oddsRaw !== null && oddsRaw !== undefined) {
+                const rawStr = String(oddsRaw).trim().toUpperCase();
+                if (rawStr === "EVEN" || rawStr === "EV") oddsStr = "+100";
+                else {
+                  const num = parseInt(rawStr.replace(/[^0-9\-]/g, ""));
+                  if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
+                }
+              }
+            }
 
             field.push({ n: name, o: oddsStr });
           }
+
           field.sort((a, b) => {
             if (a.o === "WD" && b.o !== "WD") return 1;
             if (b.o === "WD" && a.o !== "WD") return -1;
@@ -2430,6 +2154,7 @@
             if (b.o === "N/A" && a.o !== "N/A") return -1;
             return oNum(a.o) - oNum(b.o);
           });
+
           const tData = {
             name: t.name,
             venue: t.venue,
@@ -2441,7 +2166,7 @@
             field: field,
           };
           await saveTournamentDataToDB(tournId, tData);
-          toast(`Field loaded: ${field.length} players`);
+          toast(`Field & Odds loaded: ${field.length} players`);
         } catch (e) {
           toast(`Error: ${e.message}`);
         }
@@ -2534,7 +2259,6 @@
           })
           .join("");
 
-        // Added missing pagination logic here
         const pag = document.getElementById("pag");
         if (pages <= 1) {
           pag.innerHTML = "";
@@ -2649,11 +2373,7 @@
           pairs: pA.map((pa, i) => ({ a: pa.n, b: pB[bi[i]].n })),
           seed,
         };
-        if (autoLock === true) {
-          WS.locked = true;
-        } else {
-          WS.locked = false;
-        }
+        WS.locked = autoLock === true;
         saveGameStateToDB();
         renderLb();
       }
@@ -2992,9 +2712,10 @@
           const hrs = Math.floor(diff / 3600000),
             mins = Math.floor((diff % 3600000) / 60000),
             secs = Math.floor((diff % 60000) / 1000);
-          const timeStr = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m ${secs}s`;
           txt.textContent =
-            diff < 3600000 ? `Closes in ${timeStr}` : "Draft open";
+            diff < 3600000
+              ? `Closes in ${hrs > 0 ? `${hrs}h ` : ""}${mins}m`
+              : "Draft open";
         }
       }
 
@@ -3034,13 +2755,6 @@
       function openResetModal() {
         document.getElementById("rst-modal").classList.add("open");
       }
-      function openInstructions() {
-        document.getElementById("instructions-modal").classList.add("open");
-      }
-      function closeInstructionsOnBg(e) {
-        if (e.target === document.getElementById("instructions-modal"))
-          closeModal();
-      }
       function closeModal() {
         document
           .querySelectorAll(".modal-ov")
@@ -3076,6 +2790,11 @@
       // INIT
       // ═══════════════════════════════════════════════════════
       function init() {
+        // Load API key from local storage if saved
+        const oddsInput = document.getElementById("fm-odds-key");
+        if (oddsInput)
+          oddsInput.value = localStorage.getItem("fd_odds_key") || "";
+
         loadFromCloud();
         deadlineTimer = setInterval(() => {
           updateDeadlineBar();
