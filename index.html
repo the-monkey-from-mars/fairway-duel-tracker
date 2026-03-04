@@ -1988,7 +1988,8 @@
           localStorage.removeItem("fd-cloud-active");
         }
         if (activeTId) {
-          applyCloudStateForActive(true);
+          // FIX: Set skipRender to false so the draft board draws immediately on load
+          applyCloudStateForActive(false);
         } else if (tournaments.length > 0) {
           selectTournament(tournaments[0].id);
         } else {
@@ -2359,21 +2360,39 @@
               continue;
             }
 
-            // Updated odds extraction to handle nested objects
-            let oddsRaw =
-              comp.odds?.details ||
-              comp.odds?.value ||
-              (typeof comp.odds === "string" ? comp.odds : null) ||
-              comp.oddsInfo ||
-              comp.moneyLine ||
-              comp.statistics?.find?.((s) => s.name === "moneyline")?.value ||
-              null;
+            // --- ULTRA-ROBUST ODDS EXTRACTION ---
+            let oddsRaw = null;
+            if (Array.isArray(comp.odds) && comp.odds.length > 0) {
+              oddsRaw =
+                comp.odds[0]?.details ||
+                comp.odds[0]?.value ||
+                comp.odds[0]?.displayValue;
+            } else if (comp.odds && typeof comp.odds === "object") {
+              oddsRaw =
+                comp.odds.details || comp.odds.value || comp.odds.displayValue;
+            } else if (typeof comp.odds === "string") {
+              oddsRaw = comp.odds;
+            }
+            if (!oddsRaw) oddsRaw = comp.oddsInfo || comp.moneyLine;
+            if (!oddsRaw && Array.isArray(comp.statistics)) {
+              const oddsStat = comp.statistics.find(
+                (s) => s.name === "moneyline" || s.name === "preTournamentOdds",
+              );
+              if (oddsStat) oddsRaw = oddsStat.displayValue || oddsStat.value;
+            }
 
             let oddsStr = "N/A";
             if (oddsRaw !== null && oddsRaw !== undefined) {
-              const num = parseInt(String(oddsRaw).replace(/[^0-9\-]/g, ""));
-              if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
+              const rawStr = String(oddsRaw).trim().toUpperCase();
+              if (rawStr === "EVEN" || rawStr === "EV") {
+                oddsStr = "+100"; // Converts Even money to standard format
+              } else {
+                const num = parseInt(rawStr.replace(/[^0-9\-]/g, ""));
+                if (!isNaN(num)) oddsStr = num > 0 ? `+${num}` : `${num}`;
+              }
             }
+            // -------------------------------------
+
             field.push({ n: name, o: oddsStr });
           }
           field.sort((a, b) => {
