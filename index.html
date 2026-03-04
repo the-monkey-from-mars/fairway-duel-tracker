@@ -1497,14 +1497,25 @@
           <div class="ph"><span class="ph-title">API Settings</span></div>
           <div style="padding: 1.2rem">
             <div class="fm-group">
-              <div class="fm-label">Odds Source: DraftKings Sportsbook</div>
+              <div class="fm-label">The Odds API Key <span style="font-size:0.6rem;color:var(--gray)">(optional — for major tournaments)</span></div>
+              <input
+                class="fm-inp"
+                id="fm-odds-key"
+                placeholder="Paste key from the-odds-api.com (free tier works)"
+                onchange="localStorage.setItem('fd_odds_key', this.value)"
+              />
               <div
                 style="font-size: 0.65rem; color: var(--gray); margin-top: 6px"
               >
-                Odds are automatically fetched from DraftKings Sportsbook when
-                you click "Fetch Field". No API key needed — works for every
-                weekly PGA Tour event. Falls back to ESPN odds if DraftKings
-                is unavailable.
+                Covers majors only (Masters, PGA Champ, US Open, The Open).
+                For weekly PGA events, use "Paste Odds" after fetching the field.
+              </div>
+              <div style="margin-top:10px">
+                <button class="btn" onclick="showPasteOddsModal()" style="font-size:0.72rem;padding:6px 14px">📋 Paste Odds (CSV)</button>
+                <div style="font-size:0.6rem;color:var(--gray);margin-top:4px">
+                  Paste player odds from any source: <code>Player Name, +odds</code> (one per line).
+                  Matches to existing field by fuzzy name search.
+                </div>
               </div>
             </div>
           </div>
@@ -2016,174 +2027,16 @@
         long: "Longshot",
         deep: "Deep",
       };
-      // ── DRAFTKINGS + ESPN HYBRID FETCHER ──
-      // DraftKings Sportsbook exposes undocumented JSON endpoints that power their
-      // website. Unlike The Odds API (which only covers 4 majors for golf),
-      // DraftKings has outright winner odds for EVERY weekly PGA Tour event.
-      //
-      // Strategy:
-      //   1. Fetch the ESPN leaderboard for the field of players.
-      //   2. Fetch DraftKings golf event list to find the current tournament's
-      //      eventGroupId by fuzzy-matching the tournament name.
-      //   3. Pull outright winner odds from that event group's offer categories.
-      //   4. Merge DK odds onto the ESPN field; fall back to ESPN odds if DK fails.
-      //
-      // DraftKings API pattern (undocumented, no auth needed, may change):
-      //   Sport listing: /sites/US-SB/api/v1/sports?format=json
-      //   Event groups:  /sites/US-SB/api/v5/eventgroups/{id}?format=json
-      //   Specific cat:  /sites/US-SB/api/v5/eventgroups/{id}/categories/{catId}?format=json
-
-      // DraftKings base (routed through CORS proxy since it's cross-origin)
-      function dkUrl(path) {
-        return (
-          CORS +
-          encodeURIComponent(
-            "https://sportsbook.draftkings.com/sites/US-SB/api" + path,
-          )
-        );
-      }
-
-      async function fetchDraftKingsOdds(tournamentName) {
-        const oddsMap = {};
-        const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const tournNorm = normalize(tournamentName || "");
-
-        try {
-          // Step 1: Get the list of golf event groups from DraftKings
-          // The /v1/sports endpoint or we can go directly to the golf sport page
-          // DraftKings Golf sport ID is typically 9 (Golf)
-          const sportRes = await fetch(dkUrl("/v1/sports?format=json"));
-          if (!sportRes.ok) throw new Error(`DK sports list: ${sportRes.status}`);
-          const sportData = await sportRes.json();
-
-          // Find golf sport entry — look for sport named "Golf" or with golf-related slug
-          const golfSport = (sportData.sports || []).find(
-            (s) =>
-              normalize(s.name || "").includes("golf") ||
-              (s.slug || "").toLowerCase().includes("golf"),
-          );
-          if (!golfSport) {
-            console.log("[DK] Golf sport not found in sports list");
-            return oddsMap;
-          }
-          console.log("[DK] Found golf sport:", golfSport.name, "sportId:", golfSport.sportId);
-
-          // Step 2: Get event groups for golf to find the current tournament
-          const golfEgRes = await fetch(
-            dkUrl(`/v1/sports/${golfSport.sportId}/eventgroups?format=json`),
-          );
-          if (!golfEgRes.ok) throw new Error(`DK golf eventgroups: ${golfEgRes.status}`);
-          const golfEgData = await golfEgRes.json();
-          const eventGroups = golfEgData.eventGroups || golfEgData || [];
-
-          // Fuzzy match: find the event group whose name best matches our tournament
-          let bestMatch = null;
-          let bestScore = 0;
-          for (const eg of eventGroups) {
-            const egNorm = normalize(eg.name || eg.description || "");
-            // Score by counting matching characters in sequence
-            let score = 0;
-            const shorter = tournNorm.length < egNorm.length ? tournNorm : egNorm;
-            const longer = tournNorm.length < egNorm.length ? egNorm : tournNorm;
-            for (const word of shorter.split(/(?=[A-Z])/).join("").split("")) {
-              if (longer.includes(word)) score++;
-            }
-            // Bonus for substring containment
-            if (egNorm.includes(tournNorm) || tournNorm.includes(egNorm))
-              score += 100;
-            // Bonus for shared significant words
-            const tournWords = tournamentName.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            const egWords = (eg.name || "").toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            for (const tw of tournWords) {
-              if (egWords.some((ew) => ew.includes(tw) || tw.includes(ew)))
-                score += 50;
-            }
-            if (score > bestScore) {
-              bestScore = score;
-              bestMatch = eg;
-            }
-          }
-
-          if (!bestMatch || bestScore < 30) {
-            console.log("[DK] No matching tournament found. Best score:", bestScore);
-            // List available for debugging
-            console.log("[DK] Available event groups:", eventGroups.map(e => e.name || e.description));
-            return oddsMap;
-          }
-
-          const egId = bestMatch.eventGroupId || bestMatch.id;
-          console.log(`[DK] Matched "${bestMatch.name}" (id: ${egId}, score: ${bestScore})`);
-
-          // Step 3: Fetch the event group's full offer data
-          const offersRes = await fetch(
-            dkUrl(`/v5/eventgroups/${egId}?format=json`),
-          );
-          if (!offersRes.ok) throw new Error(`DK offers: ${offersRes.status}`);
-          const offersData = await offersRes.json();
-
-          // Step 4: Navigate the DK JSON structure to find outright winner odds.
-          // Structure: eventGroup → offerCategories[] → offerSubcategoryDescriptors[]
-          //            → offerSubcategory → offers[][] → outcomes[]
-          // We look for category/subcategory names containing "outright" or "winner" or "win"
-          const cats = offersData?.eventGroup?.offerCategories || [];
-          for (const cat of cats) {
-            const catName = normalize(cat.name || "");
-            // Look for outright/winner categories
-            const isOutright =
-              catName.includes("winner") ||
-              catName.includes("outright") ||
-              catName.includes("towin") ||
-              catName.includes("futures");
-
-            const subcats = cat.offerSubcategoryDescriptors || [];
-            for (const subcat of subcats) {
-              const subName = normalize(subcat.name || "");
-              const isSubOutright =
-                isOutright ||
-                subName.includes("winner") ||
-                subName.includes("outright") ||
-                subName.includes("towin");
-
-              if (!isSubOutright) continue;
-
-              const offerGroups =
-                subcat.offerSubcategory?.offers || [];
-              for (const offerGroup of offerGroups) {
-                for (const offer of offerGroup) {
-                  const outcomes = offer.outcomes || [];
-                  for (const oc of outcomes) {
-                    const playerName = oc.participant || oc.label || oc.name || "";
-                    if (!playerName) continue;
-                    const nameKey = normalize(playerName);
-                    const price = oc.oddsAmerican || oc.odds || oc.line;
-                    if (price && !oddsMap[nameKey]) {
-                      oddsMap[nameKey] = String(price).startsWith("+") || String(price).startsWith("-")
-                        ? String(price)
-                        : Number(price) > 0
-                          ? `+${price}`
-                          : `${price}`;
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          console.log(`[DK] Extracted ${Object.keys(oddsMap).length} player odds from "${bestMatch.name}"`);
-        } catch (e) {
-          console.error("[DK] DraftKings fetch error:", e);
-        }
-        return oddsMap;
-      }
-
+      // ── THE ODDS API HYBRID FETCHER ──
       async function fetchField(tournId) {
         const t = tournaments.find((x) => x.id === tournId);
         if (!t || !t.espnId) return toast("No ESPN ID");
 
+        const oddsKey = localStorage.getItem("fd_odds_key") || "";
         document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
 
         try {
-          // ── 1. Fetch Primary Leaderboard from ESPN ──
+          // 1. Fetch Primary Leaderboard from ESPN
           const res = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
             headers: { Accept: "application/json" },
           });
@@ -2195,21 +2048,62 @@
             evts?.competitors ||
             [];
 
-          // ── 2. Fetch DraftKings outright winner odds ──
-          toast("Fetching DraftKings odds…");
-          const oddsMap = await fetchDraftKingsOdds(t.name);
-          const hasDkOdds = Object.keys(oddsMap).length > 0;
+          // 2. Build Odds Map — try The Odds API if key provided
+          const oddsMap = {};
+          if (oddsKey) {
+            try {
+              console.log("[Odds] Trying The Odds API — discovering active golf sport keys…");
+              const sportsRes = await fetch(
+                `https://api.the-odds-api.com/v4/sports?apiKey=${oddsKey}`
+              );
+              if (sportsRes.ok) {
+                const sports = await sportsRes.json();
+                const golfKeys = sports
+                  .filter((s) => s.group === "Golf" && s.active && s.has_outrights)
+                  .map((s) => s.key);
+                console.log("[Odds] Active golf keys:", golfKeys);
 
-          if (hasDkOdds) {
-            console.log("[Odds] DraftKings odds loaded successfully");
-          } else {
-            console.log("[Odds] No DraftKings odds — will fall back to ESPN");
+                for (const key of golfKeys) {
+                  try {
+                    const oddsRes = await fetch(
+                      `https://api.the-odds-api.com/v4/sports/${key}/odds?apiKey=${oddsKey}&regions=us&markets=outrights&oddsFormat=american`
+                    );
+                    if (oddsRes.ok) {
+                      const events = await oddsRes.json();
+                      for (const event of events) {
+                        for (const bookie of event.bookmakers || []) {
+                          const market = bookie.markets?.find(
+                            (m) => m.key === "outrights"
+                          );
+                          if (market && market.outcomes) {
+                            for (const outcome of market.outcomes) {
+                              const nameKey = outcome.name
+                                .toLowerCase()
+                                .replace(/[^a-z]/g, "");
+                              if (!oddsMap[nameKey]) {
+                                oddsMap[nameKey] =
+                                  outcome.price > 0
+                                    ? `+${outcome.price}`
+                                    : `${outcome.price}`;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.warn(`[Odds] Error fetching key ${key}:`, e);
+                  }
+                }
+                console.log(`[Odds] The Odds API returned ${Object.keys(oddsMap).length} player odds`);
+              }
+            } catch (e) {
+              console.error("[Odds] The Odds API Error:", e);
+            }
           }
 
-          // ── 3. Merge ESPN field + DraftKings odds ──
+          const oddsCount = Object.keys(oddsMap).length;
           const field = [];
-          const normalize = (s) => s.toLowerCase().replace(/[^a-z]/g, "");
-
           for (const comp of competitors) {
             const name =
               comp.athlete?.displayName ||
@@ -2230,13 +2124,12 @@
 
             let oddsStr = "N/A";
 
-            // 3a. Try DraftKings odds — exact match then fuzzy
-            if (hasDkOdds) {
-              const nameKey = normalize(name);
+            // Try The Odds API map first using Fuzzy Match
+            if (oddsCount > 0) {
+              const nameKey = name.toLowerCase().replace(/[^a-z]/g, "");
               if (oddsMap[nameKey]) {
                 oddsStr = oddsMap[nameKey];
               } else {
-                // Fuzzy: last name + first initial
                 const parts = name.toLowerCase().split(" ");
                 const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
                 const firstChar = parts[0][0];
@@ -2249,7 +2142,7 @@
               }
             }
 
-            // 3b. Fallback: ESPN-embedded odds
+            // Fallback to ESPN odds (rarely available, but try)
             if (oddsStr === "N/A") {
               let oddsRaw = null;
               if (Array.isArray(comp.odds) && comp.odds.length > 0)
@@ -2304,14 +2197,138 @@
             field: field,
           };
           await saveTournamentDataToDB(tournId, tData);
-          const oddsNote = hasDkOdds
-            ? " (DraftKings odds)"
-            : " (ESPN fallback odds)";
-          toast(`Field loaded: ${field.length} players${oddsNote}`);
+
+          const withOdds = field.filter((p) => p.o !== "N/A" && p.o !== "WD").length;
+          if (withOdds > 0) {
+            toast(`Field loaded: ${field.length} players (${withOdds} with odds)`);
+          } else {
+            toast(`Field loaded: ${field.length} players — use "Paste Odds" in Settings to add odds`);
+          }
         } catch (e) {
           toast(`Error: ${e.message}`);
         }
         document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetch Field";
+      }
+
+      // ═══════════════════════════════════════════════════════
+      // PASTE ODDS (CSV) MODAL — works for ANY weekly PGA event
+      // ═══════════════════════════════════════════════════════
+      function showPasteOddsModal() {
+        const t = getActiveTournament();
+        if (!t || !t.field || !t.field.length) {
+          toast("Fetch the field first, then paste odds");
+          return;
+        }
+        const overlay = document.createElement("div");
+        overlay.id = "paste-odds-overlay";
+        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;";
+        overlay.innerHTML = `
+          <div style="background:var(--panel);border-radius:14px;padding:28px;max-width:560px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+            <h3 style="margin:0 0 8px;color:var(--fg)">📋 Paste Odds for ${t.name}</h3>
+            <p style="font-size:0.72rem;color:var(--gray);margin:0 0 12px">
+              Paste lines from any odds source. Format: <code>Player Name, +odds</code> (one per line).<br>
+              Example:<br>
+              <code style="font-size:0.65rem">Scottie Scheffler, +350<br>Rory McIlroy, +1000<br>Tommy Fleetwood, +2000</code><br><br>
+              Tip: Copy from DraftKings, FanDuel, Covers.com, etc. and paste here.
+              The app will fuzzy-match names to the existing field.
+            </p>
+            <textarea id="paste-odds-text" rows="14" style="width:100%;font-family:monospace;font-size:0.75rem;padding:10px;border:1px solid var(--bdr);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical;" placeholder="Scottie Scheffler, +350&#10;Rory McIlroy, +1000&#10;Tommy Fleetwood, +2000"></textarea>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button class="btn" onclick="applyPastedOdds()" style="flex:1">✅ Apply Odds</button>
+              <button class="btn" onclick="document.getElementById('paste-odds-overlay').remove()" style="flex:1;background:var(--bdr);color:var(--fg)">Cancel</button>
+            </div>
+            <div id="paste-odds-result" style="font-size:0.7rem;margin-top:10px;color:var(--gray)"></div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+      }
+
+      function applyPastedOdds() {
+        const t = getActiveTournament();
+        if (!t || !t.field) return;
+
+        const raw = document.getElementById("paste-odds-text").value.trim();
+        if (!raw) return toast("Nothing to paste");
+
+        const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+        let matched = 0, unmatched = 0;
+        const unmatchedNames = [];
+
+        // Normalize helper
+        const norm = (s) => s.toLowerCase().replace(/[^a-z]/g, "");
+
+        // Build lookup from field
+        const fieldNorms = t.field.map((p) => ({ norm: norm(p.n), parts: p.n.toLowerCase().split(" "), player: p }));
+
+        for (const line of lines) {
+          // Parse line — support: "Name, +odds" or "Name +odds" or "Name\t+odds"
+          const m = line.match(/^(.+?)[,\t]\s*([+-]?\d+)$/) ||
+                    line.match(/^(.+?)\s+([+-]\d+)$/);
+          if (!m) continue;
+
+          const pastedName = m[1].trim();
+          const oddsVal = m[2].startsWith("+") || m[2].startsWith("-") ? m[2] : `+${m[2]}`;
+          const pastedNorm = norm(pastedName);
+
+          // Exact normalized match
+          let found = fieldNorms.find((f) => f.norm === pastedNorm);
+
+          // Fuzzy: last name + first initial
+          if (!found) {
+            const parts = pastedName.toLowerCase().split(/\s+/);
+            const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
+            const firstChar = parts[0]?.[0];
+            found = fieldNorms.find((f) => {
+              const fLast = f.parts[f.parts.length - 1].replace(/[^a-z]/g, "");
+              return fLast === last && f.parts[0]?.[0] === firstChar;
+            });
+          }
+
+          // Fuzzy: last name only (if unique)
+          if (!found) {
+            const parts = pastedName.toLowerCase().split(/\s+/);
+            const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
+            const candidates = fieldNorms.filter((f) => {
+              const fLast = f.parts[f.parts.length - 1].replace(/[^a-z]/g, "");
+              return fLast === last;
+            });
+            if (candidates.length === 1) found = candidates[0];
+          }
+
+          if (found) {
+            found.player.o = oddsVal;
+            matched++;
+          } else {
+            unmatched++;
+            unmatchedNames.push(pastedName);
+          }
+        }
+
+        // Re-sort field
+        t.field.sort((a, b) => {
+          if (a.o === "WD" && b.o !== "WD") return 1;
+          if (b.o === "WD" && a.o !== "WD") return -1;
+          if (a.o === "N/A" && b.o !== "N/A") return 1;
+          if (b.o === "N/A" && a.o !== "N/A") return -1;
+          return oNum(a.o) - oNum(b.o);
+        });
+
+        // Save and re-render
+        const tObj = tournaments.find((x) => x.id === activeTournamentId);
+        if (tObj) {
+          saveTournamentDataToDB(tObj.id, {
+            name: t.name, venue: t.venue, par: t.par, purse: t.purse,
+            tz: t.tz, teeTimeISO: t.teeTimeISO, espnId: t.espnId, field: t.field,
+          });
+        }
+        renderTable();
+
+        const resultEl = document.getElementById("paste-odds-result");
+        let msg = `✅ Matched ${matched} players.`;
+        if (unmatched > 0) msg += ` ⚠️ ${unmatched} unmatched: ${unmatchedNames.slice(0, 5).join(", ")}${unmatchedNames.length > 5 ? "…" : ""}`;
+        resultEl.textContent = msg;
+        toast(`Odds applied: ${matched} matched, ${unmatched} unmatched`);
       }
 
       // ═══════════════════════════════════════════════════════
@@ -2931,6 +2948,11 @@
       // INIT
       // ═══════════════════════════════════════════════════════
       function init() {
+        // Load API key from local storage if saved
+        const oddsInput = document.getElementById("fm-odds-key");
+        if (oddsInput)
+          oddsInput.value = localStorage.getItem("fd_odds_key") || "";
+
         loadFromCloud();
         deadlineTimer = setInterval(() => {
           updateDeadlineBar();
