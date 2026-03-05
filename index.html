@@ -2885,11 +2885,11 @@
           if (played === 0) {
             moneySumEl.innerHTML = "";
           } else if (netMatchups > 0) {
-            moneySumEl.innerHTML = `<span style="color:#4ade80;">💰 ${nameA} up <strong>$${netMoney.toFixed(2)}</strong></span><span style="color:var(--gray);margin-left:10px;">(${wA}W-${wB}L-${ties}T · ${played}/${numMatchups} decided)</span>`;
+            moneySumEl.innerHTML = `<span style="color:#4ade80;">💰 ${nameA} up <strong>$${netMoney.toFixed(2)}</strong></span><span style="color:var(--gray);margin-left:10px;">(${nameA} leads ${wA} · ${nameB} leads ${wB}${ties ? ` · ${ties} tied` : ""} · ${numMatchups - played} pending)</span>`;
           } else if (netMatchups < 0) {
-            moneySumEl.innerHTML = `<span style="color:#f87171;">💰 ${nameB} up <strong>$${netMoney.toFixed(2)}</strong></span><span style="color:var(--gray);margin-left:10px;">(${wA}W-${wB}L-${ties}T · ${played}/${numMatchups} decided)</span>`;
+            moneySumEl.innerHTML = `<span style="color:#f87171;">💰 ${nameB} up <strong>$${netMoney.toFixed(2)}</strong></span><span style="color:var(--gray);margin-left:10px;">(${nameA} leads ${wA} · ${nameB} leads ${wB}${ties ? ` · ${ties} tied` : ""} · ${numMatchups - played} pending)</span>`;
           } else {
-            moneySumEl.innerHTML = `<span style="color:var(--gold);">🤝 Even — $0.00</span><span style="color:var(--gray);margin-left:10px;">(${wA}W-${wB}L-${ties}T · ${played}/${numMatchups} decided)</span>`;
+            moneySumEl.innerHTML = `<span style="color:var(--gold);">🤝 Even — $0.00</span><span style="color:var(--gray);margin-left:10px;">(${nameA} leads ${wA} · ${nameB} leads ${wB}${ties ? ` · ${ties} tied` : ""} · ${numMatchups - played} pending)</span>`;
           }
         } else {
           wagerTotalEl.textContent = "";
@@ -3358,4 +3358,5 @@
     </script>
   </body>
 </html>
+
 
