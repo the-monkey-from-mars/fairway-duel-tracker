@@ -1439,7 +1439,17 @@
             <div class="db db-a">
               <div class="dh">
                 <div class="ddot ddot-a"></div>
-                <input class="dinp" id="name-a" value="Matt" onchange="WS.nameA=this.value;syncNames();saveGameStateToDB()" placeholder="Player A name" />
+                <input
+                  class="dinp"
+                  id="name-a"
+                  value="Matt"
+                  onchange="
+                    WS.nameA = this.value;
+                    syncNames();
+                    saveGameStateToDB();
+                  "
+                  placeholder="Player A name"
+                />
                 <span class="dtly" id="tly-a">0/20</span>
               </div>
               <div class="plist" id="pl-a">
@@ -1462,7 +1472,17 @@
             <div class="db db-b">
               <div class="dh">
                 <div class="ddot ddot-b"></div>
-                <input class="dinp" id="name-b" value="Chad" onchange="WS.nameB=this.value;syncNames();saveGameStateToDB()" placeholder="Player B name" />
+                <input
+                  class="dinp"
+                  id="name-b"
+                  value="Chad"
+                  onchange="
+                    WS.nameB = this.value;
+                    syncNames();
+                    saveGameStateToDB();
+                  "
+                  placeholder="Player B name"
+                />
                 <span class="dtly" id="tly-b">0/20</span>
               </div>
               <div class="plist" id="pl-b">
@@ -1523,12 +1543,64 @@
             <div class="hc-stats" id="hcs-b"></div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 16px;flex-wrap:wrap;">
-          <label style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gray);text-transform:uppercase;">Per Matchup $</label>
-          <input id="wager-amt" type="number" step="0.25" min="0" value="0" style="width:70px;background:rgba(0,0,0,0.5);border:1px solid var(--bdr2);border-radius:5px;padding:6px 8px;color:var(--cream);font-size:0.85rem;text-align:center;font-family:'JetBrains Mono',monospace;" onchange="saveWager(this.value)" oninput="renderLb()">
-          <span id="wager-total" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--gray);"></span>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0 16px;
+            flex-wrap: wrap;
+          "
+        >
+          <label
+            style="
+              font-family: &quot;JetBrains Mono&quot;, monospace;
+              font-size: 0.65rem;
+              color: var(--gray);
+              text-transform: uppercase;
+            "
+            >Per Matchup $</label
+          >
+          <input
+            id="wager-amt"
+            type="number"
+            step="0.25"
+            min="0"
+            value="0"
+            style="
+              width: 70px;
+              background: rgba(0, 0, 0, 0.5);
+              border: 1px solid var(--bdr2);
+              border-radius: 5px;
+              padding: 6px 8px;
+              color: var(--cream);
+              font-size: 0.85rem;
+              text-align: center;
+              font-family: &quot;JetBrains Mono&quot;, monospace;
+            "
+            onchange="saveWager(this.value)"
+            oninput="renderLb()"
+          />
+          <span
+            id="wager-total"
+            style="
+              font-family: &quot;JetBrains Mono&quot;, monospace;
+              font-size: 0.7rem;
+              color: var(--gray);
+            "
+          ></span>
         </div>
-        <div id="money-summary" style="text-align:center;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;min-height:1.2em;"></div>
+        <div
+          id="money-summary"
+          style="
+            text-align: center;
+            margin-bottom: 14px;
+            font-family: &quot;JetBrains Mono&quot;, monospace;
+            font-size: 0.85rem;
+            min-height: 1.2em;
+          "
+        ></div>
         <div class="mu-sh">
           <div class="mu-stitle">Head-to-Head Matchups</div>
           <div class="mu-sh-right" id="mu-actions"></div>
@@ -1553,11 +1625,38 @@
           <div style="padding: 1.2rem">
             <div class="fm-group">
               <div class="fm-label">Player Names</div>
-              <div style="display:flex;gap:10px;margin-bottom:1rem;">
-                <input class="fm-inp" id="mgr-name-a" placeholder="Player A name" style="flex:1" onchange="WS.nameA=this.value;document.getElementById('name-a').value=this.value;syncNames();saveGameStateToDB()">
-                <input class="fm-inp" id="mgr-name-b" placeholder="Player B name" style="flex:1" onchange="WS.nameB=this.value;document.getElementById('name-b').value=this.value;syncNames();saveGameStateToDB()">
+              <div style="display: flex; gap: 10px; margin-bottom: 1rem">
+                <input
+                  class="fm-inp"
+                  id="mgr-name-a"
+                  placeholder="Player A name"
+                  style="flex: 1"
+                  onchange="
+                    WS.nameA = this.value;
+                    document.getElementById('name-a').value = this.value;
+                    syncNames();
+                    saveGameStateToDB();
+                  "
+                />
+                <input
+                  class="fm-inp"
+                  id="mgr-name-b"
+                  placeholder="Player B name"
+                  style="flex: 1"
+                  onchange="
+                    WS.nameB = this.value;
+                    document.getElementById('name-b').value = this.value;
+                    syncNames();
+                    saveGameStateToDB();
+                  "
+                />
               </div>
-              <div class="fm-label">The Odds API Key <span style="font-size:0.6rem;color:var(--gray)">(optional — for major tournaments)</span></div>
+              <div class="fm-label">
+                The Odds API Key
+                <span style="font-size: 0.6rem; color: var(--gray)"
+                  >(optional — for major tournaments)</span
+                >
+              </div>
               <input
                 class="fm-inp"
                 id="fm-odds-key"
@@ -1567,14 +1666,23 @@
               <div
                 style="font-size: 0.65rem; color: var(--gray); margin-top: 6px"
               >
-                Covers majors only (Masters, PGA Champ, US Open, The Open).
-                For weekly PGA events, use "Paste Odds" after fetching the field.
+                Covers majors only (Masters, PGA Champ, US Open, The Open). For
+                weekly PGA events, use "Paste Odds" after fetching the field.
               </div>
-              <div style="margin-top:10px">
-                <button class="btn" onclick="showPasteOddsModal()" style="font-size:0.72rem;padding:6px 14px">📋 Paste Odds (CSV)</button>
-                <div style="font-size:0.6rem;color:var(--gray);margin-top:4px">
-                  Paste player odds from any source: <code>Player Name, +odds</code> (one per line).
-                  Matches to existing field by fuzzy name search.
+              <div style="margin-top: 10px">
+                <button
+                  class="btn"
+                  onclick="showPasteOddsModal()"
+                  style="font-size: 0.72rem; padding: 6px 14px"
+                >
+                  📋 Paste Odds (CSV)
+                </button>
+                <div
+                  style="font-size: 0.6rem; color: var(--gray); margin-top: 4px"
+                >
+                  Paste player odds from any source:
+                  <code>Player Name, +odds</code> (one per line). Matches to
+                  existing field by fuzzy name search.
                 </div>
               </div>
             </div>
@@ -1804,8 +1912,10 @@
         liveData = t._scores || null;
         document.getElementById("name-a").value = WS.nameA || "Matt";
         document.getElementById("name-b").value = WS.nameB || "Chad";
-        if (document.getElementById("mgr-name-a")) document.getElementById("mgr-name-a").value = WS.nameA || "Matt";
-        if (document.getElementById("mgr-name-b")) document.getElementById("mgr-name-b").value = WS.nameB || "Chad";
+        if (document.getElementById("mgr-name-a"))
+          document.getElementById("mgr-name-a").value = WS.nameA || "Matt";
+        if (document.getElementById("mgr-name-b"))
+          document.getElementById("mgr-name-b").value = WS.nameB || "Chad";
         updateHeader();
         updateDeadlineBar();
         syncNames();
@@ -2126,33 +2236,38 @@
           const oddsMap = {};
           if (oddsKey) {
             try {
-              console.log("[Odds] Trying The Odds API — discovering active golf sport keys…");
+              console.log(
+                "[Odds] Trying The Odds API — discovering active golf sport keys…",
+              );
               const sportsRes = await fetch(
-                `https://api.the-odds-api.com/v4/sports?apiKey=${oddsKey}`
+                `https://api.the-odds-api.com/v4/sports?apiKey=${oddsKey}`,
               );
               if (sportsRes.ok) {
                 const sports = await sportsRes.json();
                 const golfKeys = sports
-                  .filter((s) => s.group === "Golf" && s.active && s.has_outrights)
+                  .filter(
+                    (s) => s.group === "Golf" && s.active && s.has_outrights,
+                  )
                   .map((s) => s.key);
                 console.log("[Odds] Active golf keys:", golfKeys);
 
                 for (const key of golfKeys) {
                   try {
                     const oddsRes = await fetch(
-                      `https://api.the-odds-api.com/v4/sports/${key}/odds?apiKey=${oddsKey}&regions=us&markets=outrights&oddsFormat=american`
+                      `https://api.the-odds-api.com/v4/sports/${key}/odds?apiKey=${oddsKey}&regions=us&markets=outrights&oddsFormat=american`,
                     );
                     if (oddsRes.ok) {
                       const events = await oddsRes.json();
                       for (const event of events) {
                         for (const bookie of event.bookmakers || []) {
                           const market = bookie.markets?.find(
-                            (m) => m.key === "outrights"
+                            (m) => m.key === "outrights",
                           );
                           if (market && market.outcomes) {
                             for (const outcome of market.outcomes) {
                               const nameKey = outcome.name
-                                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                                .normalize("NFD")
+                                .replace(/[\u0300-\u036f]/g, "")
                                 .toLowerCase()
                                 .replace(/[^a-z]/g, "");
                               if (!oddsMap[nameKey]) {
@@ -2170,7 +2285,9 @@
                     console.warn(`[Odds] Error fetching key ${key}:`, e);
                   }
                 }
-                console.log(`[Odds] The Odds API returned ${Object.keys(oddsMap).length} player odds`);
+                console.log(
+                  `[Odds] The Odds API returned ${Object.keys(oddsMap).length} player odds`,
+                );
               }
             } catch (e) {
               console.error("[Odds] The Odds API Error:", e);
@@ -2201,11 +2318,18 @@
 
             // Try The Odds API map first using Fuzzy Match
             if (oddsCount > 0) {
-              const nameKey = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+              const nameKey = name
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .replace(/[^a-z]/g, "");
               if (oddsMap[nameKey]) {
                 oddsStr = oddsMap[nameKey];
               } else {
-                const cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                const cleanName = name
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase();
                 const parts = cleanName.split(" ");
                 const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
                 const firstChar = parts[0][0];
@@ -2274,11 +2398,17 @@
           };
           await saveTournamentDataToDB(tournId, tData);
 
-          const withOdds = field.filter((p) => p.o !== "N/A" && p.o !== "WD").length;
+          const withOdds = field.filter(
+            (p) => p.o !== "N/A" && p.o !== "WD",
+          ).length;
           if (withOdds > 0) {
-            toast(`Field loaded: ${field.length} players (${withOdds} with odds)`);
+            toast(
+              `Field loaded: ${field.length} players (${withOdds} with odds)`,
+            );
           } else {
-            toast(`Field loaded: ${field.length} players — use "Paste Odds" in Settings to add odds`);
+            toast(
+              `Field loaded: ${field.length} players — use "Paste Odds" in Settings to add odds`,
+            );
           }
         } catch (e) {
           toast(`Error: ${e.message}`);
@@ -2297,7 +2427,8 @@
         }
         const overlay = document.createElement("div");
         overlay.id = "paste-odds-overlay";
-        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;";
+        overlay.style.cssText =
+          "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;";
         overlay.innerHTML = `
           <div style="background:#1a2332;border:1px solid #2d3f52;border-radius:14px;padding:28px;max-width:560px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 12px 48px rgba(0,0,0,.6)">
             <h3 style="margin:0 0 8px;color:#e8edf3">📋 Paste Odds for ${t.name}</h3>
@@ -2316,7 +2447,9 @@
           </div>
         `;
         document.body.appendChild(overlay);
-        overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) overlay.remove();
+        });
       }
 
       async function applyPastedOdds() {
@@ -2326,24 +2459,39 @@
         const raw = document.getElementById("paste-odds-text").value.trim();
         if (!raw) return toast("Nothing to paste");
 
-        const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
-        let matched = 0, unmatched = 0;
+        const lines = raw
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+        let matched = 0,
+          unmatched = 0;
         const unmatchedNames = [];
 
         // Normalize helper
-        const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+        const norm = (s) =>
+          s
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z]/g, "");
 
         // Build lookup from field
-        const fieldNorms = t.field.map((p) => ({ norm: norm(p.n), parts: p.n.toLowerCase().split(" "), player: p }));
+        const fieldNorms = t.field.map((p) => ({
+          norm: norm(p.n),
+          parts: p.n.toLowerCase().split(" "),
+          player: p,
+        }));
 
         for (const line of lines) {
           // Parse line — support: "Name, +odds" or "Name +odds" or "Name\t+odds"
-          const m = line.match(/^(.+?)[,\t]\s*([+-]?\d+)$/) ||
-                    line.match(/^(.+?)\s+([+-]\d+)$/);
+          const m =
+            line.match(/^(.+?)[,\t]\s*([+-]?\d+)$/) ||
+            line.match(/^(.+?)\s+([+-]\d+)$/);
           if (!m) continue;
 
           const pastedName = m[1].trim();
-          const oddsVal = m[2].startsWith("+") || m[2].startsWith("-") ? m[2] : `+${m[2]}`;
+          const oddsVal =
+            m[2].startsWith("+") || m[2].startsWith("-") ? m[2] : `+${m[2]}`;
           const pastedNorm = norm(pastedName);
 
           // Exact normalized match
@@ -2391,8 +2539,14 @@
 
         // Save to DB using the correct variable name (activeTId)
         await saveTournamentDataToDB(t.id, {
-          name: t.name, venue: t.venue, par: t.par, purse: t.purse,
-          tz: t.tz, teeTimeISO: t.teeTimeISO, espnId: t.espnId, field: t.field,
+          name: t.name,
+          venue: t.venue,
+          par: t.par,
+          purse: t.purse,
+          tz: t.tz,
+          teeTimeISO: t.teeTimeISO,
+          espnId: t.espnId,
+          field: t.field,
         });
 
         // Close the modal
@@ -2401,7 +2555,8 @@
 
         // Show result
         let msg = `Odds applied: ${matched} matched`;
-        if (unmatched > 0) msg += `, ${unmatched} unmatched (${unmatchedNames.slice(0, 3).join(", ")}${unmatchedNames.length > 3 ? "…" : ""})`;
+        if (unmatched > 0)
+          msg += `, ${unmatched} unmatched (${unmatchedNames.slice(0, 3).join(", ")}${unmatchedNames.length > 3 ? "…" : ""})`;
         toast(msg);
       }
 
@@ -2624,22 +2779,13 @@
       function calcSF(pd, isMC) {
         if (!pd || pd.status === "pre_tournament" || pd.status === "wd")
           return null;
-        const rounds = isMC
-          ? (pd.scorecardRounds || []).slice(0, 2)
-          : pd.scorecardRounds || [];
-        if (!rounds.length) return null;
-        let total = 0,
-          anyHole = false;
-        for (const rnd of rounds) {
-          for (const hole of rnd || []) {
-            const pts = holePoints(hole.strokes, hole.par);
-            if (pts !== null) {
-              total += pts;
-              anyHole = true;
-            }
-          }
-        }
-        return anyHole ? Math.max(0, total) : null;
+        const a = pd.aggStats;
+        if (!a) return null;
+        // For missed cut players, we'd ideally only count R1-R2, but aggregate stats
+        // from ESPN are already limited to rounds played, so this is correct as-is.
+        const total = (a.eagles || 0) * 5 + (a.birdies || 0) * 3 + (a.pars || 0) * 1
+          + (a.bogeys || 0) * 0 + (a.doubles || 0) * -2 + (a.worse || 0) * -3;
+        return Math.max(0, total);
       }
       function getPD(name) {
         return liveData?.players?.[name] || null;
@@ -2756,21 +2902,9 @@
               (b.res === "pending" ? 2 : b.res === "tie" ? 1 : 0),
           )
           .map((s) => {
-            function getToParStr(pd, isMC) {
-              if (!pd) return "";
-              // Try ESPN-provided scoreToPar first
-              if (pd.scoreToPar && pd.scoreToPar !== "-") return pd.scoreToPar;
-              // Compute from scorecard
-              const rounds = isMC ? (pd.scorecardRounds || []).slice(0, 2) : (pd.scorecardRounds || []);
-              let totalStrokes = 0, totalPar = 0, any = false;
-              for (const rnd of rounds) {
-                for (const h of rnd || []) {
-                  if (h.strokes && h.par) { totalStrokes += h.strokes; totalPar += h.par; any = true; }
-                }
-              }
-              if (!any) return "";
-              const diff = totalStrokes - totalPar;
-              return diff === 0 ? "E" : diff > 0 ? `+${diff}` : `${diff}`;
+            function getToParStr(pd) {
+              if (!pd || !pd.scoreToPar || pd.scoreToPar === "-") return "";
+              return pd.scoreToPar;
             }
             function cell(name, pd, isMC) {
               const pts = calcSF(pd, isMC);
@@ -2783,23 +2917,32 @@
                 bogeys = 0,
                 doubles = 0,
                 worse = 0;
-              for (const rnd of scoringRounds) {
-                for (const h of rnd || []) {
-                  const d = (h.strokes || 0) - (h.par || 0);
-                  if (d <= -2) eagles++;
-                  else if (d === -1) birdies++;
-                  else if (d === 0) pars++;
-                  else if (d === 1) bogeys++;
-                  else if (d === 2) doubles++;
-                  else worse++;
+              if (scoringRounds.length) {
+                for (const rnd of scoringRounds) {
+                  for (const h of rnd || []) {
+                    const d = (h.strokes || 0) - (h.par || 0);
+                    if (d <= -2) eagles++;
+                    else if (d === -1) birdies++;
+                    else if (d === 0) pars++;
+                    else if (d === 1) bogeys++;
+                    else if (d === 2) doubles++;
+                    else worse++;
+                  }
                 }
+              } else if (pd?.aggStats) {
+                eagles = pd.aggStats.eagles || 0;
+                birdies = pd.aggStats.birdies || 0;
+                pars = pd.aggStats.pars || 0;
+                bogeys = pd.aggStats.bogeys || 0;
+                doubles = pd.aggStats.doubles || 0;
+                worse = pd.aggStats.worse || 0;
               }
               const holesPlayed = scoringRounds.reduce(
                 (sum, r) =>
                   sum + (r || []).filter((h) => h.strokes !== null).length,
                 0,
               );
-              const hasHoles = holesPlayed > 0;
+              const hasHoles = holesPlayed > 0 || (pd?.aggStats && (eagles + birdies + pars + bogeys + doubles + worse) > 0);
               const stCls =
                 status === "pre_tournament"
                   ? "st-pre"
@@ -2810,21 +2953,25 @@
                       : status === "finished"
                         ? "st-done"
                         : "st-wd";
-              const activeRound =
-                pd?.scorecardRounds?.filter((r) => r !== null).length || 0;
+              const pRound = pd?.round || 1;
+              const pThru = pd?.thru || 0;
               const stTxt =
                 status === "pre_tournament"
                   ? "Pre-Tournament"
                   : status === "active"
-                    ? `R${activeRound} Active (Hole ${holesPlayed % 18 || 18})`
+                    ? (pThru > 0 ? `R${pRound} · Thru ${pThru}` : `R${pRound} · Starting`)
                     : status === "cut"
                       ? "Missed Cut"
                       : status === "finished"
                         ? "Finished"
                         : "Withdrew";
-              const toPar = getToParStr(pd, isMC);
-              const toParHtml = toPar ? `<span style="font-size:0.7rem;color:${toPar.startsWith("-") ? "#4ade80" : toPar === "E" ? "var(--gray)" : "#f87171"};margin-left:6px;">(${toPar})</span>` : "";
-              const posHtml = pd?.position ? `<span style="font-size:0.6rem;color:var(--gray);margin-right:4px;">${pd.position}</span> ` : "";
+              const toPar = getToParStr(pd);
+              const toParHtml = toPar
+                ? `<span style="font-size:0.7rem;color:${toPar.startsWith("-") ? "#4ade80" : toPar === "E" ? "var(--gray)" : "#f87171"};margin-left:6px;">(${toPar})</span>`
+                : "";
+              const posHtml = pd?.position
+                ? `<span style="font-size:0.6rem;color:var(--gray);margin-right:4px;">${pd.position}</span> `
+                : "";
               return `<div class="mc-pname">${posHtml}${name}${toParHtml}</div><div class="mc-score-row"><span class="mc-pts">${pts !== null ? pts : "—"}</span><span class="mc-sub">pts${isMC ? " (R1–R2)" : ""}</span></div>${hasHoles ? `<div class="mc-holes" style="margin-top:4px;">${eagles ? `<span class="mh mh-eagle">🦅${eagles}</span>` : ""}${birdies ? `<span class="mh mh-birdie">🐦${birdies}</span>` : ""}${pars ? `<span class="mh mh-par">—${pars}</span>` : ""}${bogeys ? `<span class="mh mh-bogey">☁${bogeys}</span>` : ""}${doubles ? `<span class="mh mh-dbl">⛈${doubles}</span>` : ""}${worse ? `<span class="mh mh-worse">💀${worse}</span>` : ""}</div>` : ""}<div class="mc-st ${stCls}" style="margin-top:4px;">${stTxt}</div>`;
             }
             const ccA = `mc mc-a ${s.res === "a" ? "winner" : s.res === "tie" ? "tied" : s.res === "b" ? "loser" : ""} ${s.mcA ? "mccut" : ""}`;
@@ -2832,9 +2979,12 @@
             // Money tag for decided matchups
             let moneyTag = "";
             if (wagerPer > 0 && s.res !== "pending") {
-              if (s.res === "a") moneyTag = `<div style="font-size:0.6rem;color:#4ade80;margin-top:2px;">💰 ${nameA} +$${wagerPer.toFixed(2)}</div>`;
-              else if (s.res === "b") moneyTag = `<div style="font-size:0.6rem;color:#f87171;margin-top:2px;">💰 ${nameB} +$${wagerPer.toFixed(2)}</div>`;
-              else moneyTag = `<div style="font-size:0.6rem;color:var(--gold);margin-top:2px;">🤝 Push</div>`;
+              if (s.res === "a")
+                moneyTag = `<div style="font-size:0.6rem;color:#4ade80;margin-top:2px;">💰 ${nameA} +$${wagerPer.toFixed(2)}</div>`;
+              else if (s.res === "b")
+                moneyTag = `<div style="font-size:0.6rem;color:#f87171;margin-top:2px;">💰 ${nameB} +$${wagerPer.toFixed(2)}</div>`;
+              else
+                moneyTag = `<div style="font-size:0.6rem;color:var(--gold);margin-top:2px;">🤝 Push</div>`;
             }
             const mid = s.same
               ? `<div class="same-tag">Both<br>teams</div>`
@@ -2852,68 +3002,60 @@
       function showMatchupDetail(idx) {
         if (!WS.matchups || !WS.matchups.pairs[idx]) return;
         const pair = WS.matchups.pairs[idx];
-        const pdA = getPD(pair.a), pdB = getPD(pair.b);
-        const mcA = pdA?.status === "cut", mcB = pdB?.status === "cut";
-        const nameA = WS.nameA || "Matt", nameB = WS.nameB || "Chad";
+        const pdA = getPD(pair.a),
+          pdB = getPD(pair.b);
+        const mcA = pdA?.status === "cut",
+          mcB = pdB?.status === "cut";
+        const nameA = WS.nameA || "Matt",
+          nameB = WS.nameB || "Chad";
 
         function buildRoundTable(pd, isMC, playerName) {
-          if (!pd || !pd.scorecardRounds || !pd.scorecardRounds.length)
-            return `<div style="color:var(--gray);font-size:0.75rem;padding:10px;">No scorecard data yet for ${playerName}</div>`;
-          const rounds = pd.scorecardRounds;
-          const maxRound = isMC ? Math.min(rounds.length, 2) : rounds.length;
-          let html = "";
-          let grandTotalPts = 0, grandStrokes = 0, grandPar = 0;
-          for (let r = 0; r < maxRound; r++) {
-            const holes = rounds[r] || [];
-            if (!holes.length) continue;
-            let rndPts = 0, rndStrokes = 0, rndPar = 0;
-            html += `<div style="font-size:0.7rem;font-weight:600;color:var(--gold2);margin:10px 0 4px;">Round ${r + 1}${isMC && r < 2 ? " (scored)" : ""}</div>`;
-            html += `<table style="width:100%;font-size:0.65rem;border-collapse:collapse;">`;
-            html += `<tr style="color:var(--gray);border-bottom:1px solid var(--bdr)"><th style="text-align:left;padding:3px 4px;">Hole</th><th>Par</th><th>Score</th><th>+/-</th><th>Pts</th></tr>`;
-            for (let hi = 0; hi < holes.length; hi++) {
-              const h = holes[hi];
-              const diff = h.strokes - h.par;
-              const pts = holePoints(h.strokes, h.par) || 0;
-              rndPts += pts; rndStrokes += h.strokes; rndPar += h.par;
-              const diffStr = diff === 0 ? "E" : diff > 0 ? `+${diff}` : `${diff}`;
-              const color = diff < -1 ? "#fbbf24" : diff === -1 ? "#4ade80" : diff === 0 ? "#94a3b8" : diff === 1 ? "#f87171" : "#ef4444";
-              const label = diff <= -3 ? "Alb/HIO" : diff === -2 ? "Eagle" : diff === -1 ? "Birdie" : diff === 0 ? "Par" : diff === 1 ? "Bogey" : diff === 2 ? "Double" : "Triple+";
-              html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                <td style="padding:3px 4px;">${hi + 1}</td>
-                <td style="text-align:center;">${h.par}</td>
-                <td style="text-align:center;font-weight:600;color:${color}">${h.strokes}</td>
-                <td style="text-align:center;color:${color};font-size:0.6rem;">${diffStr} ${label}</td>
-                <td style="text-align:center;font-weight:600;color:${pts > 0 ? "#4ade80" : pts < 0 ? "#f87171" : "#94a3b8"}">${pts > 0 ? "+" : ""}${pts}</td>
-              </tr>`;
-            }
-            const rndDiff = rndStrokes - rndPar;
-            const rndDiffStr = rndDiff === 0 ? "E" : rndDiff > 0 ? `+${rndDiff}` : `${rndDiff}`;
-            html += `<tr style="font-weight:700;border-top:2px solid var(--bdr);"><td style="padding:4px;">Total</td><td style="text-align:center;">${rndPar}</td><td style="text-align:center;">${rndStrokes}</td><td style="text-align:center;">${rndDiffStr}</td><td style="text-align:center;color:${rndPts > 0 ? "#4ade80" : rndPts < 0 ? "#f87171" : "#94a3b8"}">${rndPts > 0 ? "+" : ""}${rndPts}</td></tr>`;
-            html += `</table>`;
-            grandTotalPts += rndPts; grandStrokes += rndStrokes; grandPar += rndPar;
-          }
-          if (maxRound > 1) {
-            const gDiff = grandStrokes - grandPar;
-            const gDiffStr = gDiff === 0 ? "E" : gDiff > 0 ? `+${gDiff}` : `${gDiff}`;
-            html += `<div style="margin-top:8px;padding:6px 8px;background:rgba(0,0,0,0.3);border-radius:6px;font-size:0.7rem;display:flex;justify-content:space-between;">
-              <span>Tournament: ${grandStrokes} strokes (${gDiffStr})</span>
-              <span style="color:${grandTotalPts > 0 ? "#4ade80" : grandTotalPts < 0 ? "#f87171" : "#94a3b8"};font-weight:700;">Fantasy: ${grandTotalPts > 0 ? "+" : ""}${grandTotalPts} pts</span>
-            </div>`;
-          }
-          return html;
+          if (!pd || !pd.aggStats)
+            return `<div style="color:var(--gray);font-size:0.75rem;padding:10px;">No data yet for ${playerName}</div>`;
+          const a = pd.aggStats;
+          const pts = (a.eagles||0)*5 + (a.birdies||0)*3 + (a.pars||0)*1 + (a.bogeys||0)*0 + (a.doubles||0)*-2 + (a.worse||0)*-3;
+          const totalHoles = (a.eagles||0)+(a.birdies||0)+(a.pars||0)+(a.bogeys||0)+(a.doubles||0)+(a.worse||0);
+          const pRound = pd.round || 1;
+          const pThru = pd.thru || 0;
+          return `<div style="padding:8px;">
+            <div style="font-size:0.7rem;color:var(--gray);margin-bottom:8px;text-align:center;">
+              ${pd.scoreToPar ? `<span style="font-weight:600;color:${pd.scoreToPar.startsWith("-") ? "#4ade80" : pd.scoreToPar === "E" ? "#94a3b8" : "#f87171"}">${pd.scoreToPar}</span> · ` : ""}
+              R${pRound}${pThru > 0 ? ` · Thru ${pThru}` : ""} · ${totalHoles} holes scored
+            </div>
+            <table style="width:100%;font-size:0.7rem;border-collapse:collapse;">
+              <tr style="color:var(--gray);border-bottom:1px solid var(--bdr)"><th style="text-align:left;padding:4px;">Type</th><th style="text-align:center;">Count</th><th style="text-align:center;">Pts Each</th><th style="text-align:center;">Total</th></tr>
+              ${a.eagles ? `<tr><td style="padding:4px;">🦅 Eagles</td><td style="text-align:center;">${a.eagles}</td><td style="text-align:center;">+5</td><td style="text-align:center;color:#fbbf24;font-weight:600;">+${a.eagles*5}</td></tr>` : ""}
+              ${a.birdies ? `<tr><td style="padding:4px;">🐦 Birdies</td><td style="text-align:center;">${a.birdies}</td><td style="text-align:center;">+3</td><td style="text-align:center;color:#4ade80;font-weight:600;">+${a.birdies*3}</td></tr>` : ""}
+              ${a.pars ? `<tr><td style="padding:4px;">— Pars</td><td style="text-align:center;">${a.pars}</td><td style="text-align:center;">+1</td><td style="text-align:center;color:#94a3b8;">+${a.pars}</td></tr>` : ""}
+              ${a.bogeys ? `<tr><td style="padding:4px;">☁ Bogeys</td><td style="text-align:center;">${a.bogeys}</td><td style="text-align:center;">0</td><td style="text-align:center;color:#94a3b8;">0</td></tr>` : ""}
+              ${a.doubles ? `<tr><td style="padding:4px;">⛈ Doubles</td><td style="text-align:center;">${a.doubles}</td><td style="text-align:center;">-2</td><td style="text-align:center;color:#f87171;font-weight:600;">${a.doubles*-2}</td></tr>` : ""}
+              ${a.worse ? `<tr><td style="padding:4px;">💀 Triple+</td><td style="text-align:center;">${a.worse}</td><td style="text-align:center;">-3</td><td style="text-align:center;color:#ef4444;font-weight:600;">${a.worse*-3}</td></tr>` : ""}
+              <tr style="font-weight:700;border-top:2px solid var(--bdr);"><td style="padding:4px;">Total</td><td style="text-align:center;">${totalHoles} holes</td><td></td><td style="text-align:center;color:${pts > 0 ? "#4ade80" : pts < 0 ? "#f87171" : "#94a3b8"}">${pts > 0 ? "+" : ""}${Math.max(0, pts)} pts</td></tr>
+            </table>
+          </div>`;
         }
 
-        const ptsA = calcSF(pdA, mcA), ptsB = calcSF(pdB, mcB);
-        let resText = "In Progress", resColor = "var(--gold)";
+        const ptsA = calcSF(pdA, mcA),
+          ptsB = calcSF(pdB, mcB);
+        let resText = "In Progress",
+          resColor = "var(--gold)";
         if (ptsA !== null && ptsB !== null) {
-          if (ptsA > ptsB) { resText = `${nameA} wins`; resColor = "#4ade80"; }
-          else if (ptsB > ptsA) { resText = `${nameB} wins`; resColor = "#f87171"; }
-          else { resText = "Tied"; resColor = "var(--gold)"; }
+          if (ptsA > ptsB) {
+            resText = `${nameA} wins`;
+            resColor = "#4ade80";
+          } else if (ptsB > ptsA) {
+            resText = `${nameB} wins`;
+            resColor = "#f87171";
+          } else {
+            resText = "Tied";
+            resColor = "var(--gold)";
+          }
         }
 
         const overlay = document.createElement("div");
         overlay.id = "mu-detail-overlay";
-        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:10px;";
+        overlay.style.cssText =
+          "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:10px;";
         overlay.innerHTML = `
           <div style="background:#1a2332;border:1px solid #2d3f52;border-radius:14px;padding:20px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.6)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -2937,7 +3079,9 @@
           </div>
         `;
         document.body.appendChild(overlay);
-        overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) overlay.remove();
+        });
       }
 
       async function fetchScores() {
@@ -2945,83 +3089,97 @@
         if (!t || !t.espnId) return toast("No valid tournament/ESPN ID");
         document.getElementById("rbtn").classList.add("spinning");
         try {
-          const res = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
+          // ── Step 1: Fetch aggregate stats from the /leaderboard/players endpoint ──
+          const WEB_API = "https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard/players?region=us&lang=en&event=";
+          const statsUrl = CORS + encodeURIComponent(WEB_API + t.espnId);
+          const statsRes = await fetch(statsUrl);
+          const statsJson = await statsRes.json();
+          const leaderboard = statsJson?.leaderboard || [];
+          console.log("[Scores] /leaderboard/players returned", leaderboard.length, "players");
+          if (leaderboard.length > 0) {
+            console.log("[Scores] Sample player keys:", Object.keys(leaderboard[0]));
+          }
+
+          // Build lookup by lowercase name
+          const statsMap = {};
+          for (const p of leaderboard) {
+            const name = p.displayName || p.fullName || p.name || "";
+            if (!name) continue;
+            const sm = {};
+            for (const s of p.stats || []) { sm[s.name] = s.value ?? 0; }
+
+            statsMap[name.toLowerCase()] = {
+              eagles: sm.eagles || 0,
+              birdies: sm.birdies || 0,
+              pars: sm.pars || 0,
+              bogeys: sm.bogeys || 0,
+              doubles: sm.doubles || sm.doubleBogeys || 0,
+              worse: sm.tripleBogeysAndWorse || sm.others || 0,
+            };
+          }
+
+          // ── Step 2: Fetch main leaderboard for position, scoreToPar, status, round, thru ──
+          const lbRes = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
             headers: { Accept: "application/json" },
           });
-          const lb = await res.json();
-          const evts = lb?.events?.[0] || lb?.event || lb;
-          const competitors =
-            evts?.competitions?.[0]?.competitors ||
-            evts?.leaderboard ||
-            evts?.competitors ||
-            [];
-          const nameMap = {};
+          const lbJson = await lbRes.json();
+          const evts = lbJson?.events?.[0] || lbJson?.event || lbJson;
+          const competitors = evts?.competitions?.[0]?.competitors || evts?.leaderboard || evts?.competitors || [];
+
+          const compMap = {};
           for (const c of competitors) {
             const ath = c.athlete || c;
-            const name = ath.displayName || ath.fullName || ath.name;
-            const isWD =
-              c.withdrawn ||
-              (c.status?.type?.name || "").toLowerCase().includes("withdraw");
-            nameMap[name.toLowerCase()] = {
-              id: ath.id,
-              status: isWD
-                ? "wd"
-                : (c.status?.type?.name || "").toLowerCase().includes("cut")
-                  ? "cut"
-                  : "active",
-              position: c.status?.position?.displayName || c.sortOrder || null,
+            const name = (ath.displayName || ath.fullName || ath.name || "").toLowerCase();
+            const isWD = c.withdrawn || (c.status?.type?.name || "").toLowerCase().includes("withdraw");
+            const isCut = (c.status?.type?.name || "").toLowerCase().includes("cut");
+            const isPre = c.status?.type?.state === "pre";
+            compMap[name] = {
+              status: isWD ? "wd" : isCut ? "cut" : isPre ? "pre_tournament" : (c.status?.type?.description === "Finished" ? "finished" : "active"),
+              position: c.status?.position?.displayName || null,
               scoreToPar: (() => {
                 const stp = (c.statistics || []).find(s => s.name === "scoreToPar");
                 if (stp && stp.displayValue && stp.displayValue !== "-") return stp.displayValue;
                 if (c.score && c.score.displayValue && c.score.displayValue !== "-") return c.score.displayValue;
                 return null;
               })(),
+              round: c.status?.period || 1,
+              thru: c.status?.thru || 0,
             };
           }
-          const picked = [
-            ...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n)),
-          ];
+
+          // ── Step 3: Build liveData for picked players ──
+          const picked = [...new Set([...WS.picksA, ...WS.picksB].map(p => p.n))];
           liveData = { players: {} };
+
           for (const name of picked) {
-            const comp = nameMap[name.toLowerCase()];
-            if (comp && comp.id && comp.status !== "pre_tournament") {
-              const scRes = await fetch(
-                espnUrl(
-                  `/leaderboard/scorecards?competitorId=${comp.id}&event=${t.espnId}`,
-                ),
-              ).catch(() => null);
-              if (scRes && scRes.ok) {
-                const scData = await scRes.json();
-                const rounds = [];
-                for (const rnd of scData.scorecards || scData.rounds || []) {
-                  const holes = [];
-                  for (const h of rnd.holes || rnd.linescores || []) {
-                    const strokes = h.score ?? h.value ?? null;
-                    const par = h.par ?? null;
-                    if (strokes !== null)
-                      holes.push({
-                        strokes: Number(strokes),
-                        par: Number(par),
-                      });
-                  }
-                  if (holes.length) rounds.push(holes);
-                }
-                liveData.players[name] = {
-                  status: comp.status,
-                  position: comp.position || null,
-                  scoreToPar: comp.scoreToPar ?? null,
-                  scorecardRounds: rounds,
-                };
-              }
+            const lk = name.toLowerCase();
+            const comp = compMap[lk];
+            const agg = statsMap[lk];
+
+            if (!comp && !agg) {
+              console.log(`[Scores] "${name}" not found`);
+              continue;
             }
+
+            const status = comp?.status || "pre_tournament";
+            if (status === "pre_tournament") continue;
+
+            liveData.players[name] = {
+              status: status,
+              position: comp?.position || null,
+              scoreToPar: comp?.scoreToPar || null,
+              round: comp?.round || 1,
+              thru: comp?.thru || 0,
+              aggStats: agg || { eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, worse: 0 },
+            };
           }
-          await db
-            .from("tournaments")
-            .update({ scores: liveData })
-            .eq("id", activeTId);
-          toast("Scores fetched and saved to cloud!");
+
+          console.log("[Scores] Final:", Object.keys(liveData.players).length, "players with data");
+          await db.from("tournaments").update({ scores: liveData }).eq("id", activeTId);
+          toast(`Scores updated: ${Object.keys(liveData.players).length} players`);
         } catch (e) {
-          toast("Error fetching scores");
+          console.error("[Scores] Error:", e);
+          toast("Error fetching scores: " + e.message);
         }
         document.getElementById("rbtn").classList.remove("spinning");
         renderLb();
