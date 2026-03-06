@@ -2778,8 +2778,8 @@
         return -3;
       }
       function calcSF(pd, isMC) {
-        if (!pd || pd.status === "pre_tournament" || pd.status === "wd")
-          return null;
+        if (!pd || pd.status === "pre_tournament") return null;
+        if (pd.status === "wd" || pd.status === "not_found") return 0;
         const a = pd.aggStats;
         if (!a) return null;
         // For missed cut players, we'd ideally only count R1-R2, but aggregate stats
@@ -2953,29 +2953,33 @@
                 (pd?.aggStats &&
                   eagles + birdies + pars + bogeys + doubles + worse > 0);
               const stCls =
-                status === "pre_tournament"
-                  ? "st-pre"
-                  : status === "active"
-                    ? "st-act"
-                    : status === "cut"
-                      ? "st-cut"
-                      : status === "finished"
-                        ? "st-done"
-                        : "st-wd";
+                status === "not_found"
+                  ? "st-cut"
+                  : status === "pre_tournament"
+                    ? "st-pre"
+                    : status === "active"
+                      ? "st-act"
+                      : status === "cut"
+                        ? "st-cut"
+                        : status === "finished"
+                          ? "st-done"
+                          : "st-wd";
               const pRound = pd?.round || 1;
               const pThru = pd?.thru || 0;
               const stTxt =
-                status === "pre_tournament"
-                  ? "Pre-Tournament"
-                  : status === "active"
-                    ? pThru > 0
-                      ? `R${pRound} · Thru ${pThru}`
-                      : `R${pRound} · Starting`
-                    : status === "cut"
-                      ? "Missed Cut"
-                      : status === "finished"
-                        ? "Finished"
-                        : "Withdrew";
+                status === "not_found"
+                  ? "Not Found on Leaderboard"
+                  : status === "pre_tournament"
+                    ? "Pre-Tournament"
+                    : status === "active"
+                      ? pThru > 0
+                        ? `R${pRound} · Thru ${pThru}`
+                        : `R${pRound} · Starting`
+                      : status === "cut"
+                        ? "Missed Cut"
+                        : status === "finished"
+                          ? "Finished"
+                          : "Withdrew";
               const toPar = getToParStr(pd);
               const toParHtml = toPar
                 ? `<span style="font-size:0.7rem;color:${toPar.startsWith("-") ? "#4ade80" : toPar === "E" ? "var(--gray)" : "#f87171"};margin-left:6px;">(${toPar})</span>`
@@ -3312,7 +3316,24 @@
             const comp = compMap[lk];
 
             if (!comp) {
-              console.log(`[Scores] "${name}" not found in leaderboard`);
+              console.log(
+                `[Scores] "${name}" not found in leaderboard — marking as not found`,
+              );
+              liveData.players[name] = {
+                status: "not_found",
+                position: null,
+                scoreToPar: null,
+                round: null,
+                thru: 0,
+                aggStats: {
+                  eagles: 0,
+                  birdies: 0,
+                  pars: 0,
+                  bogeys: 0,
+                  doubles: 0,
+                  worse: 0,
+                },
+              };
               continue;
             }
 
