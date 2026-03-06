@@ -3149,20 +3149,10 @@
           }
 
           // ── Step 3: Build liveData for picked players ──
-          const picked = [...new Set([...WS.picksA, ...WS.picksB].map(p => p.n))];
-          liveData = { players: {} };
+const picked = [...new Set([...WS.picksA, ...WS.picksB].map(p => p.n))];
+liveData = { players: {} };
 
-          for (const name of picked) {
-            const lk = name.toLowerCase();
-            const comp = compMap[lk];
-            const agg = statsMap[lk];
-
-            if (!comp && !agg) {
-              console.log(`[Scores] "${name}" not found`);
-              continue;
-            }
-
-            for (const name of picked) {
+for (const name of picked) {
   const lk = name.toLowerCase();
   const comp = compMap[lk];
   const agg = statsMap[lk];
@@ -3191,16 +3181,6 @@
     aggStats: agg || { eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, worse: 0 },
   };
 }
-
-            liveData.players[name] = {
-              status: status,
-              position: comp?.position || null,
-              scoreToPar: comp?.scoreToPar || null,
-              round: comp?.round || 1,
-              thru: comp?.thru || 0,
-              aggStats: agg || { eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, worse: 0 },
-            };
-          }
 
           console.log("[Scores] Final:", Object.keys(liveData.players).length, "players with data");
           await db.from("tournaments").update({ scores: liveData }).eq("id", activeTId);
@@ -3385,6 +3365,7 @@
     </script>
   </body>
 </html>
+
 
 
 
