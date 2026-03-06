@@ -2784,8 +2784,13 @@
         if (!a) return null;
         // For missed cut players, we'd ideally only count R1-R2, but aggregate stats
         // from ESPN are already limited to rounds played, so this is correct as-is.
-        const total = (a.eagles || 0) * 5 + (a.birdies || 0) * 3 + (a.pars || 0) * 1
-          + (a.bogeys || 0) * 0 + (a.doubles || 0) * -2 + (a.worse || 0) * -3;
+        const total =
+          (a.eagles || 0) * 5 +
+          (a.birdies || 0) * 3 +
+          (a.pars || 0) * 1 +
+          (a.bogeys || 0) * 0 +
+          (a.doubles || 0) * -2 +
+          (a.worse || 0) * -3;
         return Math.max(0, total);
       }
       function getPD(name) {
@@ -2943,7 +2948,10 @@
                   sum + (r || []).filter((h) => h.strokes !== null).length,
                 0,
               );
-              const hasHoles = holesPlayed > 0 || (pd?.aggStats && (eagles + birdies + pars + bogeys + doubles + worse) > 0);
+              const hasHoles =
+                holesPlayed > 0 ||
+                (pd?.aggStats &&
+                  eagles + birdies + pars + bogeys + doubles + worse > 0);
               const stCls =
                 status === "pre_tournament"
                   ? "st-pre"
@@ -2960,7 +2968,9 @@
                 status === "pre_tournament"
                   ? "Pre-Tournament"
                   : status === "active"
-                    ? (pThru > 0 ? `R${pRound} · Thru ${pThru}` : `R${pRound} · Starting`)
+                    ? pThru > 0
+                      ? `R${pRound} · Thru ${pThru}`
+                      : `R${pRound} · Starting`
                     : status === "cut"
                       ? "Missed Cut"
                       : status === "finished"
@@ -3014,8 +3024,20 @@
           if (!pd || !pd.aggStats)
             return `<div style="color:var(--gray);font-size:0.75rem;padding:10px;">No data yet for ${playerName}</div>`;
           const a = pd.aggStats;
-          const pts = (a.eagles||0)*5 + (a.birdies||0)*3 + (a.pars||0)*1 + (a.bogeys||0)*0 + (a.doubles||0)*-2 + (a.worse||0)*-3;
-          const totalHoles = (a.eagles||0)+(a.birdies||0)+(a.pars||0)+(a.bogeys||0)+(a.doubles||0)+(a.worse||0);
+          const pts =
+            (a.eagles || 0) * 5 +
+            (a.birdies || 0) * 3 +
+            (a.pars || 0) * 1 +
+            (a.bogeys || 0) * 0 +
+            (a.doubles || 0) * -2 +
+            (a.worse || 0) * -3;
+          const totalHoles =
+            (a.eagles || 0) +
+            (a.birdies || 0) +
+            (a.pars || 0) +
+            (a.bogeys || 0) +
+            (a.doubles || 0) +
+            (a.worse || 0);
           const pRound = pd.round || 1;
           const pThru = pd.thru || 0;
           return `<div style="padding:8px;">
@@ -3025,12 +3047,12 @@
             </div>
             <table style="width:100%;font-size:0.7rem;border-collapse:collapse;">
               <tr style="color:var(--gray);border-bottom:1px solid var(--bdr)"><th style="text-align:left;padding:4px;">Type</th><th style="text-align:center;">Count</th><th style="text-align:center;">Pts Each</th><th style="text-align:center;">Total</th></tr>
-              ${a.eagles ? `<tr><td style="padding:4px;">🦅 Eagles</td><td style="text-align:center;">${a.eagles}</td><td style="text-align:center;">+5</td><td style="text-align:center;color:#fbbf24;font-weight:600;">+${a.eagles*5}</td></tr>` : ""}
-              ${a.birdies ? `<tr><td style="padding:4px;">🐦 Birdies</td><td style="text-align:center;">${a.birdies}</td><td style="text-align:center;">+3</td><td style="text-align:center;color:#4ade80;font-weight:600;">+${a.birdies*3}</td></tr>` : ""}
+              ${a.eagles ? `<tr><td style="padding:4px;">🦅 Eagles</td><td style="text-align:center;">${a.eagles}</td><td style="text-align:center;">+5</td><td style="text-align:center;color:#fbbf24;font-weight:600;">+${a.eagles * 5}</td></tr>` : ""}
+              ${a.birdies ? `<tr><td style="padding:4px;">🐦 Birdies</td><td style="text-align:center;">${a.birdies}</td><td style="text-align:center;">+3</td><td style="text-align:center;color:#4ade80;font-weight:600;">+${a.birdies * 3}</td></tr>` : ""}
               ${a.pars ? `<tr><td style="padding:4px;">— Pars</td><td style="text-align:center;">${a.pars}</td><td style="text-align:center;">+1</td><td style="text-align:center;color:#94a3b8;">+${a.pars}</td></tr>` : ""}
               ${a.bogeys ? `<tr><td style="padding:4px;">☁ Bogeys</td><td style="text-align:center;">${a.bogeys}</td><td style="text-align:center;">0</td><td style="text-align:center;color:#94a3b8;">0</td></tr>` : ""}
-              ${a.doubles ? `<tr><td style="padding:4px;">⛈ Doubles</td><td style="text-align:center;">${a.doubles}</td><td style="text-align:center;">-2</td><td style="text-align:center;color:#f87171;font-weight:600;">${a.doubles*-2}</td></tr>` : ""}
-              ${a.worse ? `<tr><td style="padding:4px;">💀 Triple+</td><td style="text-align:center;">${a.worse}</td><td style="text-align:center;">-3</td><td style="text-align:center;color:#ef4444;font-weight:600;">${a.worse*-3}</td></tr>` : ""}
+              ${a.doubles ? `<tr><td style="padding:4px;">⛈ Doubles</td><td style="text-align:center;">${a.doubles}</td><td style="text-align:center;">-2</td><td style="text-align:center;color:#f87171;font-weight:600;">${a.doubles * -2}</td></tr>` : ""}
+              ${a.worse ? `<tr><td style="padding:4px;">💀 Triple+</td><td style="text-align:center;">${a.worse}</td><td style="text-align:center;">-3</td><td style="text-align:center;color:#ef4444;font-weight:600;">${a.worse * -3}</td></tr>` : ""}
               <tr style="font-weight:700;border-top:2px solid var(--bdr);"><td style="padding:4px;">Total</td><td style="text-align:center;">${totalHoles} holes</td><td></td><td style="text-align:center;color:${pts > 0 ? "#4ade80" : pts < 0 ? "#f87171" : "#94a3b8"}">${pts > 0 ? "+" : ""}${Math.max(0, pts)} pts</td></tr>
             </table>
           </div>`;
@@ -3091,100 +3113,269 @@
         document.getElementById("rbtn").classList.add("spinning");
         try {
           // ── Step 1: Fetch aggregate stats from the /leaderboard/players endpoint ──
-          const WEB_API = "https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard/players?region=us&lang=en&event=";
+          const WEB_API =
+            "https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard/players?region=us&lang=en&event=";
           const statsUrl = CORS + encodeURIComponent(WEB_API + t.espnId);
-          const statsRes = await fetch(statsUrl);
-          const statsJson = await statsRes.json();
-          const leaderboard = statsJson?.leaderboard || [];
-          console.log("[Scores] /leaderboard/players returned", leaderboard.length, "players");
-          if (leaderboard.length > 0) {
-            console.log("[Scores] Sample player keys:", Object.keys(leaderboard[0]));
+          let statsMap = {};
+          try {
+            const statsRes = await fetch(statsUrl);
+            const statsJson = await statsRes.json();
+            const leaderboard = statsJson?.leaderboard || [];
+            console.log(
+              "[Scores] /leaderboard/players returned",
+              leaderboard.length,
+              "players",
+            );
+
+            for (const p of leaderboard) {
+              const name = p.displayName || p.fullName || p.name || "";
+              if (!name) continue;
+              const sm = {};
+              for (const s of p.stats || []) {
+                sm[s.name] = s.value ?? 0;
+              }
+
+              const agg = {
+                eagles: sm.eagles || 0,
+                birdies: sm.birdies || 0,
+                pars: sm.pars || 0,
+                bogeys: sm.bogeys || 0,
+                doubles: sm.doubles || sm.doubleBogeys || 0,
+                worse: sm.tripleBogeysAndWorse || sm.others || 0,
+              };
+              const totalHoles =
+                agg.eagles +
+                agg.birdies +
+                agg.pars +
+                agg.bogeys +
+                agg.doubles +
+                agg.worse;
+              if (totalHoles > 0) {
+                statsMap[name.toLowerCase()] = agg;
+              }
+            }
+            console.log(
+              "[Scores] Stats endpoint has data for",
+              Object.keys(statsMap).length,
+              "players",
+            );
+          } catch (e) {
+            console.warn(
+              "[Scores] Stats endpoint failed, will use linescores fallback:",
+              e,
+            );
           }
 
-          // Build lookup by lowercase name
-          const statsMap = {};
-          for (const p of leaderboard) {
-            const name = p.displayName || p.fullName || p.name || "";
-            if (!name) continue;
-            const sm = {};
-            for (const s of p.stats || []) { sm[s.name] = s.value ?? 0; }
-
-            statsMap[name.toLowerCase()] = {
-              eagles: sm.eagles || 0,
-              birdies: sm.birdies || 0,
-              pars: sm.pars || 0,
-              bogeys: sm.bogeys || 0,
-              doubles: sm.doubles || sm.doubleBogeys || 0,
-              worse: sm.tripleBogeysAndWorse || sm.others || 0,
-            };
-          }
-
-          // ── Step 2: Fetch main leaderboard for position, scoreToPar, status, round, thru ──
+          // ── Step 2: Fetch main leaderboard for position, scoreToPar, status, round, thru, AND linescores ──
           const lbRes = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
             headers: { Accept: "application/json" },
           });
           const lbJson = await lbRes.json();
           const evts = lbJson?.events?.[0] || lbJson?.event || lbJson;
-          const competitors = evts?.competitions?.[0]?.competitors || evts?.leaderboard || evts?.competitors || [];
+          const competitors =
+            evts?.competitions?.[0]?.competitors ||
+            evts?.leaderboard ||
+            evts?.competitors ||
+            [];
+
+          // Get course par from tournament data or event
+          const coursePar = t.par || 72;
 
           const compMap = {};
           for (const c of competitors) {
             const ath = c.athlete || c;
-            const name = (ath.displayName || ath.fullName || ath.name || "").toLowerCase();
-            const isWD = c.withdrawn || (c.status?.type?.name || "").toLowerCase().includes("withdraw");
-            const isCut = (c.status?.type?.name || "").toLowerCase().includes("cut");
-            const isPre = c.status?.type?.state === "pre";
+            const name = (
+              ath.displayName ||
+              ath.fullName ||
+              ath.name ||
+              ""
+            ).toLowerCase();
+            const isWD =
+              c.withdrawn ||
+              (c.status?.type?.name || "").toLowerCase().includes("withdraw");
+            const isCut = (c.status?.type?.name || "")
+              .toLowerCase()
+              .includes("cut");
+            const statusState = c.status?.type?.state || "";
+            const statusDesc = c.status?.type?.description || "";
+            const period = c.status?.period || 1;
+            const thru = c.status?.thru || 0;
+
+            // ── IMPROVED STATUS DETECTION ──
+            // Key insight: a player waiting to tee off in R2+ is NOT "pre_tournament" —
+            // they have completed previous rounds and their scores should persist.
+            let status;
+            if (isWD) {
+              status = "wd";
+            } else if (isCut) {
+              status = "cut";
+            } else if (statusDesc === "Finished" || statusState === "post") {
+              status = "finished";
+            } else if (statusState === "in") {
+              status = "active";
+            } else if (statusState === "pre") {
+              // "pre" state — but is this truly pre-tournament or between rounds?
+              if (period > 1) {
+                // Player is waiting for R2, R3, or R4 — they've played previous rounds
+                status = "between_rounds";
+              } else {
+                // Period 1, state "pre" — check if they have any linescores with data
+                const linescores = c.linescores || [];
+                const hasCompletedRound = linescores.some(
+                  (ls) => ls.value !== undefined && ls.value !== null,
+                );
+                status = hasCompletedRound
+                  ? "between_rounds"
+                  : "pre_tournament";
+              }
+            } else {
+              // Fallback: if period > 1, they've played at least one round
+              status = period > 1 ? "active" : "pre_tournament";
+            }
+
+            // ── EXTRACT LINESCORES (round-by-round hole data) ──
+            // This is the RELIABLE fallback when aggregate stats are empty between rounds
+            let linescoreStats = null;
+            const linescores = c.linescores || [];
+            if (linescores.length > 0) {
+              let eagles = 0,
+                birdies = 0,
+                pars = 0,
+                bogeys = 0,
+                doubles = 0,
+                worse = 0;
+              let totalScoredHoles = 0;
+
+              for (const round of linescores) {
+                const holes = round.linescores || [];
+                for (const hole of holes) {
+                  const strokes = hole.value ?? hole.strokes ?? null;
+                  const holePar = hole.par ?? null;
+                  if (strokes === null || holePar === null) continue;
+                  totalScoredHoles++;
+                  const diff = strokes - holePar;
+                  if (diff <= -2) eagles++;
+                  else if (diff === -1) birdies++;
+                  else if (diff === 0) pars++;
+                  else if (diff === 1) bogeys++;
+                  else if (diff === 2) doubles++;
+                  else worse++;
+                }
+              }
+
+              if (totalScoredHoles > 0) {
+                linescoreStats = {
+                  eagles,
+                  birdies,
+                  pars,
+                  bogeys,
+                  doubles,
+                  worse,
+                };
+                console.log(
+                  `[Scores] Linescores for "${name}": ${totalScoredHoles} holes (E:${eagles} B:${birdies} P:${pars} Bo:${bogeys} D:${doubles} W:${worse})`,
+                );
+              }
+            }
+
             compMap[name] = {
-              status: isWD ? "wd" : isCut ? "cut" : isPre ? "pre_tournament" : (c.status?.type?.description === "Finished" ? "finished" : "active"),
+              status,
               position: c.status?.position?.displayName || null,
               scoreToPar: (() => {
-                const stp = (c.statistics || []).find(s => s.name === "scoreToPar");
-                if (stp && stp.displayValue && stp.displayValue !== "-") return stp.displayValue;
-                if (c.score && c.score.displayValue && c.score.displayValue !== "-") return c.score.displayValue;
+                const stp = (c.statistics || []).find(
+                  (s) => s.name === "scoreToPar",
+                );
+                if (stp && stp.displayValue && stp.displayValue !== "-")
+                  return stp.displayValue;
+                if (
+                  c.score &&
+                  c.score.displayValue &&
+                  c.score.displayValue !== "-"
+                )
+                  return c.score.displayValue;
                 return null;
               })(),
-              round: c.status?.period || 1,
-              thru: c.status?.thru || 0,
+              round: period,
+              thru: thru,
+              linescoreStats: linescoreStats,
             };
           }
 
           // ── Step 3: Build liveData for picked players ──
-const picked = [...new Set([...WS.picksA, ...WS.picksB].map(p => p.n))];
-liveData = { players: {} };
+          const picked = [
+            ...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n)),
+          ];
+          liveData = { players: {} };
 
-for (const name of picked) {
-  const lk = name.toLowerCase();
-  const comp = compMap[lk];
-  const agg = statsMap[lk];
+          for (const name of picked) {
+            const lk = name.toLowerCase();
+            const comp = compMap[lk];
 
-  if (!comp && !agg) {
-    console.log(`[Scores] "${name}" not found`);
-    continue;
-  }
+            if (!comp) {
+              console.log(`[Scores] "${name}" not found in leaderboard`);
+              continue;
+            }
 
-  let status = comp?.status || "pre_tournament";
+            let status = comp.status;
 
-  const hasPlayedHoles = agg && (
-    (agg.eagles || 0) + (agg.birdies || 0) + (agg.pars || 0) +
-    (agg.bogeys || 0) + (agg.doubles || 0) + (agg.worse || 0)
-  ) > 0;
+            // Skip only true pre-tournament players (haven't played at all)
+            if (status === "pre_tournament") {
+              console.log(
+                `[Scores] "${name}" is truly pre-tournament, skipping`,
+              );
+              continue;
+            }
 
-  if (status === "pre_tournament" && hasPlayedHoles) status = "active";
-  if (status === "pre_tournament" && !hasPlayedHoles) continue;
+            // Map "between_rounds" to "active" for display purposes
+            // (they have scores, just waiting for next round)
+            const displayStatus =
+              status === "between_rounds" ? "active" : status;
 
-  liveData.players[name] = {
-    status: status,
-    position: comp?.position || null,
-    scoreToPar: comp?.scoreToPar || null,
-    round: comp?.round || 1,
-    thru: comp?.thru || 0,
-    aggStats: agg || { eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, worse: 0 },
-  };
-}
+            // ── CHOOSE BEST STATS SOURCE ──
+            // Priority: aggregate stats from /leaderboard/players (most accurate when available)
+            // Fallback: linescores from main leaderboard (always available for completed rounds)
+            const aggFromStatsEndpoint = statsMap[lk];
+            const aggFromLinescores = comp.linescoreStats;
 
-          console.log("[Scores] Final:", Object.keys(liveData.players).length, "players with data");
-          await db.from("tournaments").update({ scores: liveData }).eq("id", activeTId);
-          toast(`Scores updated: ${Object.keys(liveData.players).length} players`);
+            let finalStats;
+            if (aggFromStatsEndpoint) {
+              // Stats endpoint has data — use it (it's the gold standard)
+              finalStats = aggFromStatsEndpoint;
+              console.log(`[Scores] "${name}" using stats endpoint data`);
+            } else if (aggFromLinescores) {
+              // Stats endpoint empty (between rounds / overnight) — use linescores
+              finalStats = aggFromLinescores;
+              console.log(`[Scores] "${name}" using LINESCORES fallback`);
+            } else {
+              // Neither source has data — skip
+              console.log(
+                `[Scores] "${name}" has status "${status}" but no scoring data`,
+              );
+              continue;
+            }
+
+            liveData.players[name] = {
+              status: displayStatus,
+              position: comp.position,
+              scoreToPar: comp.scoreToPar,
+              round: comp.round,
+              thru: comp.thru,
+              aggStats: finalStats,
+            };
+          }
+
+          console.log(
+            "[Scores] Final:",
+            Object.keys(liveData.players).length,
+            "players with data",
+          );
+          await db
+            .from("tournaments")
+            .update({ scores: liveData })
+            .eq("id", activeTId);
+          toast(
+            `Scores updated: ${Object.keys(liveData.players).length} players`,
+          );
         } catch (e) {
           console.error("[Scores] Error:", e);
           toast("Error fetching scores: " + e.message);
@@ -3365,8 +3556,3 @@ for (const name of picked) {
     </script>
   </body>
 </html>
-
-
-
-
-
