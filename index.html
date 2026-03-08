@@ -1856,7 +1856,7 @@
           localStorage.removeItem("fd-cloud-active");
         }
         if (activeTId) {
-          applyCloudStateForActive(false); // FALSE to render immediately
+          applyCloudStateForActive(false);
         } else if (tournaments.length > 0) {
           selectTournament(tournaments[0].id);
         } else {
@@ -2054,7 +2054,6 @@
           document.getElementById("fm-purse").value =
             purseVal > 1000 ? (purseVal / 1000000).toFixed(1) : purseVal || 0;
 
-          // --- FIX: Find the actual earliest tee time among all competitors ---
           const competitors =
             ev.competitions?.[0]?.competitors ||
             ev.leaderboard ||
@@ -2063,7 +2062,6 @@
           let earliestTeeTime = null;
 
           for (const c of competitors) {
-            // Check status tee time or linescore tee time
             let p1Tee = c.status?.teeTime;
             if (!p1Tee && c.linescores) {
               const r1 = c.linescores.find((l) => l.period === 1);
@@ -2078,7 +2076,6 @@
             }
           }
 
-          // Fallback to the generic start date if tee times aren't published yet
           const dStr =
             ev.startDate ||
             ev.date ||
@@ -2212,6 +2209,7 @@
         long: "Longshot",
         deep: "Deep",
       };
+
       // ── THE ODDS API HYBRID FETCHER ──
       async function fetchField(tournId) {
         const t = tournaments.find((x) => x.id === tournId);
@@ -2221,7 +2219,6 @@
         document.getElementById(`ffb-${tournId}`).textContent = "⬇ Fetching…";
 
         try {
-          // 1. Fetch Primary Leaderboard from ESPN
           const res = await fetch(espnUrl(`/leaderboard?event=${t.espnId}`), {
             headers: { Accept: "application/json" },
           });
@@ -2233,7 +2230,6 @@
             evts?.competitors ||
             [];
 
-          // 2. Build Odds Map — try The Odds API if key provided
           const oddsMap = {};
           if (oddsKey) {
             try {
@@ -2317,7 +2313,6 @@
 
             let oddsStr = "N/A";
 
-            // Try The Odds API map first using Fuzzy Match
             if (oddsCount > 0) {
               const nameKey = name
                 .normalize("NFD")
@@ -2343,7 +2338,6 @@
               }
             }
 
-            // Fallback to ESPN odds (rarely available, but try)
             if (oddsStr === "N/A") {
               let oddsRaw = null;
               if (Array.isArray(comp.odds) && comp.odds.length > 0)
@@ -2418,7 +2412,7 @@
       }
 
       // ═══════════════════════════════════════════════════════
-      // PASTE ODDS (CSV) MODAL — works for ANY weekly PGA event
+      // PASTE ODDS (CSV) MODAL
       // ═══════════════════════════════════════════════════════
       function showPasteOddsModal() {
         const t = getActiveTournament();
@@ -2468,7 +2462,6 @@
           unmatched = 0;
         const unmatchedNames = [];
 
-        // Normalize helper
         const norm = (s) =>
           s
             .normalize("NFD")
@@ -2476,7 +2469,6 @@
             .toLowerCase()
             .replace(/[^a-z]/g, "");
 
-        // Build lookup from field
         const fieldNorms = t.field.map((p) => ({
           norm: norm(p.n),
           parts: p.n.toLowerCase().split(" "),
@@ -2484,7 +2476,6 @@
         }));
 
         for (const line of lines) {
-          // Parse line — support: "Name, +odds" or "Name +odds" or "Name\t+odds"
           const m =
             line.match(/^(.+?)[,\t]\s*([+-]?\d+)$/) ||
             line.match(/^(.+?)\s+([+-]\d+)$/);
@@ -2495,10 +2486,8 @@
             m[2].startsWith("+") || m[2].startsWith("-") ? m[2] : `+${m[2]}`;
           const pastedNorm = norm(pastedName);
 
-          // Exact normalized match
           let found = fieldNorms.find((f) => f.norm === pastedNorm);
 
-          // Fuzzy: last name + first initial
           if (!found) {
             const parts = pastedName.toLowerCase().split(/\s+/);
             const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
@@ -2509,7 +2498,6 @@
             });
           }
 
-          // Fuzzy: last name only (if unique)
           if (!found) {
             const parts = pastedName.toLowerCase().split(/\s+/);
             const last = parts[parts.length - 1].replace(/[^a-z]/g, "");
@@ -2529,7 +2517,6 @@
           }
         }
 
-        // Re-sort field
         t.field.sort((a, b) => {
           if (a.o === "WD" && b.o !== "WD") return 1;
           if (b.o === "WD" && a.o !== "WD") return -1;
@@ -2538,7 +2525,6 @@
           return oNum(a.o) - oNum(b.o);
         });
 
-        // Save to DB using the correct variable name (activeTId)
         await saveTournamentDataToDB(t.id, {
           name: t.name,
           venue: t.venue,
@@ -2550,11 +2536,9 @@
           field: t.field,
         });
 
-        // Close the modal
         const overlay = document.getElementById("paste-odds-overlay");
         if (overlay) overlay.remove();
 
-        // Show result
         let msg = `Odds applied: ${matched} matched`;
         if (unmatched > 0)
           msg += `, ${unmatched} unmatched (${unmatchedNames.slice(0, 3).join(", ")}${unmatchedNames.length > 3 ? "…" : ""})`;
@@ -2782,8 +2766,6 @@
         if (pd.status === "wd" || pd.status === "not_found") return 0;
         const a = pd.aggStats;
         if (!a) return null;
-        // For missed cut players, we'd ideally only count R1-R2, but aggregate stats
-        // from ESPN are already limited to rounds played, so this is correct as-is.
         const total =
           (a.eagles || 0) * 5 +
           (a.birdies || 0) * 3 +
@@ -2819,7 +2801,6 @@
         }
         syncNames();
 
-        // Load wager from game state (synced via Supabase)
         const wagerInput = document.getElementById("wager-amt");
         if (WS.wagerPerMatchup !== undefined && WS.wagerPerMatchup > 0) {
           wagerInput.value = WS.wagerPerMatchup;
@@ -2878,7 +2859,6 @@
         document.getElementById("hcs-b").innerHTML =
           `<div class="hcs"><div class="hcs-v">${ptB}</div><div class="hcs-l">Total Pts</div></div>`;
 
-        // Money summary
         const wagerTotalEl = document.getElementById("wager-total");
         const moneySumEl = document.getElementById("money-summary");
         if (wagerPer > 0) {
@@ -2886,7 +2866,6 @@
           wagerTotalEl.textContent = `(${numMatchups} matchups × $${wagerPer.toFixed(2)} = $${totalAtRisk.toFixed(2)} at risk)`;
           const netMatchups = wA - wB;
           const netMoney = Math.abs(netMatchups) * wagerPer;
-          const tieMoney = ties * wagerPer;
           if (played === 0) {
             moneySumEl.innerHTML = "";
           } else if (netMatchups > 0) {
@@ -2991,7 +2970,6 @@
             }
             const ccA = `mc mc-a ${s.res === "a" ? "winner" : s.res === "tie" ? "tied" : s.res === "b" ? "loser" : ""} ${s.mcA ? "mccut" : ""}`;
             const ccB = `mc mc-b ${s.res === "b" ? "winner" : s.res === "tie" ? "tied" : s.res === "a" ? "loser" : ""} ${s.mcB ? "mccut" : ""}`;
-            // Money tag for decided matchups
             let moneyTag = "";
             if (wagerPer > 0 && s.res !== "pending") {
               if (s.res === "a")
@@ -3111,6 +3089,9 @@
         });
       }
 
+      // ═══════════════════════════════════════════════════════
+      // SCORE FETCHING — WITH COMPETITOR SUMMARY FALLBACK
+      // ═══════════════════════════════════════════════════════
       async function fetchScores() {
         const t = getActiveTournament();
         if (!t || !t.espnId) return toast("No valid tournament/ESPN ID");
@@ -3182,7 +3163,6 @@
             evts?.competitors ||
             [];
 
-          // Get course par from tournament data or event
           const coursePar = t.par || 72;
 
           const compMap = {};
@@ -3194,6 +3174,10 @@
               ath.name ||
               ""
             ).toLowerCase();
+
+            // ── NEW: Capture athlete ID for competitor summary fallback ──
+            const athleteId = ath.id || c.id || null;
+
             const isWD =
               c.withdrawn ||
               (c.status?.type?.name || "").toLowerCase().includes("withdraw");
@@ -3205,9 +3189,6 @@
             const period = c.status?.period || 1;
             const thru = c.status?.thru || 0;
 
-            // ── IMPROVED STATUS DETECTION ──
-            // Key insight: a player waiting to tee off in R2+ is NOT "pre_tournament" —
-            // they have completed previous rounds and their scores should persist.
             let status;
             if (isWD) {
               status = "wd";
@@ -3218,12 +3199,9 @@
             } else if (statusState === "in") {
               status = "active";
             } else if (statusState === "pre") {
-              // "pre" state — but is this truly pre-tournament or between rounds?
               if (period > 1) {
-                // Player is waiting for R2, R3, or R4 — they've played previous rounds
                 status = "between_rounds";
               } else {
-                // Period 1, state "pre" — check if they have any linescores with data
                 const linescores = c.linescores || [];
                 const hasCompletedRound = linescores.some(
                   (ls) => ls.value !== undefined && ls.value !== null,
@@ -3233,12 +3211,9 @@
                   : "pre_tournament";
               }
             } else {
-              // Fallback: if period > 1, they've played at least one round
               status = period > 1 ? "active" : "pre_tournament";
             }
 
-            // ── EXTRACT LINESCORES (round-by-round hole data) ──
-            // This is the RELIABLE fallback when aggregate stats are empty between rounds
             let linescoreStats = null;
             const linescores = c.linescores || [];
             if (linescores.length > 0) {
@@ -3276,14 +3251,12 @@
                   doubles,
                   worse,
                 };
-                console.log(
-                  `[Scores] Linescores for "${name}": ${totalScoredHoles} holes (E:${eagles} B:${birdies} P:${pars} Bo:${bogeys} D:${doubles} W:${worse})`,
-                );
               }
             }
 
             compMap[name] = {
               status,
+              athleteId, // ← NEW FIELD
               position: c.status?.position?.displayName || null,
               scoreToPar: (() => {
                 const stp = (c.statistics || []).find(
@@ -3310,6 +3283,9 @@
             ...new Set([...WS.picksA, ...WS.picksB].map((p) => p.n)),
           ];
           liveData = { players: {} };
+
+          // ── NEW: Track players needing competitor summary fallback ──
+          const needsSummaryFetch = [];
 
           for (const name of picked) {
             const lk = name.toLowerCase();
@@ -3339,7 +3315,6 @@
 
             let status = comp.status;
 
-            // Skip only true pre-tournament players (haven't played at all)
             if (status === "pre_tournament") {
               console.log(
                 `[Scores] "${name}" is truly pre-tournament, skipping`,
@@ -3347,31 +3322,39 @@
               continue;
             }
 
-            // Map "between_rounds" to "active" for display purposes
-            // (they have scores, just waiting for next round)
             const displayStatus =
               status === "between_rounds" ? "active" : status;
 
-            // ── CHOOSE BEST STATS SOURCE ──
-            // Priority: aggregate stats from /leaderboard/players (most accurate when available)
-            // Fallback: linescores from main leaderboard (always available for completed rounds)
             const aggFromStatsEndpoint = statsMap[lk];
             const aggFromLinescores = comp.linescoreStats;
 
             let finalStats;
             if (aggFromStatsEndpoint) {
-              // Stats endpoint has data — use it (it's the gold standard)
               finalStats = aggFromStatsEndpoint;
               console.log(`[Scores] "${name}" using stats endpoint data`);
             } else if (aggFromLinescores) {
-              // Stats endpoint empty (between rounds / overnight) — use linescores
               finalStats = aggFromLinescores;
               console.log(`[Scores] "${name}" using LINESCORES fallback`);
             } else {
-              // Neither source has data — skip
-              console.log(
-                `[Scores] "${name}" has status "${status}" but no scoring data`,
-              );
+              // ── NEW: Queue for competitor summary fetch instead of silently skipping ──
+              if (comp.athleteId && (status === "cut" || status === "wd" || status === "finished" || status === "between_rounds")) {
+                console.log(
+                  `[Scores] "${name}" has no stats from primary sources — queuing competitor summary fetch (athlete ${comp.athleteId})`,
+                );
+                liveData.players[name] = {
+                  status: displayStatus,
+                  position: comp.position,
+                  scoreToPar: comp.scoreToPar,
+                  round: comp.round,
+                  thru: comp.thru,
+                  aggStats: null, // Will be filled by Step 4
+                };
+                needsSummaryFetch.push({ name, athleteId: comp.athleteId, displayStatus });
+              } else {
+                console.log(
+                  `[Scores] "${name}" has status "${status}" but no scoring data and no athlete ID`,
+                );
+              }
               continue;
             }
 
@@ -3383,6 +3366,97 @@
               thru: comp.thru,
               aggStats: finalStats,
             };
+          }
+
+          // ═══════════════════════════════════════════════════════
+          // Step 4: COMPETITOR SUMMARY FALLBACK for cut/WD/missing-stats players
+          // ═══════════════════════════════════════════════════════
+          // This fetches the per-player detailed scorecard endpoint which ESPN
+          // maintains even after a player is cut or withdraws. Think of it like
+          // how a library archives a book to a separate shelf after it's removed
+          // from the main display — the data is still there, just at a different URL.
+          if (needsSummaryFetch.length > 0) {
+            console.log(`[Scores] Fetching competitor summaries for ${needsSummaryFetch.length} players...`);
+            toast(`Fetching detailed scorecards for ${needsSummaryFetch.length} cut/WD players...`);
+
+            const SUMMARY_BASE = `https://site.web.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard/${t.espnId}/competitorsummary/`;
+
+            for (let i = 0; i < needsSummaryFetch.length; i++) {
+              const { name, athleteId, displayStatus } = needsSummaryFetch[i];
+              try {
+                const summaryUrl = CORS + encodeURIComponent(
+                  SUMMARY_BASE + athleteId + "?region=us&lang=en&season=2026"
+                );
+                const summaryRes = await fetch(summaryUrl);
+                const summaryJson = await summaryRes.json();
+
+                // ── Primary: Parse aggregate stats from the top-level stats[] array ──
+                // This is the gold standard — ESPN pre-computes eagles, birdies, pars, etc.
+                const statsArr = summaryJson?.stats || [];
+                const sm = {};
+                for (const s of statsArr) {
+                  const val = parseFloat(s.displayValue);
+                  sm[s.name] = isNaN(val) ? 0 : val;
+                }
+
+                const aggStats = {
+                  eagles: sm.eagles || 0,
+                  birdies: sm.birdies || 0,
+                  pars: sm.pars || 0,
+                  bogeys: sm.bogeys || 0,
+                  doubles: sm.doubles || sm.doubleBogeys || 0,
+                  worse: sm.tripleBogeysAndWorse || 0,
+                };
+                const totalHoles = aggStats.eagles + aggStats.birdies + aggStats.pars +
+                  aggStats.bogeys + aggStats.doubles + aggStats.worse;
+
+                if (totalHoles > 0) {
+                  liveData.players[name].aggStats = aggStats;
+                  console.log(
+                    `[Scores] ✅ "${name}" competitor summary stats[]: E:${aggStats.eagles} B:${aggStats.birdies} P:${aggStats.pars} Bo:${aggStats.bogeys} D:${aggStats.doubles} W:${aggStats.worse} (${totalHoles} holes)`
+                  );
+                } else {
+                  // ── Secondary fallback: Parse from rounds[].linescores ──
+                  // Each round has hole-by-hole data with scoreType.name indicating the result
+                  const rounds = summaryJson?.rounds || [];
+                  let eagles = 0, birdies = 0, pars = 0, bogeys = 0, doubles = 0, worse = 0;
+                  let holeCount = 0;
+                  for (const rnd of rounds) {
+                    for (const hole of (rnd.linescores || [])) {
+                      const strokes = hole.value ?? null;
+                      const holePar = hole.par ?? null;
+                      if (strokes === null || holePar === null) continue;
+                      holeCount++;
+                      const diff = strokes - holePar;
+                      if (diff <= -2) eagles++;
+                      else if (diff === -1) birdies++;
+                      else if (diff === 0) pars++;
+                      else if (diff === 1) bogeys++;
+                      else if (diff === 2) doubles++;
+                      else worse++;
+                    }
+                  }
+                  if (holeCount > 0) {
+                    liveData.players[name].aggStats = { eagles, birdies, pars, bogeys, doubles, worse };
+                    console.log(`[Scores] ✅ "${name}" parsed from round linescores: ${holeCount} holes`);
+                  } else {
+                    liveData.players[name].aggStats = { eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, worse: 0 };
+                    console.log(`[Scores] ⚠️ "${name}" competitor summary had no scoring data`);
+                  }
+                }
+              } catch (e) {
+                console.warn(`[Scores] Failed to fetch summary for "${name}" (athlete ${athleteId}):`, e);
+                if (liveData.players[name]) {
+                  liveData.players[name].aggStats = { eagles: 0, birdies: 0, pars: 0, bogeys: 0, doubles: 0, worse: 0 };
+                }
+              }
+
+              // Small delay between requests to be nice to the API (150ms)
+              if (i < needsSummaryFetch.length - 1) {
+                await new Promise(r => setTimeout(r, 150));
+              }
+            }
+            console.log(`[Scores] Competitor summary fetch complete`);
           }
 
           console.log(
@@ -3563,7 +3637,6 @@
       // INIT
       // ═══════════════════════════════════════════════════════
       function init() {
-        // Load API key from local storage if saved
         const oddsInput = document.getElementById("fm-odds-key");
         if (oddsInput)
           oddsInput.value = localStorage.getItem("fd_odds_key") || "";
