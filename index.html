@@ -2200,11 +2200,17 @@
       };
 
       // ── Helper: look up a player's current odds from the field (source of truth) ──
+      // Uses exact match first, then case-insensitive fallback, so pick names
+      // that were captured with slightly different casing still resolve.
       function currentOdds(playerName) {
         const t = getActiveTournament();
         if (!t || !t.field) return null;
         const entry = t.field.find((p) => p.n === playerName);
-        return entry ? entry.o : null;
+        if (entry) return entry.o;
+        // Case-insensitive fallback
+        const lk = playerName.toLowerCase();
+        const fuzzy = t.field.find((p) => p.n.toLowerCase() === lk);
+        return fuzzy ? fuzzy.o : null;
       }
 
       // ── THE ODDS API HYBRID FETCHER ──
@@ -2679,8 +2685,11 @@
         // and the "X/3 deep" counter always agree.
         const deep = arr.filter((p) => {
           const liveOdds = currentOdds(p.n) || p.o;
-          return tier(liveOdds) === "deep";
+          const t2 = tier(liveOdds);
+          if (t2 === "deep") console.log(`[Deep✓] "${p.n}" odds=${liveOdds} tier=${t2}`);
+          return t2 === "deep";
         }).length;
+        console.log(`[Roster ${who.toUpperCase()}] ${deep}/${DEEP_MIN} deep picks out of ${arr.length} total`);
         document.getElementById(`pl-${who}`).innerHTML = arr.length
           ? arr
               .map((p) => {
