@@ -2179,17 +2179,6 @@
         if (!o || o === "WD" || o === "N/A") return 9999999;
         return parseInt(String(o).replace(/[^0-9]/g, "")) || 9999999;
       }
-      function deepThresh(field) {
-        const elig = field
-          .filter((p) => p.o !== "WD" && p.o !== "N/A")
-          .sort((a, b) => oNum(a.o) - oNum(b.o));
-        return elig[Math.ceil((elig.length * 2) / 3)]
-          ? oNum(elig[Math.ceil((elig.length * 2) / 3)].o)
-          : 17000;
-      }
-      function isDeep(o, thresh) {
-        return oNum(o) >= thresh;
-      }
       function tier(o) {
         const n = oNum(o);
         if (n <= 2500) return "fav";
@@ -2209,6 +2198,14 @@
         long: "Longshot",
         deep: "Deep",
       };
+
+      // ── Helper: look up a player's current odds from the field (source of truth) ──
+      function currentOdds(playerName) {
+        const t = getActiveTournament();
+        if (!t || !t.field) return null;
+        const entry = t.field.find((p) => p.n === playerName);
+        return entry ? entry.o : null;
+      }
 
       // ── THE ODDS API HYBRID FETCHER ──
       async function fetchField(tournId) {
@@ -2585,7 +2582,6 @@
           document.getElementById("pag").innerHTML = "";
           return;
         }
-        const thresh = deepThresh(t.field);
         document.getElementById("fp-title").textContent = `Field · ${t.name}`;
         const elig = t.field.filter((p) => p.o !== "WD");
         const filt = elig.filter(
@@ -2602,7 +2598,7 @@
           .map((p) => {
             const rank = elig.findIndex((x) => x.n === p.n) + 1;
             const ti = tier(p.o),
-              deep = isDeep(p.o, thresh);
+              deep = ti === "deep";
             const inA = WS.picksA.some((x) => x.n === p.n),
               inB = WS.picksB.some((x) => x.n === p.n);
             const rc = inA && inB ? "rAB" : inA ? "rA" : inB ? "rB" : "";
@@ -2678,20 +2674,26 @@
       function renderPicks(who) {
         const arr = who === "a" ? WS.picksA : WS.picksB;
         const t = getActiveTournament();
-        const th = t ? deepThresh(t.field) : 17000;
-        const deep = arr.filter((p) => isDeep(p.o, th)).length;
+        // Count deep picks using current field odds (source of truth) and the
+        // same hardcoded tier() function used by the field table, so the ★ tags
+        // and the "X/3 deep" counter always agree.
+        const deep = arr.filter((p) => {
+          const liveOdds = currentOdds(p.n) || p.o;
+          return tier(liveOdds) === "deep";
+        }).length;
         document.getElementById(`pl-${who}`).innerHTML = arr.length
           ? arr
-              .map(
-                (p) =>
-                  `<div class="prow"><span class="pr-n">${p.n}${isDeep(p.o, th) ? '<span class="pr-dt">★</span>' : ""}</span><span class="pr-o">${p.o}</span>${!isDraftLocked() ? `<button class="pr-del" onclick="removePick('${who}','${p.n.replace(/'/g, "\\'")}')">✕</button>` : ""}</div>`,
-              )
+              .map((p) => {
+                const liveOdds = currentOdds(p.n) || p.o;
+                const isDeepPick = tier(liveOdds) === "deep";
+                return `<div class="prow"><span class="pr-n">${p.n}${isDeepPick ? '<span class="pr-dt">★</span>' : ""}</span><span class="pr-o">${liveOdds}</span>${!isDraftLocked() ? `<button class="pr-del" onclick="removePick('${who}','${p.n.replace(/'/g, "\\'")}')">✕</button>` : ""}</div>`;
+              })
               .join("")
           : '<div class="pempty">No picks yet</div>';
         document.getElementById(`tly-${who}`).textContent =
           `${arr.length}/${PICKS_MAX}`;
         document.getElementById(`req-${who}`).innerHTML =
-          `<span class="dreq ${arr.length >= PICKS_MAX ? "met" : ""}">${arr.length}/${PICKS_MAX} picks</span><span class="dreq ${deep >= DEEP_MIN ? "met" : ""}">${deep}/${DEEP_MIN} deep ★</span>`;
+          `<span class="dreq ${arr.length >= PICKS_MAX ? "met" : ""}">${arr.length}/${PICKS_MAX} picks</span><span class="dreq ${deep >= DEEP_MIN ? "met" : "wrn"}">${deep}/${DEEP_MIN} deep ★</span>`;
       }
       function syncNames() {
         document.getElementById("hcn-a").textContent = WS.nameA || "Matt";
@@ -3371,10 +3373,6 @@
           // ═══════════════════════════════════════════════════════
           // Step 4: COMPETITOR SUMMARY FALLBACK for cut/WD/missing-stats players
           // ═══════════════════════════════════════════════════════
-          // This fetches the per-player detailed scorecard endpoint which ESPN
-          // maintains even after a player is cut or withdraws. Think of it like
-          // how a library archives a book to a separate shelf after it's removed
-          // from the main display — the data is still there, just at a different URL.
           if (needsSummaryFetch.length > 0) {
             console.log(`[Scores] Fetching competitor summaries for ${needsSummaryFetch.length} players...`);
             toast(`Fetching detailed scorecards for ${needsSummaryFetch.length} cut/WD players...`);
@@ -3390,8 +3388,6 @@
                 const summaryRes = await fetch(summaryUrl);
                 const summaryJson = await summaryRes.json();
 
-                // ── Primary: Parse aggregate stats from the top-level stats[] array ──
-                // This is the gold standard — ESPN pre-computes eagles, birdies, pars, etc.
                 const statsArr = summaryJson?.stats || [];
                 const sm = {};
                 for (const s of statsArr) {
@@ -3416,8 +3412,6 @@
                     `[Scores] ✅ "${name}" competitor summary stats[]: E:${aggStats.eagles} B:${aggStats.birdies} P:${aggStats.pars} Bo:${aggStats.bogeys} D:${aggStats.doubles} W:${aggStats.worse} (${totalHoles} holes)`
                   );
                 } else {
-                  // ── Secondary fallback: Parse from rounds[].linescores ──
-                  // Each round has hole-by-hole data with scoreType.name indicating the result
                   const rounds = summaryJson?.rounds || [];
                   let eagles = 0, birdies = 0, pars = 0, bogeys = 0, doubles = 0, worse = 0;
                   let holeCount = 0;
